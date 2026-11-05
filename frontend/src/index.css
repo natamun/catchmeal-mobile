@@ -144,7 +144,7 @@
   --color-swiss-red: #c92215;
 
   /* Fonts */
-  --font-sans: 'Inter', -apple-system, sans-serif;
+  --font-sans: 'Inter Variable', -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
@@ -161,8 +161,10 @@
   color: var(--color-green-800);
 }
 
+/* In the Android app the page is drawn under the status bar: keep it clear. */
 body {
   margin: 0;
+  padding-top: env(safe-area-inset-top);
 }
 
 .dialog-fade {
