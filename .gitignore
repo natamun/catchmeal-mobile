@@ -1,0 +1,14 @@
+# dotenv environment variable files
+.env
+.env.local
+
+# PDF files
+*.pdf
+
+.vscode/*
+
+# Personal notes
+PROGRESS.md
+
+# Logs Caddy
+/logs/

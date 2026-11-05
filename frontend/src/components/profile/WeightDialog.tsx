@@ -1,0 +1,279 @@
+import { useId, useRef, useState, type RefObject } from 'react';
+import { Trash2 } from 'lucide-react';
+
+import { useFormValidation } from '../../hooks/useFormValidation';
+import {
+  hasTooManyDecimals,
+  parseDecimal,
+  TOO_MANY_DECIMALS,
+} from '../../utils/decimals';
+import { formatDayMonth } from '../../utils/format';
+import { BaseDialog } from '../ui/BaseDialog';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { FieldError } from '../ui/FieldError';
+import { LABEL_CLASS } from '../ui/fieldStyle';
+import { Input } from '../ui/Input';
+import { deleteWeight, logWeight, updateWeight, type WeightEntry } from './api';
+import { COMPOSITION, MEASURES, type MeasureKey } from './measures';
+
+const [WEIGHT] = MEASURES;
+
+/** Number shown with a comma in the field. */
+function toText(value: number | null | undefined) {
+  return String(value ?? '').replace('.', ',');
+}
+
+/**
+ * Fills the form with the weigh-in being corrected, or leaves it empty for a
+ * new one.
+ */
+function toForm(entry: WeightEntry | null): Record<MeasureKey, string> {
+  return {
+    weight: toText(entry?.weight),
+    bodyFat: toText(entry?.bodyFat),
+    fatFreeMass: toText(entry?.fatFreeMass),
+    bodyWater: toText(entry?.bodyWater),
+    muscleMass: toText(entry?.muscleMass),
+  };
+}
+
+/** Weight required; every value within its range, with 2 decimals at most. */
+function validate(form: Record<MeasureKey, string>) {
+  const errors: Partial<Record<MeasureKey, string>> = {};
+
+  for (const { key, unit, min, max } of MEASURES) {
+    const value = parseDecimal(form[key]);
+
+    if (value === null) {
+      if (key === 'weight') {
+        errors.weight = 'Poids obligatoire';
+      }
+    } else if (Number.isNaN(value) || value < min || value > max) {
+      errors[key] = `Entre ${min} et ${max} ${unit}`;
+    } else if (hasTooManyDecimals(form[key])) {
+      errors[key] = TOO_MANY_DECIMALS;
+    }
+  }
+
+  return errors;
+}
+
+interface WeightFormProps {
+  userId: number;
+  entry: WeightEntry | null;
+  onSaved: (entry: WeightEntry) => void;
+}
+
+/**
+ * The form inside the dialog, remounted at each opening (key) so it starts from
+ * the right weigh-in.
+ */
+function WeightForm({
+  userId,
+  entry,
+  onSaved,
+  hasDeleteFailed,
+}: WeightFormProps & { hasDeleteFailed: boolean }) {
+  const formId = useId();
+  const {
+    form,
+    handleFocus,
+    handleBlur,
+    handleChange,
+    isInvalid,
+    errorMessage,
+    attemptSubmit,
+  } = useFormValidation(() => toForm(entry), validate);
+  const [hasFailed, setHasFailed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setHasFailed(false);
+    const weight = parseDecimal(form.weight);
+
+    if (!attemptSubmit() || weight === null) {
+      return;
+    }
+
+    const input = {
+      weight,
+      bodyFat: parseDecimal(form.bodyFat),
+      fatFreeMass: parseDecimal(form.fatFreeMass),
+      bodyWater: parseDecimal(form.bodyWater),
+      muscleMass: parseDecimal(form.muscleMass),
+    };
+
+    setIsSubmitting(true);
+    try {
+      onSaved(
+        entry
+          ? await updateWeight(userId, entry.id, input)
+          : await logWeight(userId, input),
+      );
+    } catch {
+      setHasFailed(true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const renderInput = ({ key: field, example }: (typeof MEASURES)[number]) => (
+    <>
+      <Input
+        id={`${formId}-${field}`}
+        type="text"
+        inputMode="decimal"
+        placeholder={`Ex : ${example}`}
+        value={form[field]}
+        onChange={(e) => handleChange(field, e.target.value)}
+        onFocus={() => handleFocus(field)}
+        onBlur={() => handleBlur(field)}
+        aria-invalid={isInvalid(field)}
+        aria-describedby={`${formId}-${field}-error`}
+      />
+      <FieldError
+        id={`${formId}-${field}-error`}
+        message={errorMessage(field)}
+      />
+    </>
+  );
+
+  return (
+    <form
+      onSubmit={(e) => void handleSubmit(e)}
+      noValidate
+      autoComplete="off"
+      className="flex flex-col gap-5"
+    >
+      <div className="relative flex flex-col gap-1.5">
+        <label htmlFor={`${formId}-weight`} className={LABEL_CLASS}>
+          Poids <span className="normal-case">(kg)</span>
+        </label>
+        {renderInput(WEIGHT)}
+      </div>
+
+      <fieldset className="min-w-0">
+        <legend className={`mb-1.5 ${LABEL_CLASS}`}>
+          Composition corporelle (optionnel)
+        </legend>
+        <div className="grid grid-cols-2 gap-3">
+          {COMPOSITION.map((measure) => (
+            <div key={measure.key} className="relative flex flex-col gap-1">
+              <label
+                htmlFor={`${formId}-${measure.key}`}
+                className="text-xs text-green-500"
+              >
+                {measure.label} ({measure.unit})
+              </label>
+              {renderInput(measure)}
+            </div>
+          ))}
+        </div>
+      </fieldset>
+
+      {hasFailed && (
+        <p role="alert" className="text-sm text-red-500">
+          Impossible d&apos;enregistrer la pesée. Réessayez.
+        </p>
+      )}
+      {hasDeleteFailed && (
+        <p role="alert" className="text-sm text-red-500">
+          Impossible de supprimer la pesée. Réessayez.
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full cursor-pointer rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+      </button>
+    </form>
+  );
+}
+
+interface Props extends WeightFormProps {
+  dialogRef: RefObject<HTMLDialogElement | null>;
+  openCount: number;
+  onDeleted: (entryId: number) => void;
+}
+
+/** Dialog to add a weigh-in, or to correct or delete an existing one. */
+export function WeightDialog({
+  dialogRef,
+  openCount,
+  userId,
+  entry,
+  onSaved,
+  onDeleted,
+}: Props) {
+  const confirmDialogRef = useRef<HTMLDialogElement>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [hasDeleteFailed, setHasDeleteFailed] = useState(false);
+  const day = entry ? formatDayMonth(new Date(entry.loggedAt)) : '';
+
+  const handleDelete = async () => {
+    if (!entry) {
+      return;
+    }
+
+    setHasDeleteFailed(false);
+    setIsDeleting(true);
+    try {
+      await deleteWeight(userId, entry.id);
+      dialogRef.current?.close();
+      onDeleted(entry.id);
+    } catch {
+      setHasDeleteFailed(true);
+    } finally {
+      setIsDeleting(false);
+      confirmDialogRef.current?.close();
+    }
+  };
+
+  return (
+    <>
+      <BaseDialog
+        dialogRef={dialogRef}
+        title={entry ? `Pesée du ${day}` : 'Nouvelle pesée'}
+        maxWidth="sm"
+        onClose={() => setHasDeleteFailed(false)}
+        headerActions={
+          entry && (
+            <button
+              type="button"
+              onClick={() => confirmDialogRef.current?.showModal()}
+              aria-label="Supprimer la pesée"
+              className="cursor-pointer text-green-400 transition-colors hover:text-red-500"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+          )
+        }
+      >
+        <WeightForm
+          key={openCount}
+          userId={userId}
+          entry={entry}
+          hasDeleteFailed={hasDeleteFailed}
+          onSaved={(saved) => {
+            dialogRef.current?.close();
+            onSaved(saved);
+          }}
+        />
+      </BaseDialog>
+
+      <ConfirmDialog
+        dialogRef={confirmDialogRef}
+        title="Supprimer cette pesée ?"
+        description={`La pesée du ${day} sera retirée de l'historique.`}
+        confirmLabel="Supprimer"
+        pendingLabel="Suppression..."
+        isPending={isDeleting}
+        onConfirm={() => void handleDelete()}
+      />
+    </>
+  );
+}

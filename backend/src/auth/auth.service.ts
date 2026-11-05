@@ -1,0 +1,450 @@
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcryptjs';
+
+import { EmailTokenService } from '../email-token/email-token.service';
+import { EmailService } from '../email/email.service';
+import { EmailTokenType, Prisma } from '../generated/prisma/client';
+import { UsersService } from '../users/users.service';
+import { RegisterDto } from './dto/register.dto';
+import { isPlaceholderEmail } from './oauth-email';
+import { OAuthEmailNotVerifiedException } from './oauth-email-not-verified';
+
+const SALT_ROUNDS = 10;
+
+// A valid bcrypt hash used to run a comparison when the user does not exist,
+// so login timing is the same whether or not the username is taken.
+const DUMMY_HASH =
+  '$2b$10$TzTHY1XqY4Q4jBnOtyIN1e/3A1k//W8ksPBY0SKhfADHSbM8RurHq';
+
+const RESEND_COOLDOWN_MS = 60_000;
+
+const VERIFY_EMAIL_PATH = '/verify-email';
+
+const RESET_PASSWORD_PATH = '/reset-password';
+
+type PendingVerification = { requiresVerification: true };
+
+type AuthInput = { username: string; password: string };
+
+export const EMAIL_NOT_VERIFIED_CODE = 'EMAIL_NOT_VERIFIED';
+
+export type SignInData = {
+  userId: number;
+  username: string;
+  email?: string;
+  role?: string;
+  name?: string;
+  avatarUrl?: string | null;
+  height?: number | null;
+  targetWeight?: number | null;
+  dailyCalorieGoal?: number | null;
+  dailyProteinGoal?: number | null;
+  dailyCarbsGoal?: number | null;
+  dailyFatGoal?: number | null;
+  gender?: string | null;
+  birthDate?: Date | null;
+  activityLevel?: string | null;
+  hasPassword?: boolean;
+  isNewUser?: boolean;
+  emailVerified?: boolean;
+};
+
+type AuthResult = {
+  accessToken: string;
+  userId: number;
+  username: string;
+  role?: string;
+  name?: string;
+  avatarUrl?: string | null;
+  height?: number | null;
+  targetWeight?: number | null;
+  dailyCalorieGoal?: number | null;
+  dailyProteinGoal?: number | null;
+  dailyCarbsGoal?: number | null;
+  dailyFatGoal?: number | null;
+  gender?: string | null;
+  birthDate?: Date | null;
+  activityLevel?: string | null;
+  hasPassword?: boolean;
+  emailVerified?: boolean;
+  email?: string;
+};
+
+interface OAuthUserParams {
+  username: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  provider: 'google' | 'github' | '42';
+}
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+    private readonly emailTokenService: EmailTokenService,
+    private readonly emailService: EmailService,
+  ) {}
+
+  private get emailVerificationRequired(): boolean {
+    return process.env.EMAIL_VERIFICATION_REQUIRED === 'true';
+  }
+
+  private frontendUrl(path: string, token: string): string {
+    const url = new URL(path, process.env.FRONTEND_URL);
+    url.searchParams.set('token', token);
+    return url.toString();
+  }
+
+  async validateUser(input: AuthInput): Promise<SignInData | null> {
+    const user = await this.usersService.findUserByName(input.username);
+
+    // Always run a bcrypt comparison, even when the user does not exist, so the
+    // response time does not reveal whether the username is taken (prevents
+    // username enumeration by timing). DUMMY_HASH is a valid bcrypt hash that
+    // never matches a real password.
+    const hashToCompare = user?.passwordHash || DUMMY_HASH;
+    const passwordMatches = await bcrypt.compare(input.password, hashToCompare);
+
+    if (!user || !passwordMatches) {
+      return null;
+    }
+
+    if (this.emailVerificationRequired && !user.emailVerifiedAt) {
+      throw new ForbiddenException({
+        statusCode: 403,
+        message:
+          'Veuillez confirmer votre adresse e-mail avant de vous connecter.',
+        code: EMAIL_NOT_VERIFIED_CODE,
+      });
+    }
+
+    return {
+      userId: user.id,
+      username: user.username,
+      role: user.role,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      height: user.height,
+      targetWeight: user.targetWeight,
+      dailyCalorieGoal: user.dailyCalorieGoal,
+      dailyProteinGoal: user.dailyProteinGoal,
+      dailyCarbsGoal: user.dailyCarbsGoal,
+      dailyFatGoal: user.dailyFatGoal,
+      gender: user.gender,
+      birthDate: user.birthDate,
+      activityLevel: user.activityLevel,
+      hasPassword: true,
+      emailVerified: Boolean(user.emailVerifiedAt),
+      email: user.email,
+    };
+  }
+
+  async findOrCreateFromOAuth(params: OAuthUserParams): Promise<SignInData> {
+    const { username, name, email, emailVerified, provider } = params;
+
+    const existingUser = await this.usersService.findUserByEmail(email);
+
+    if (existingUser) {
+      if (!emailVerified && !isPlaceholderEmail(email))
+        throw new OAuthEmailNotVerifiedException();
+      if (emailVerified && !existingUser.emailVerifiedAt) {
+        await this.usersService.claimWithOAuth(
+          existingUser.id,
+          existingUser.oauthProvider ?? provider,
+        );
+      }
+      return {
+        userId: existingUser.id,
+        username: existingUser.username,
+        email: existingUser.email,
+        name: existingUser.name,
+        avatarUrl: existingUser.avatarUrl,
+        height: existingUser.height,
+        targetWeight: existingUser.targetWeight,
+        dailyCalorieGoal: existingUser.dailyCalorieGoal,
+        dailyProteinGoal: existingUser.dailyProteinGoal,
+        dailyCarbsGoal: existingUser.dailyCarbsGoal,
+        dailyFatGoal: existingUser.dailyFatGoal,
+        gender: existingUser.gender,
+        birthDate: existingUser.birthDate,
+        activityLevel: existingUser.activityLevel,
+        isNewUser: false,
+      };
+    }
+
+    try {
+      const newUser = await this.usersService.create({
+        username,
+        name,
+        email,
+        passwordHash: '',
+        oauthProvider: provider,
+        emailVerifiedAt: emailVerified ? new Date() : undefined,
+      });
+
+      return {
+        userId: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        isNewUser: true,
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        // Race condition: user was created between our check and insert
+        const retried = await this.usersService.findUserByEmail(email);
+        if (retried) {
+          if (!emailVerified && !isPlaceholderEmail(email))
+            throw new OAuthEmailNotVerifiedException();
+          return {
+            userId: retried.id,
+            username: retried.username,
+            isNewUser: false,
+          };
+        }
+      }
+      throw error;
+    }
+  }
+
+  async register(dto: RegisterDto): Promise<AuthResult | PendingVerification> {
+    const passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
+
+    try {
+      const user = await this.usersService.create({
+        username: dto.username,
+        name: dto.name,
+        email: dto.email,
+        passwordHash,
+      });
+
+      await this.sendVerificationEmail(user.id, dto.email);
+
+      if (this.emailVerificationRequired) {
+        return { requiresVerification: true };
+      }
+
+      return this.signIn({
+        userId: user.id,
+        username: user.username,
+        email: dto.email,
+        hasPassword: true,
+        emailVerified: false,
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          "Ce nom d'utilisateur ou cet email est déjà pris",
+        );
+      }
+      throw error;
+    }
+  }
+
+  async sendVerificationEmail(userId: number, email: string): Promise<void> {
+    try {
+      const token = await this.emailTokenService.create(
+        userId,
+        EmailTokenType.VERIFY_EMAIL,
+      );
+
+      await this.emailService.sendVerificationEmail(
+        email,
+        this.frontendUrl(VERIFY_EMAIL_PATH, token),
+      );
+    } catch (error) {
+      console.error('Failed to send the verification email', error);
+    }
+  }
+
+  async verifyEmail(token: string): Promise<{ verified: true }> {
+    const check = await this.emailTokenService.consume(
+      token,
+      EmailTokenType.VERIFY_EMAIL,
+    );
+
+    switch (check.status) {
+      case 'valid':
+        await this.usersService.markEmailVerified(check.userId);
+        return { verified: true };
+      case 'used': {
+        const user = await this.usersService.findById(check.userId);
+        if (user?.emailVerifiedAt) {
+          return { verified: true };
+        }
+        throw new BadRequestException('Ce lien a déjà été utilisé.');
+      }
+      case 'expired':
+        throw new BadRequestException(
+          'Ce lien a expiré. Demandez-en un nouveau.',
+        );
+      case 'invalid':
+        throw new BadRequestException('Ce lien est invalide.');
+    }
+  }
+
+  async resendVerification(email: string): Promise<{ success: true }> {
+    const user = await this.usersService.findUserByEmail(email);
+
+    if (
+      user &&
+      !user.emailVerifiedAt &&
+      !(await this.emailTokenService.wasIssuedRecently(
+        user.id,
+        EmailTokenType.VERIFY_EMAIL,
+        RESEND_COOLDOWN_MS,
+      ))
+    ) {
+      void this.sendVerificationEmail(user.id, user.email);
+    }
+
+    return { success: true };
+  }
+
+  async forgotPassword(email: string): Promise<{ success: true }> {
+    const user = await this.usersService.findUserByEmail(email);
+
+    if (
+      user?.passwordHash &&
+      !(await this.emailTokenService.wasIssuedRecently(
+        user.id,
+        EmailTokenType.RESET_PASSWORD,
+        RESEND_COOLDOWN_MS,
+      ))
+    ) {
+      void this.sendPasswordResetEmail(user.id, user.email);
+    }
+
+    return { success: true };
+  }
+
+  async sendPasswordResetEmail(userId: number, email: string): Promise<void> {
+    try {
+      const token = await this.emailTokenService.create(
+        userId,
+        EmailTokenType.RESET_PASSWORD,
+      );
+
+      await this.emailService.sendPasswordResetEmail(
+        email,
+        this.frontendUrl(RESET_PASSWORD_PATH, token),
+      );
+    } catch (error) {
+      console.error('Failed to send the password reset email', error);
+    }
+  }
+
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<{ success: true }> {
+    const check = await this.emailTokenService.consume(
+      token,
+      EmailTokenType.RESET_PASSWORD,
+    );
+
+    switch (check.status) {
+      case 'valid': {
+        const user = await this.usersService.findById(check.userId);
+        if (!user) {
+          throw new BadRequestException('Ce lien est invalide.');
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+        await this.usersService.updatePasswordHash(user.id, passwordHash);
+        // Opening the link proves the user reads this mailbox.
+        await this.usersService.markEmailVerified(user.id);
+        await this.emailService.sendPasswordChangedEmail(user.email);
+
+        return { success: true };
+      }
+      case 'used':
+        throw new BadRequestException('Ce lien a déjà été utilisé.');
+      case 'expired':
+        throw new BadRequestException(
+          'Ce lien a expiré. Demandez-en un nouveau.',
+        );
+      case 'invalid':
+        throw new BadRequestException('Ce lien est invalide.');
+    }
+  }
+
+  async signIn(user: SignInData): Promise<AuthResult> {
+    const tokenPayload = {
+      sub: user.userId,
+      username: user.username,
+      role: user.role,
+    };
+
+    const accessToken = await this.jwtService.signAsync(tokenPayload);
+
+    return {
+      accessToken,
+      username: user.username,
+      userId: user.userId,
+      role: user.role,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      height: user.height,
+      targetWeight: user.targetWeight,
+      dailyCalorieGoal: user.dailyCalorieGoal,
+      dailyProteinGoal: user.dailyProteinGoal,
+      dailyCarbsGoal: user.dailyCarbsGoal,
+      dailyFatGoal: user.dailyFatGoal,
+      gender: user.gender,
+      birthDate: user.birthDate,
+      activityLevel: user.activityLevel,
+      hasPassword: user.hasPassword,
+      emailVerified: user.emailVerified,
+      email: user.email,
+    };
+  }
+
+  async changePassword(
+    userId: number,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    if (!user.passwordHash) {
+      throw new BadRequestException(
+        "Ce compte utilise une connexion Google/Github/42 : il n'y a pas de mot de passe à modifier",
+      );
+    }
+
+    const matches = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!matches) {
+      throw new BadRequestException('Mot de passe actuel incorrect');
+    }
+
+    if (currentPassword === newPassword) {
+      throw new BadRequestException(
+        "Le nouveau mot de passe doit être différent de l'ancien",
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await this.usersService.updatePasswordHash(userId, passwordHash);
+    await this.emailService.sendPasswordChangedEmail(user.email);
+
+    return { success: true };
+  }
+}

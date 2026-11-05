@@ -1,0 +1,276 @@
+import { useId, useRef, useState, type RefObject } from 'react';
+import { Trash2 } from 'lucide-react';
+
+import { requestErrorMessage } from '../../utils/requestErrorMessage';
+import { usernameError } from '../../utils/validation';
+import { Avatar } from '../ui/Avatar';
+import { BaseDialog } from '../ui/BaseDialog';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { FieldError } from '../ui/FieldError';
+import { LABEL_CLASS } from '../ui/fieldStyle';
+import { Input } from '../ui/Input';
+import { SelectDropdown } from '../ui/SelectDropdown';
+import { StatTile } from '../ui/StatTile';
+import {
+  deleteUser,
+  updateUser,
+  type AdminUser,
+  type AdminUserChanges,
+} from './api';
+
+const ROLE_OPTIONS = [
+  { value: 'USER', label: 'Utilisateur' },
+  { value: 'ADMIN', label: 'Administrateur' },
+];
+
+const PROVIDER_LABELS: Record<string, string> = {
+  '42': '42',
+  google: 'Google',
+  github: 'GitHub',
+};
+
+/**
+ * How the user logs in: the stored OAuth provider, else a password, else a
+ * guess from the username prefix of older OAuth accounts.
+ */
+function getAuthMethod(user: AdminUser): string {
+  if (user.oauthProvider) {
+    return PROVIDER_LABELS[user.oauthProvider] ?? user.oauthProvider;
+  }
+  if (user.hasPassword) return 'Mot de passe';
+  // Accounts created before oauthProvider existed: infer from the username prefix
+  if (user.username.startsWith('google_')) return 'Google';
+  if (user.username.startsWith('github_')) return 'GitHub';
+  if (user.username.startsWith('42_')) return '42';
+  return 'OAuth';
+}
+
+interface PanelProps {
+  user: AdminUser;
+  container: HTMLElement | null;
+  hasDeleteFailed: boolean;
+  onUpdated: (changes: Partial<AdminUser>) => void;
+}
+
+/**
+ * Details of one user and the form to change their username and role. Remounted
+ * at each opening (key), so it always starts from the user's current values.
+ */
+function UserPanel({
+  user,
+  container,
+  hasDeleteFailed,
+  onUpdated,
+}: PanelProps) {
+  const roleId = useId();
+  const usernameId = useId();
+  const [role, setRole] = useState(user.role);
+  const [username, setUsername] = useState(user.username);
+  const [isUsernameTouched, setIsUsernameTouched] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const error = usernameError(username);
+  const changes: AdminUserChanges = {};
+  if (role !== user.role) changes.role = role;
+  if (username.trim() !== user.username) changes.username = username.trim();
+  const hasChanges = Object.keys(changes).length > 0;
+
+  const handleSave = async () => {
+    setSaveError(null);
+    setIsSaving(true);
+    try {
+      const updated = await updateUser(user.id, changes);
+      onUpdated({ role: updated.role, username: updated.username });
+    } catch (err: unknown) {
+      setSaveError(
+        requestErrorMessage(
+          err,
+          "Impossible d'enregistrer les modifications. Réessayez.",
+        ),
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center gap-3">
+        <Avatar username={user.username} avatarUrl={user.avatarUrl} size="lg" />
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-green-800">{user.name}</p>
+          <p className="truncate text-sm text-green-600">{user.email}</p>
+          <p className="text-xs text-green-500">
+            {user.onlineStatus ? 'En ligne' : 'Hors ligne'}
+          </p>
+        </div>
+      </div>
+
+      <dl className="grid grid-cols-2 gap-3">
+        <StatTile label="ID">{user.id}</StatTile>
+        <StatTile label="Statut">
+          {user.deletedAt ? 'Supprimé' : 'Actif'}
+        </StatTile>
+        <StatTile label="Connexion">{getAuthMethod(user)}</StatTile>
+        <StatTile label="Amis">{user._count?.userFriend ?? '–'}</StatTile>
+        <StatTile label="Créé le">
+          {new Date(user.createAt).toLocaleDateString('fr-FR')}
+        </StatTile>
+        <StatTile label="Dernière activité">
+          {user.lastSeenAt
+            ? new Date(user.lastSeenAt).toLocaleString('fr-FR', {
+                dateStyle: 'short',
+                timeStyle: 'short',
+              })
+            : '–'}
+        </StatTile>
+      </dl>
+
+      <div className="relative flex flex-col gap-1.5">
+        <label htmlFor={usernameId} className={LABEL_CLASS}>
+          Nom d'utilisateur
+        </label>
+        <Input
+          id={usernameId}
+          value={username}
+          onChange={(e) => {
+            setUsername(e.target.value);
+            setSaveError(null);
+          }}
+          onBlur={() => setIsUsernameTouched(true)}
+          autoComplete="off"
+          aria-invalid={isUsernameTouched && Boolean(error)}
+          aria-describedby={`${usernameId}-error`}
+        />
+        <FieldError
+          id={`${usernameId}-error`}
+          message={isUsernameTouched ? error : undefined}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor={roleId} className={LABEL_CLASS}>
+          Rôle
+        </label>
+        <SelectDropdown
+          id={roleId}
+          value={role}
+          options={ROLE_OPTIONS}
+          onChange={(value) => setRole(value as AdminUser['role'])}
+          container={container}
+        />
+      </div>
+
+      {saveError && (
+        <p role="alert" className="text-sm text-red-500">
+          {saveError}
+        </p>
+      )}
+      {hasDeleteFailed && (
+        <p role="alert" className="text-sm text-red-500">
+          Impossible de supprimer le compte. Réessayez.
+        </p>
+      )}
+
+      <button
+        type="button"
+        onClick={() => void handleSave()}
+        disabled={isSaving || !hasChanges || Boolean(error)}
+        className="w-full cursor-pointer rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+      </button>
+    </div>
+  );
+}
+
+interface Props {
+  dialogRef: RefObject<HTMLDialogElement | null>;
+  user: AdminUser | null;
+  openCount: number;
+  onUpdated: (changes: Partial<AdminUser>) => void;
+}
+
+/**
+ * Dialog of one user in the admin board: details, username and role editing,
+ * and account deletion behind a confirmation.
+ */
+export function AdminUserDialog({
+  dialogRef,
+  user,
+  openCount,
+  onUpdated,
+}: Props) {
+  const confirmDialogRef = useRef<HTMLDialogElement>(null);
+  const [dialogNode, setDialogNode] = useState<HTMLDialogElement | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [hasDeleteFailed, setHasDeleteFailed] = useState(false);
+
+  const handleDelete = async () => {
+    if (!user) {
+      return;
+    }
+
+    setHasDeleteFailed(false);
+    setIsDeleting(true);
+    try {
+      const deleted = await deleteUser(user.id);
+      dialogRef.current?.close();
+      onUpdated({ deletedAt: deleted.deletedAt });
+    } catch {
+      setHasDeleteFailed(true);
+    } finally {
+      setIsDeleting(false);
+      confirmDialogRef.current?.close();
+    }
+  };
+
+  return (
+    <>
+      <BaseDialog
+        dialogRef={dialogRef}
+        title={user ? `@${user.username}` : ''}
+        maxWidth="sm"
+        onClose={() => setHasDeleteFailed(false)}
+        onDialogNode={setDialogNode}
+        headerActions={
+          user &&
+          !user.deletedAt && (
+            <button
+              type="button"
+              onClick={() => confirmDialogRef.current?.showModal()}
+              aria-label="Supprimer le compte"
+              className="cursor-pointer text-green-400 transition-colors hover:text-red-500"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+          )
+        }
+      >
+        {user && (
+          <UserPanel
+            key={openCount}
+            user={user}
+            container={dialogNode}
+            hasDeleteFailed={hasDeleteFailed}
+            onUpdated={(changes) => {
+              dialogRef.current?.close();
+              onUpdated(changes);
+            }}
+          />
+        )}
+      </BaseDialog>
+
+      <ConfirmDialog
+        dialogRef={confirmDialogRef}
+        title="Supprimer ce compte ?"
+        description={`Le compte @${user?.username ?? ''} sera supprimé. Cette action est irréversible.`}
+        confirmLabel="Supprimer"
+        pendingLabel="Suppression..."
+        isPending={isDeleting}
+        onConfirm={() => void handleDelete()}
+      />
+    </>
+  );
+}
