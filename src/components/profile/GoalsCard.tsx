@@ -8,7 +8,6 @@ import {
   suggestGoalType,
   type GoalType,
 } from '../../data/goals';
-import { formatKg } from '../../utils/format';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { Skeleton } from '../ui/Skeleton';
 import { StatTile } from '../ui/StatTile';
@@ -142,77 +141,94 @@ export function GoalsCard({ profile, latestEntry }: Props) {
 
   const goalLabel = GOAL_TYPE_OPTIONS.find((o) => o.value === goalType)?.label;
 
-  const renderBasis = () => {
-    if (isLoading) {
-      return <Skeleton className="h-5 w-48" />;
-    }
-    if (!recommendation || !expenditure) {
-      return 'Complétez le profil et ajoutez une pesée pour obtenir des recommandations.';
-    }
+  const paceSelect =
+    paces.length > 1 ? (
+      <SelectDropdown
+        size="sm"
+        value={String(pace)}
+        options={paces.map((option) => ({
+          value: String(option),
+          label: formatPace(option),
+        }))}
+        onChange={setPaceChoice}
+        container={document.body}
+        className="min-w-0 flex-1 whitespace-nowrap"
+      />
+    ) : null;
 
+  const expenditureText = measured
+    ? `Dépense mesurée sur ${measured.loggedDays} jours : ${formatMeasure(measured.kcal, 'kcal')}`
+    : expenditure
+      ? `Dépense estimée : ${formatMeasure(expenditure, 'kcal')}, mesurée après 2 semaines de journal`
+      : null;
+
+  const limitNote = recommendation?.limitedByBmr
+    ? 'Rythme limité : les calories ne descendent pas sous le métabolisme de base.'
+    : null;
+
+  if (isLoading || !recommendation) {
     return (
-      <>
-        <span className="inline-flex items-center gap-1.5 align-middle whitespace-nowrap">
-          {goalLabel}
-          {paces.length > 1 && (
-            <>
-              {' à '}
-              <SelectDropdown
-                size="sm"
-                value={String(pace)}
-                options={paces.map((option) => ({
-                  value: String(option),
-                  label: formatPace(option),
-                }))}
-                onChange={setPaceChoice}
-                container={document.body}
-              />
-            </>
-          )}
-        </span>
-        <span className="mt-1 block">
-          {measured
-            ? `Dépense mesurée sur vos ${measured.loggedDays} derniers jours : ${formatMeasure(expenditure, 'kcal')}`
-            : `Dépense estimée : ${formatMeasure(expenditure, 'kcal')} (mesurée après 2 semaines de journal)`}
-        </span>
-        {recommendation.limitedByBmr && (
-          <span className="mt-1 block">
-            Rythme limité : les calories ne descendent pas sous le métabolisme
-            de base.
-          </span>
+      <SummaryCard title="Mes objectifs">
+        {isLoading ? (
+          <Skeleton className="h-24 w-full" />
+        ) : (
+          <>
+            <p className="text-sm text-theme-600">
+              Complétez le profil et ajoutez une pesée pour obtenir des
+              recommandations.
+            </p>
+            <dl className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {rows.map(({ label, unit, goal }) => (
+                <StatTile key={label} label={label}>
+                  {formatMeasure(goal, unit)}
+                </StatTile>
+              ))}
+            </dl>
+          </>
         )}
-      </>
+      </SummaryCard>
     );
-  };
+  }
 
   return (
     <SummaryCard
       title="Mes objectifs"
       aside={
-        <div className="text-sm text-theme-600">
-          {remaining && (
-            <p className="font-semibold text-theme-800">{remaining}</p>
-          )}
-          <div>{renderBasis()}</div>
-        </div>
+        <span className="flex min-w-0 flex-1 basis-56 items-center gap-2 text-sm font-medium text-theme-700">
+          <span className="whitespace-nowrap">{goalLabel}</span>
+          {paceSelect}
+        </span>
       }
     >
-      <dl className="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
-        {rows.map(({ label, unit, goal, recommended }) => (
-          <StatTile key={label} label={label}>
-            {recommended === null ? (
-              formatMeasure(goal, unit)
-            ) : (
-              <>
-                {goal === null ? '–' : formatKg(goal)}{' '}
-                <span className="font-normal whitespace-nowrap text-theme-600">
-                  / {formatMeasure(recommended, unit)}
-                </span>
-              </>
-            )}
-          </StatTile>
-        ))}
-      </dl>
+      {remaining && (
+        <p className="text-sm font-semibold text-theme-800">{remaining}</p>
+      )}
+      {expenditureText && (
+        <p className="text-xs text-theme-600">{expenditureText}</p>
+      )}
+      {limitNote && <p className="text-xs text-theme-600">{limitNote}</p>}
+      <table className="mt-4 w-full text-sm">
+        <thead>
+          <tr className="text-xs text-theme-500">
+            <th className="pb-2 text-left font-medium" />
+            <th className="pb-2 text-right font-medium">Actuel</th>
+            <th className="pb-2 text-right font-medium">Recommandé</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-theme-100">
+          {rows.map(({ label, unit, goal, recommended }) => (
+            <tr key={label}>
+              <td className="py-2.5 text-theme-700">{label}</td>
+              <td className="py-2.5 text-right font-semibold text-theme-800">
+                {formatMeasure(goal, unit)}
+              </td>
+              <td className="py-2.5 text-right font-semibold text-theme-500">
+                {formatMeasure(recommended, unit)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </SummaryCard>
   );
 }
