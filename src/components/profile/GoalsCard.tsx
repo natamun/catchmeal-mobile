@@ -1,39 +1,59 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import type { MeasuredExpenditure } from '../../data/energy';
+import {
+  estimateReachDate,
+  PACES,
+  recommendGoals,
+  suggestGoalType,
+  type GoalType,
+} from '../../data/goals';
 import { formatKg } from '../../utils/format';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { Skeleton } from '../ui/Skeleton';
 import { StatTile } from '../ui/StatTile';
 import { SummaryCard } from '../ui/SummaryCard';
-import type { Profile, WeightEntry } from './api';
+import { getMeasuredExpenditure, type Profile, type WeightEntry } from './api';
 import { calculateBMR, calculateTDEE, fatFreeMassOf } from './bmr';
+import { GOAL_TYPE_OPTIONS } from './goalTypes';
 import { formatMeasure } from './measures';
-
-const DURATION_OPTIONS = [
-  { value: '14', label: '2 semaines' },
-  { value: '30', label: '1 mois' },
-  { value: '60', label: '2 mois' },
-  { value: '90', label: '3 mois' },
-  { value: '120', label: '4 mois' },
-  { value: '150', label: '5 mois' },
-  { value: '180', label: '6 mois' },
-  { value: '365', label: '1 an' },
-];
 
 interface Props {
   profile: Profile;
   latestEntry: WeightEntry | null | undefined;
 }
 
+const formatPace = (pace: number) => `${pace.toLocaleString('fr-FR')} %/sem.`;
+
+const formatDay = (date: Date) =>
+  date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
 /**
- * Current goals next to recommended ones, computed from the profile and the
- * latest weigh-in: the BMR and daily needs (bmr.ts), then the calories to reach
- * the target weight in the chosen time.
+ * Current goals next to recommended ones. The recommendation (data/goals.ts)
+ * starts from the daily expenditure: measured from the journal when there is
+ * enough of it, otherwise estimated from the BMR and the activity level. The
+ * goal type and the weekly pace set the deficit or surplus.
  */
 export function GoalsCard({ profile, latestEntry }: Props) {
-  const [duration, setDuration] = useState('90');
+  const [paceChoice, setPaceChoice] = useState<string | null>(null);
+  const [measured, setMeasured] = useState<MeasuredExpenditure | null>(null);
   const isLoading = latestEntry === undefined;
   const latestWeight = latestEntry?.weight;
+
+  // A new weigh-in can change the measure: read it again with each one.
+  useEffect(() => {
+    let cancelled = false;
+    getMeasuredExpenditure()
+      .then((result) => {
+        if (!cancelled) setMeasured(result);
+      })
+      .catch(() => {
+        if (!cancelled) setMeasured(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [latestEntry]);
 
   const bmr =
     latestWeight && profile.height && profile.birthDate && profile.gender
@@ -45,62 +65,58 @@ export function GoalsCard({ profile, latestEntry }: Props) {
           latestEntry ? fatFreeMassOf(latestEntry) : null,
         )
       : null;
-
-  const tdee =
+  const estimated =
     bmr && profile.activityLevel
       ? calculateTDEE(bmr, profile.activityLevel)
       : null;
+  const expenditure = measured?.kcal ?? estimated;
 
-  const kcalToReachGoal = (() => {
-    if (!tdee || !latestWeight || !profile.targetWeight) return null;
-    const diff = latestWeight - profile.targetWeight;
-    // Calories per kg of body weight used here: 7700 to lose it, 4800 to gain
-    // it, spread over the chosen duration.
-    const coefficient = diff > 0 ? 7700 : 4800;
-    return Math.round(tdee - (diff * coefficient) / Number(duration));
-  })();
+  const goalType =
+    (profile.goalType as GoalType | null) ??
+    (latestWeight
+      ? suggestGoalType(latestWeight, profile.targetWeight)
+      : 'MAINTAIN');
+  const paces = PACES[goalType];
+  const pace =
+    paceChoice !== null && paces.includes(Number(paceChoice))
+      ? Number(paceChoice)
+      : paces[0];
 
-  const recommendedKcal = kcalToReachGoal ?? tdee;
-
-  const recommendedMacros = (() => {
-    if (!recommendedKcal || !latestWeight) return null;
-    // Protein: 2.2 g per kg of muscle when the latest weigh-in has it, else
-    // 1.8 g per kg of body weight. Fat: 30% of the calories. Carbs: the
-    // calories left (4 kcal/g).
-    const protein = Math.round(
-      latestEntry?.muscleMass
-        ? 2.2 * latestEntry.muscleMass
-        : 1.8 * latestWeight,
-    );
-    const fat = Math.round((recommendedKcal * 0.3) / 9);
-    const carbs = Math.round((recommendedKcal - protein * 4 - fat * 9) / 4);
-    return carbs > 0 ? { protein, fat, carbs } : null;
-  })();
+  const recommendation =
+    latestWeight && bmr && expenditure
+      ? recommendGoals({
+          weight: latestWeight,
+          bmr,
+          expenditure,
+          goalType,
+          pace,
+        })
+      : null;
 
   const rows = [
     {
       label: 'Calories',
       unit: 'kcal',
-      goal: profile.dailyCalorieGoal ?? null,
-      recommended: recommendedKcal,
+      goal: profile.dailyCalorieGoal,
+      recommended: recommendation?.kcal ?? null,
     },
     {
       label: 'Protéines',
       unit: 'g',
-      goal: profile.dailyProteinGoal ?? null,
-      recommended: recommendedMacros?.protein ?? null,
+      goal: profile.dailyProteinGoal,
+      recommended: recommendation?.protein ?? null,
     },
     {
       label: 'Glucides',
       unit: 'g',
-      goal: profile.dailyCarbsGoal ?? null,
-      recommended: recommendedMacros?.carbs ?? null,
+      goal: profile.dailyCarbsGoal,
+      recommended: recommendation?.carbs ?? null,
     },
     {
       label: 'Lipides',
       unit: 'g',
-      goal: profile.dailyFatGoal ?? null,
-      recommended: recommendedMacros?.fat ?? null,
+      goal: profile.dailyFatGoal,
+      recommended: recommendation?.fat ?? null,
     },
   ];
 
@@ -108,37 +124,63 @@ export function GoalsCard({ profile, latestEntry }: Props) {
     latestWeight && profile.targetWeight
       ? latestWeight - profile.targetWeight
       : null;
+  const reachDate =
+    recommendation && latestWeight && profile.targetWeight
+      ? estimateReachDate(
+          latestWeight,
+          profile.targetWeight,
+          recommendation.weeklyChangeKg,
+          new Date(),
+        )
+      : null;
   const remaining =
     gap === null
       ? null
       : Math.abs(gap) < 0.05
         ? 'Poids cible atteint'
-        : `${formatMeasure(Math.abs(gap), 'kg')} ${gap > 0 ? 'à perdre' : 'à prendre'}`;
+        : `${formatMeasure(Math.abs(gap), 'kg')} ${gap > 0 ? 'à perdre' : 'à prendre'}${reachDate ? `, vers le ${formatDay(reachDate)}` : ''}`;
+
+  const goalLabel = GOAL_TYPE_OPTIONS.find((o) => o.value === goalType)?.label;
 
   const renderBasis = () => {
     if (isLoading) {
       return <Skeleton className="h-5 w-48" />;
     }
-    if (recommendedKcal === null) {
+    if (!recommendation || !expenditure) {
       return 'Complétez le profil et ajoutez une pesée pour obtenir des recommandations.';
-    }
-    if (kcalToReachGoal === null) {
-      return 'Recommandé pour maintenir le poids actuel';
     }
 
     return (
       <>
-        Recommandé pour {formatMeasure(profile.targetWeight ?? null, 'kg')}{' '}
         <span className="inline-flex items-center gap-1.5 align-middle whitespace-nowrap">
-          en
-          <SelectDropdown
-            size="sm"
-            value={duration}
-            options={DURATION_OPTIONS}
-            onChange={setDuration}
-            container={document.body}
-          />
+          {goalLabel}
+          {paces.length > 1 && (
+            <>
+              {' à '}
+              <SelectDropdown
+                size="sm"
+                value={String(pace)}
+                options={paces.map((option) => ({
+                  value: String(option),
+                  label: formatPace(option),
+                }))}
+                onChange={setPaceChoice}
+                container={document.body}
+              />
+            </>
+          )}
         </span>
+        <span className="mt-1 block">
+          {measured
+            ? `Dépense mesurée sur vos ${measured.loggedDays} derniers jours : ${formatMeasure(expenditure, 'kcal')}`
+            : `Dépense estimée : ${formatMeasure(expenditure, 'kcal')} (mesurée après 2 semaines de journal)`}
+        </span>
+        {recommendation.limitedByBmr && (
+          <span className="mt-1 block">
+            Rythme limité : les calories ne descendent pas sous le métabolisme
+            de base.
+          </span>
+        )}
       </>
     );
   };
@@ -147,15 +189,12 @@ export function GoalsCard({ profile, latestEntry }: Props) {
     <SummaryCard
       title="Mes objectifs"
       aside={
-        <p className="text-sm text-green-600">
+        <div className="text-sm text-green-600">
           {remaining && (
-            <>
-              <span className="font-semibold text-green-800">{remaining}</span>
-              {' · '}
-            </>
+            <p className="font-semibold text-green-800">{remaining}</p>
           )}
-          {renderBasis()}
-        </p>
+          <div>{renderBasis()}</div>
+        </div>
       }
     >
       <dl className="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
@@ -167,8 +206,7 @@ export function GoalsCard({ profile, latestEntry }: Props) {
               <>
                 {goal === null ? '–' : formatKg(goal)}{' '}
                 <span className="font-normal whitespace-nowrap text-green-600">
-                  <span>/ </span>
-                  {formatMeasure(recommended, unit)}
+                  / {formatMeasure(recommended, unit)}
                 </span>
               </>
             )}
