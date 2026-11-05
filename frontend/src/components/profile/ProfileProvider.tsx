@@ -1,30 +1,54 @@
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 
-import type { Profile } from './api';
+import { LoadError } from '../ui/LoadError';
+import { getProfile, type Profile } from './api';
 import { ProfileContext } from './profileContext';
 
-const EMPTY_PROFILE: Profile = {
-  height: null,
-  targetWeight: null,
-  dailyCalorieGoal: null,
-  dailyProteinGoal: null,
-  dailyCarbsGoal: null,
-  dailyFatGoal: null,
-  gender: null,
-  birthDate: null,
-  activityLevel: null,
-};
-
 /**
- * Holds the profile for the whole app. It starts empty and only lives in
- * memory until the profile is stored on the phone.
+ * Reads the profile stored on the phone once when the app starts, then keeps it
+ * up to date after each edit (updateProfile). The app shows only once the
+ * profile is read, so no screen starts with empty goals.
  */
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [hasFailed, setHasFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    getProfile()
+      .then((stored) => {
+        if (!cancelled) setProfile(stored);
+      })
+      .catch(() => {
+        if (!cancelled) setHasFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [attempt]);
 
   const updateProfile = useCallback((partial: Partial<Profile>) => {
-    setProfile((prev) => ({ ...prev, ...partial }));
+    setProfile((prev) => (prev ? { ...prev, ...partial } : prev));
   }, []);
+
+  if (hasFailed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-green-50">
+        <LoadError
+          message="Impossible d'ouvrir les données de l'app."
+          onRetry={() => {
+            setHasFailed(false);
+            setAttempt((count) => count + 1);
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return null;
+  }
 
   return (
     <ProfileContext.Provider value={{ profile, updateProfile }}>

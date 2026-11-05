@@ -1,6 +1,7 @@
-import { JSON_HEADERS, request } from '../../utils/request';
-
-const BASE_URL = import.meta.env.VITE_API_URL;
+import { throwIfAborted } from '../../data/errors';
+import * as profileData from '../../data/profile';
+import * as weights from '../../data/weights';
+import { getDatabase } from '../../db/appDatabase';
 
 /** The body measures and daily goals of the person using the app. */
 export interface Profile {
@@ -26,9 +27,9 @@ export interface UpdateProfileInput {
   dailyProteinGoal?: number | null;
   dailyCarbsGoal?: number | null;
   dailyFatGoal?: number | null;
-  gender?: string;
-  birthDate?: string;
-  activityLevel?: string;
+  gender?: string | null;
+  birthDate?: string | null;
+  activityLevel?: string | null;
 }
 
 export interface WeightEntry {
@@ -49,41 +50,34 @@ export interface LogWeightInput {
   muscleMass: number | null;
 }
 
+/** The profile stored on the phone. */
+export async function getProfile() {
+  return profileData.getProfile(await getDatabase());
+}
+
 /** Saves the profile fields that changed. */
-export function updateProfile(input: UpdateProfileInput) {
-  return request<Profile>(`${BASE_URL}/profile`, {
-    method: 'PATCH',
-    headers: JSON_HEADERS,
-    body: JSON.stringify(input),
-  });
+export async function updateProfile(input: UpdateProfileInput) {
+  return profileData.updateProfile(await getDatabase(), input);
 }
 
 /** Corrects a weigh-in. */
-export function updateWeight(entryId: number, input: LogWeightInput) {
-  return request<WeightEntry>(`${BASE_URL}/weight/${entryId}`, {
-    method: 'PATCH',
-    headers: JSON_HEADERS,
-    body: JSON.stringify(input),
-  });
+export async function updateWeight(entryId: number, input: LogWeightInput) {
+  return weights.updateWeight(await getDatabase(), entryId, input);
 }
 
 /** Deletes a weigh-in. */
-export function deleteWeight(entryId: number) {
-  return request<WeightEntry>(`${BASE_URL}/weight/${entryId}`, {
-    method: 'DELETE',
-  });
+export async function deleteWeight(entryId: number) {
+  return weights.deleteWeight(await getDatabase(), entryId);
 }
 
 /** Records a new weigh-in, dated now. */
-export function logWeight(input: LogWeightInput) {
-  return request<WeightEntry>(`${BASE_URL}/weight`, {
-    method: 'POST',
-    headers: JSON_HEADERS,
-    body: JSON.stringify(input),
-  });
+export async function logWeight(input: LogWeightInput) {
+  return weights.logWeight(await getDatabase(), input);
 }
 
 /** Every weigh-in, the most recent first. */
-export function getWeightHistory(signal?: AbortSignal) {
-  return request<WeightEntry[]>(`${BASE_URL}/weight`, { signal });
+export async function getWeightHistory(signal?: AbortSignal) {
+  const history = await weights.listWeights(await getDatabase());
+  throwIfAborted(signal);
+  return history;
 }
