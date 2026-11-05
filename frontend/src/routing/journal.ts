@@ -1,8 +1,8 @@
 import { isToday } from 'date-fns';
 import { generatePath } from 'react-router';
 
-import { toDateKey } from '../components/meal/api';
 import type { MealType } from '../components/meal/types';
+import { toDateKey } from '../utils/dateKey';
 import { PATHS } from './paths';
 
 /** Meal types as they appear in the URL, e.g. /home/add/lunch. */

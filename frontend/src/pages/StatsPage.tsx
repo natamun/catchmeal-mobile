@@ -9,9 +9,9 @@ import { NutritionAverages } from '../components/analytics/NutritionAverages';
 import { lastDays } from '../components/analytics/period';
 import { PeriodSelector } from '../components/analytics/PeriodSelector';
 import { WeightVariation } from '../components/analytics/WeightVariation';
-import { toDateKey } from '../components/meal/api';
 import { LoadError } from '../components/ui/LoadError';
 import { useDashboard } from '../hooks/useDashboard';
+import { toDateKey } from '../utils/dateKey';
 
 /**
  * Stats page: a period, then averages, weight change, calorie chart, measure

@@ -6,7 +6,7 @@ import DatePicker from 'react-datepicker';
 
 import 'react-datepicker/dist/react-datepicker.css';
 
-import { toDateKey } from '../meal/api';
+import { toDateKey } from '../../utils/dateKey';
 import { CalendarTrigger } from '../ui/CalendarButton';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 

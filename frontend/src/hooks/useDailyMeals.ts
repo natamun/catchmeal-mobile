@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { listFoodItems } from '../components/food/api';
 import type { FoodItem } from '../components/food/types';
-import { listMealsOnDate, toDateKey } from '../components/meal/api';
+import { listMealsOnDate } from '../components/meal/api';
 import type { Meal } from '../components/meal/types';
+import { toDateKey } from '../utils/dateKey';
 
 const PREFETCH_DELAY_MS = 200;
 const NO_MEALS: Meal[] = [];

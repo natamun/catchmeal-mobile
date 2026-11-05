@@ -13,12 +13,6 @@ export async function listMeals(logged?: boolean, signal?: AbortSignal) {
   return list;
 }
 
-/** Formats a date as YYYY-MM-DD in local time, the way days are stored. */
-export function toDateKey(date: Date) {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
 /** The journal meals of one day (YYYY-MM-DD). */
 export async function listMealsOnDate(dateKey: string, signal?: AbortSignal) {
   const list = await meals.listMeals(await getDatabase(), { date: dateKey });

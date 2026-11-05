@@ -3,9 +3,10 @@ import * as Popover from '@radix-ui/react-popover';
 import { ChevronRight } from 'lucide-react';
 
 import { useFormValidation } from '../../hooks/useFormValidation';
+import { toDateKey } from '../../utils/dateKey';
 import { parseDecimal } from '../../utils/decimals';
 import { failureMessage } from '../../utils/failureMessage';
-import { createMeal, toDateKey } from '../meal/api';
+import { createMeal } from '../meal/api';
 import {
   EMPTY_QUICK_ADD_FORM,
   QUICK_ADD_FIELDS,
