@@ -1,3 +1,4 @@
+import { measureExpenditure } from '../../data/energy';
 import { throwIfAborted } from '../../data/errors';
 import * as profileData from '../../data/profile';
 import * as weights from '../../data/weights';
@@ -82,4 +83,12 @@ export async function getWeightHistory(signal?: AbortSignal) {
   const history = await weights.listWeights(await getDatabase());
   throwIfAborted(signal);
   return history;
+}
+
+/**
+ * The daily expenditure measured from the last four weeks of journal and
+ * weigh-ins, or null while there is not enough data.
+ */
+export async function getMeasuredExpenditure() {
+  return measureExpenditure(await getDatabase());
 }
