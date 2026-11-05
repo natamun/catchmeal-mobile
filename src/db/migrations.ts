@@ -95,8 +95,16 @@ CREATE TABLE goal_setting (
 CREATE INDEX goal_setting_start_date ON goal_setting (start_date);
 `;
 
+/** What the person aims at; it sets the pace and the protein of the goals. */
+const GOAL_TYPE_V2 = `
+ALTER TABLE profile ADD COLUMN goal_type TEXT CHECK (goal_type IN ('LOSE_FAT', 'LOSE_WEIGHT', 'MAINTAIN', 'GAIN_MUSCLE'));
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
-export const MIGRATIONS: Migration[] = [{ version: 1, sql: SCHEMA_V1 }];
+export const MIGRATIONS: Migration[] = [
+  { version: 1, sql: SCHEMA_V1 },
+  { version: 2, sql: GOAL_TYPE_V2 },
+];
 
 /**
  * Brings the schema up to date. SQLite keeps the version reached in the

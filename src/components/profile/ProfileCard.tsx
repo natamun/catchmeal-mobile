@@ -17,6 +17,7 @@ import { SelectDropdown } from '../ui/SelectDropdown';
 import { updateProfile, type Profile, type UpdateProfileInput } from './api';
 import { BirthDatePicker } from './BirthDatePicker';
 import { getAge } from './bmr';
+import { GOAL_TYPE_OPTIONS } from './goalTypes';
 import { formatMeasure } from './measures';
 
 interface Props {
@@ -42,6 +43,7 @@ interface FormState {
   gender: string;
   birthDate: string;
   activityLevel: string;
+  goalType: string;
 }
 
 /** Allowed range of each daily goal. */
@@ -76,6 +78,7 @@ function summarize(profile: Profile) {
     profile.birthDate ? `${getAge(profile.birthDate)} ans` : undefined,
     profile.height === null ? undefined : formatMeasure(profile.height, 'cm'),
     ACTIVITY_OPTIONS.find((o) => o.value === profile.activityLevel)?.label,
+    GOAL_TYPE_OPTIONS.find((o) => o.value === profile.goalType)?.label,
   ].filter(Boolean);
 
   return parts.length > 0 ? parts.join(' · ') : 'Profil à compléter';
@@ -128,6 +131,7 @@ export function ProfileCard({ profile, onUpdate }: Props) {
     gender: profile.gender ?? '',
     birthDate: profile.birthDate ? profile.birthDate.slice(0, 10) : '',
     activityLevel: profile.activityLevel ?? '',
+    goalType: profile.goalType ?? '',
   });
 
   const {
@@ -186,6 +190,8 @@ export function ProfileCard({ profile, onUpdate }: Props) {
       input.birthDate = form.birthDate || undefined;
     if (form.activityLevel !== (profile.activityLevel ?? ''))
       input.activityLevel = form.activityLevel || undefined;
+    if (form.goalType !== (profile.goalType ?? ''))
+      input.goalType = form.goalType || undefined;
 
     if (Object.keys(input).length === 0) {
       dialogRef.current?.close();
@@ -256,6 +262,20 @@ export function ProfileCard({ profile, onUpdate }: Props) {
               value={form.activityLevel}
               options={ACTIVITY_OPTIONS}
               onChange={(v) => setForm((p) => ({ ...p, activityLevel: v }))}
+              container={dialogNode}
+              placeholder="Sélectionner"
+            />
+          </div>
+
+          <div className="col-span-2 flex flex-col gap-1">
+            <label htmlFor="pf-goal-type" className={LABEL_CLASS}>
+              Objectif
+            </label>
+            <SelectDropdown
+              id="pf-goal-type"
+              value={form.goalType}
+              options={GOAL_TYPE_OPTIONS}
+              onChange={(v) => setForm((p) => ({ ...p, goalType: v }))}
               container={dialogNode}
               placeholder="Sélectionner"
             />

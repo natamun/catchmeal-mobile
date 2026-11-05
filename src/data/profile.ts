@@ -4,6 +4,13 @@ import { checkChoice, checkDateOnly, checkOptionalNumber } from './validation';
 
 export const GENDERS = ['MALE', 'FEMALE', 'OTHER'] as const;
 
+export const GOAL_TYPES = [
+  'LOSE_FAT',
+  'LOSE_WEIGHT',
+  'MAINTAIN',
+  'GAIN_MUSCLE',
+] as const;
+
 export const ACTIVITY_LEVELS = [
   'SEDENTARY',
   'LIGHTLY_ACTIVE',
@@ -22,6 +29,7 @@ interface ProfileRow {
   gender: string | null;
   birth_date: string | null;
   activity_level: string | null;
+  goal_type: string | null;
 }
 
 /** Where each profile field is stored, and the rule its value follows. */
@@ -65,7 +73,7 @@ const NUMBER_FIELDS = [
 ] as const;
 
 const PROFILE_COLUMNS =
-  'height, target_weight, daily_calorie_goal, daily_protein_goal, daily_carbs_goal, daily_fat_goal, gender, birth_date, activity_level';
+  'height, target_weight, daily_calorie_goal, daily_protein_goal, daily_carbs_goal, daily_fat_goal, gender, birth_date, activity_level, goal_type';
 
 function toProfile(row: ProfileRow): Profile {
   return {
@@ -78,6 +86,7 @@ function toProfile(row: ProfileRow): Profile {
     gender: row.gender,
     birthDate: row.birth_date,
     activityLevel: row.activity_level,
+    goalType: row.goal_type,
   };
 }
 
@@ -127,6 +136,14 @@ function changesFrom(input: UpdateProfileInput) {
             "niveau d'activité",
             ACTIVITY_LEVELS,
           ),
+    ]);
+  }
+  if (input.goalType !== undefined) {
+    changes.push([
+      'goal_type',
+      input.goalType === null
+        ? null
+        : checkChoice(input.goalType, 'objectif', GOAL_TYPES),
     ]);
   }
   return changes;

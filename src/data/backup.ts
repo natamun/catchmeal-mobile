@@ -21,6 +21,7 @@ const TABLES = {
     'gender',
     'birth_date',
     'activity_level',
+    'goal_type',
   ],
   food_item: [
     'id',
