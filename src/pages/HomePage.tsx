@@ -110,7 +110,7 @@ export default function HomePage() {
               onClick={() => quickAddDialogRef.current?.showModal()}
               aria-label="Ajout rapide"
               title="Ajout rapide"
-              className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-green-500 px-3 text-sm font-medium text-white transition-colors hover:bg-green-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-400 max-2xs:order-first max-2xs:w-full max-2xs:py-2.5 xs:px-4"
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-green-500 px-3 text-sm font-medium text-white transition-colors hover:bg-green-600 max-2xs:order-first max-2xs:w-full max-2xs:py-2.5 xs:px-4"
             >
               <Zap className="h-4 w-4" />
               <span className="hidden max-2xs:inline xs:inline">

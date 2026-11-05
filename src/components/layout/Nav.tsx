@@ -30,8 +30,7 @@ const TABS: TabDef[] = [
   { id: 'profile', label: 'Profil', icon: User },
 ];
 
-const NAV_ITEM_CLASS =
-  'cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-green-400 focus-visible:outline-offset-2';
+const NAV_ITEM_CLASS = 'cursor-pointer transition-colors';
 
 /** A tab link, in the top bar or in the bottom bar. */
 function NavItem({ tab, variant }: NavItemProps) {

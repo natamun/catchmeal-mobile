@@ -59,7 +59,7 @@ export function CalendarTrigger({
       aria-haspopup="dialog"
       aria-expanded={isOpen}
       aria-live="polite"
-      className={`cursor-pointer *:pointer-events-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-400 ${className ?? ''}`}
+      className={`cursor-pointer *:pointer-events-none ${className ?? ''}`}
     >
       {children}
     </button>

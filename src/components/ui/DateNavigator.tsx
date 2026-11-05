@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { CalendarButton } from './CalendarButton';
 
 const ARROW_CLASS =
-  'flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-green-500 transition-colors hover:bg-green-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-400';
+  'flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-green-500 transition-colors hover:bg-green-100';
 
 function shiftDay(date: Date, days: number) {
   const next = new Date(date);
