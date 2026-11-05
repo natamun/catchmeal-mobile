@@ -1,6 +1,6 @@
 /**
- * One day of stats as the backend returns it, with null when nothing was
- * logged. goalKcal is the calorie goal in force that day.
+ * One day of stats, with null when nothing was logged. goalKcal is the calorie
+ * goal in force that day.
  */
 export type DashboardDay = {
   day: string;
