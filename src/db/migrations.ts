@@ -105,11 +105,37 @@ const THEME_V3 = `
 ALTER TABLE profile ADD COLUMN theme TEXT CHECK (theme IN ('foret', 'sable', 'nuit', 'ocean', 'graphite', 'prune'));
 `;
 
+/**
+ * Rebuilds the profile without the check on the theme: themes are added often
+ * and the app checks the name itself. A theme that no longer exists goes back
+ * to the default one.
+ */
+const THEME_FREE_V4 = `
+CREATE TABLE profile_v4 (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  height REAL CHECK (height > 0),
+  target_weight REAL CHECK (target_weight > 0),
+  daily_calorie_goal INTEGER CHECK (daily_calorie_goal > 0),
+  daily_protein_goal INTEGER CHECK (daily_protein_goal > 0),
+  daily_carbs_goal INTEGER CHECK (daily_carbs_goal > 0),
+  daily_fat_goal INTEGER CHECK (daily_fat_goal > 0),
+  gender TEXT CHECK (gender IN ('MALE', 'FEMALE', 'OTHER')),
+  birth_date TEXT CHECK (birth_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+  activity_level TEXT CHECK (activity_level IN ('SEDENTARY', 'LIGHTLY_ACTIVE', 'MODERATELY_ACTIVE', 'VERY_ACTIVE', 'EXTRA_ACTIVE')),
+  goal_type TEXT CHECK (goal_type IN ('LOSE_FAT', 'LOSE_WEIGHT', 'MAINTAIN', 'GAIN_MUSCLE')),
+  theme TEXT
+) STRICT;
+INSERT INTO profile_v4 SELECT id, height, target_weight, daily_calorie_goal, daily_protein_goal, daily_carbs_goal, daily_fat_goal, gender, birth_date, activity_level, goal_type, CASE WHEN theme = 'graphite' THEN theme END FROM profile;
+DROP TABLE profile;
+ALTER TABLE profile_v4 RENAME TO profile;
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: SCHEMA_V1 },
   { version: 2, sql: GOAL_TYPE_V2 },
   { version: 3, sql: THEME_V3 },
+  { version: 4, sql: THEME_FREE_V4 },
 ];
 
 /**

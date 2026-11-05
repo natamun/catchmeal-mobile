@@ -50,7 +50,7 @@ export function ThemeCard() {
             <span className="flex -space-x-1.5">
               <span className="h-6 w-6 rounded-full border border-theme-200 bg-surface" />
               <span className="h-6 w-6 rounded-full bg-theme-500" />
-              <span className="h-6 w-6 rounded-full bg-theme-800" />
+              <span className="h-6 w-6 rounded-full bg-accent-2" />
             </span>
           </button>
         ))}

@@ -97,21 +97,22 @@
   --breakpoint-xs: 28.75rem;
 
   /* Colors */
-  --color-theme-50: #d8f3dc;
-  --color-theme-100: #b7e4c7;
-  --color-theme-200: #95d5b2;
-  --color-theme-300: #74c69d;
-  --color-theme-400: #52b788;
-  --color-theme-500: #40916c;
-  --color-theme-600: #2d6a4f;
-  --color-theme-700: #1b4332;
-  --color-theme-800: #081c15;
+  --color-theme-50: #121212;
+  --color-theme-100: #242427;
+  --color-theme-200: #3a3a40;
+  --color-theme-300: #4a4a51;
+  --color-theme-400: #8a8a92;
+  --color-theme-500: #f5b642;
+  --color-theme-600: #b9b9bf;
+  --color-theme-700: #dcdce0;
+  --color-theme-800: #f2f2f4;
   /* Red of the Swiss cross: brand only (logo, "CH" of the name), never for UI states */
   --color-swiss-red: #c92215;
 
-  /* Cards and fields, and text on the accent color (buttons) */
-  --color-surface: #ffffff;
-  --color-on-accent: #ffffff;
+  /* Cards and fields, text on the accent color (buttons), second accent */
+  --color-surface: #1b1b1d;
+  --color-on-accent: #241800;
+  --color-accent-2: #5cc8d6;
 
   /* Fonts */
   --font-sans: 'Inter Variable', sans-serif;
@@ -119,97 +120,167 @@
 }
 
 /*
- * Color themes, picked in the profile (data-theme on <html>). Each one sets the
- * 9 steps of the scale, the card color and the text on the accent. Dark
- * themes reverse the scale (50 is the darkest), so every screen works as is.
- * Forêt repeats the defaults of @theme so a preview can show it anywhere.
+ * Color themes, picked in the profile (data-theme on <html>). Each one is a
+ * known palette: a background scale (50 to 800, reversed in dark themes), an
+ * accent (500) and a second accent. Graphite is the default, in @theme above;
+ * its block is repeated so a preview can show it anywhere.
  */
-[data-theme='foret'] {
-  --color-theme-50: #d8f3dc;
-  --color-theme-100: #b7e4c7;
-  --color-theme-200: #95d5b2;
-  --color-theme-300: #74c69d;
-  --color-theme-400: #52b788;
-  --color-theme-500: #40916c;
-  --color-theme-600: #2d6a4f;
-  --color-theme-700: #1b4332;
-  --color-theme-800: #081c15;
-  --color-surface: #ffffff;
-  --color-on-accent: #ffffff;
-}
-
-[data-theme='sable'] {
-  --color-theme-50: #f6ede1;
-  --color-theme-100: #ecdcc6;
-  --color-theme-200: #e0c3a0;
-  --color-theme-300: #d2a57a;
-  --color-theme-400: #c27f52;
-  --color-theme-500: #a85d32;
-  --color-theme-600: #7f4424;
-  --color-theme-700: #552d18;
-  --color-theme-800: #2b170c;
-  --color-surface: #fffaf3;
-  --color-on-accent: #ffffff;
-}
-
-[data-theme='nuit'] {
-  color-scheme: dark;
-  --color-theme-50: #0b1210;
-  --color-theme-100: #1b2823;
-  --color-theme-200: #2e443b;
-  --color-theme-300: #355047;
-  --color-theme-400: #4f8f74;
-  --color-theme-500: #3ecf8e;
-  --color-theme-600: #a7cbbb;
-  --color-theme-700: #d0e6dc;
-  --color-theme-800: #eef7f2;
-  --color-surface: #131c18;
-  --color-on-accent: #04170e;
-}
-
-[data-theme='ocean'] {
-  color-scheme: dark;
-  --color-theme-50: #0a1220;
-  --color-theme-100: #18273d;
-  --color-theme-200: #2a4060;
-  --color-theme-300: #2f4a6b;
-  --color-theme-400: #3f86a8;
-  --color-theme-500: #2ec4d6;
-  --color-theme-600: #a3c3dc;
-  --color-theme-700: #cfe0ee;
-  --color-theme-800: #edf5fb;
-  --color-surface: #111c2e;
-  --color-on-accent: #03191e;
-}
-
 [data-theme='graphite'] {
   color-scheme: dark;
   --color-theme-50: #121212;
   --color-theme-100: #242427;
   --color-theme-200: #3a3a40;
-  --color-theme-300: #45454b;
-  --color-theme-400: #8a7a52;
+  --color-theme-300: #4a4a51;
+  --color-theme-400: #8a8a92;
   --color-theme-500: #f5b642;
   --color-theme-600: #b9b9bf;
   --color-theme-700: #dcdce0;
   --color-theme-800: #f2f2f4;
   --color-surface: #1b1b1d;
   --color-on-accent: #241800;
+  --color-accent-2: #5cc8d6;
 }
 
-[data-theme='prune'] {
+[data-theme='nord'] {
   color-scheme: dark;
-  --color-theme-50: #160f1a;
-  --color-theme-100: #2a1e31;
-  --color-theme-200: #45324f;
-  --color-theme-300: #4d3859;
-  --color-theme-400: #9a6aa8;
-  --color-theme-500: #e07bd6;
-  --color-theme-600: #c9b3d2;
-  --color-theme-700: #e3d6e8;
-  --color-theme-800: #f6effa;
-  --color-surface: #1f1625;
-  --color-on-accent: #2a0a26;
+  --color-theme-50: #2e3440;
+  --color-theme-100: #434c5e;
+  --color-theme-200: #56617a;
+  --color-theme-300: #616e88;
+  --color-theme-400: #81a1c1;
+  --color-theme-500: #88c0d0;
+  --color-theme-600: #d8dee9;
+  --color-theme-700: #e5e9f0;
+  --color-theme-800: #eceff4;
+  --color-surface: #3b4252;
+  --color-on-accent: #2e3440;
+  --color-accent-2: #a3be8c;
+}
+
+[data-theme='dracula'] {
+  color-scheme: dark;
+  --color-theme-50: #21222c;
+  --color-theme-100: #343746;
+  --color-theme-200: #4a4e66;
+  --color-theme-300: #565b77;
+  --color-theme-400: #6272a4;
+  --color-theme-500: #bd93f9;
+  --color-theme-600: #c6c6cf;
+  --color-theme-700: #e2e2dc;
+  --color-theme-800: #f8f8f2;
+  --color-surface: #282a36;
+  --color-on-accent: #21222c;
+  --color-accent-2: #ff79c6;
+}
+
+[data-theme='gruvbox'] {
+  color-scheme: dark;
+  --color-theme-50: #1d2021;
+  --color-theme-100: #32302f;
+  --color-theme-200: #45403d;
+  --color-theme-300: #504945;
+  --color-theme-400: #928374;
+  --color-theme-500: #fe8019;
+  --color-theme-600: #d5c4a1;
+  --color-theme-700: #ebdbb2;
+  --color-theme-800: #fbf1c7;
+  --color-surface: #282828;
+  --color-on-accent: #1d2021;
+  --color-accent-2: #8ec07c;
+}
+
+[data-theme='catppuccin'] {
+  color-scheme: dark;
+  --color-theme-50: #181825;
+  --color-theme-100: #313244;
+  --color-theme-200: #45475a;
+  --color-theme-300: #585b70;
+  --color-theme-400: #7f849c;
+  --color-theme-500: #cba6f7;
+  --color-theme-600: #a6adc8;
+  --color-theme-700: #bac2de;
+  --color-theme-800: #cdd6f4;
+  --color-surface: #1e1e2e;
+  --color-on-accent: #1e1e2e;
+  --color-accent-2: #fab387;
+}
+
+[data-theme='rose-pine'] {
+  color-scheme: dark;
+  --color-theme-50: #191724;
+  --color-theme-100: #26233a;
+  --color-theme-200: #403d52;
+  --color-theme-300: #524f67;
+  --color-theme-400: #6e6a86;
+  --color-theme-500: #ebbcba;
+  --color-theme-600: #908caa;
+  --color-theme-700: #c4c1dc;
+  --color-theme-800: #e0def4;
+  --color-surface: #1f1d2e;
+  --color-on-accent: #191724;
+  --color-accent-2: #9ccfd8;
+}
+
+[data-theme='solarized'] {
+  color-scheme: dark;
+  --color-theme-50: #002b36;
+  --color-theme-100: #0d4250;
+  --color-theme-200: #1c5260;
+  --color-theme-300: #2f6370;
+  --color-theme-400: #586e75;
+  --color-theme-500: #b58900;
+  --color-theme-600: #93a1a1;
+  --color-theme-700: #c3cccc;
+  --color-theme-800: #eee8d5;
+  --color-surface: #073642;
+  --color-on-accent: #002b36;
+  --color-accent-2: #3a9ee6;
+}
+
+[data-theme='solarized-light'] {
+  --color-theme-50: #eee8d5;
+  --color-theme-100: #e6dfc8;
+  --color-theme-200: #d8d0b8;
+  --color-theme-300: #c2b9a0;
+  --color-theme-400: #93a1a1;
+  --color-theme-500: #1e6fb0;
+  --color-theme-600: #586e75;
+  --color-theme-700: #475b62;
+  --color-theme-800: #073642;
+  --color-surface: #fdf6e3;
+  --color-on-accent: #fdf6e3;
+  --color-accent-2: #cb4b16;
+}
+
+[data-theme='marine'] {
+  color-scheme: dark;
+  --color-theme-50: #121c2b;
+  --color-theme-100: #233552;
+  --color-theme-200: #2e4363;
+  --color-theme-300: #3d5579;
+  --color-theme-400: #6d86a8;
+  --color-theme-500: #ff6f61;
+  --color-theme-600: #b8c7da;
+  --color-theme-700: #dde5ef;
+  --color-theme-800: #f4f7fb;
+  --color-surface: #1b2a41;
+  --color-on-accent: #2a0f0c;
+  --color-accent-2: #f2c14e;
+}
+
+[data-theme='klein'] {
+  --color-theme-50: #ece6d8;
+  --color-theme-100: #e4dcc8;
+  --color-theme-200: #d6ccb4;
+  --color-theme-300: #bfb398;
+  --color-theme-400: #7d8bb8;
+  --color-theme-500: #002fa7;
+  --color-theme-600: #4a4a5a;
+  --color-theme-700: #2b2b3a;
+  --color-theme-800: #12121c;
+  --color-surface: #f8f4ea;
+  --color-on-accent: #ffffff;
+  --color-accent-2: #c2410c;
 }
 
 :root {

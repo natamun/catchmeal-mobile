@@ -222,7 +222,7 @@ export function GoalsCard({ profile, latestEntry }: Props) {
               <td className="py-2.5 text-right font-semibold text-theme-800">
                 {formatMeasure(goal, unit)}
               </td>
-              <td className="py-2.5 text-right font-semibold text-theme-500">
+              <td className="py-2.5 text-right font-semibold text-accent-2">
                 {formatMeasure(recommended, unit)}
               </td>
             </tr>

@@ -8,8 +8,9 @@ export const AXIS_LINE = 'var(--color-theme-300)';
 export const X_TICK = { fontSize: 11, fill: AXIS_TEXT };
 export const Y_TICK = { fontSize: 12, fill: AXIS_TEXT };
 export const MIN_TICK_GAP = 40;
+/** Series of a chart: the accent, the second accent, then a quiet tone. */
 export const SERIES_COLORS = [
-  'var(--color-theme-600)',
+  'var(--color-theme-500)',
+  'var(--color-accent-2)',
   'var(--color-theme-400)',
-  'var(--color-theme-200)',
 ];
