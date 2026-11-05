@@ -268,6 +268,38 @@
   --color-accent-2: #f2c14e;
 }
 
+[data-theme='tokyo-night'] {
+  color-scheme: dark;
+  --color-theme-50: #16161e;
+  --color-theme-100: #24283b;
+  --color-theme-200: #343a55;
+  --color-theme-300: #414868;
+  --color-theme-400: #565f89;
+  --color-theme-500: #7aa2f7;
+  --color-theme-600: #a9b1d6;
+  --color-theme-700: #b8c0e5;
+  --color-theme-800: #c0caf5;
+  --color-surface: #1a1b26;
+  --color-on-accent: #16161e;
+  --color-accent-2: #ff9e64;
+}
+
+[data-theme='monokai'] {
+  color-scheme: dark;
+  --color-theme-50: #1e1f1c;
+  --color-theme-100: #33342b;
+  --color-theme-200: #46453a;
+  --color-theme-300: #55544a;
+  --color-theme-400: #75715e;
+  --color-theme-500: #f92672;
+  --color-theme-600: #cfcfc2;
+  --color-theme-700: #e6e6dc;
+  --color-theme-800: #f8f8f2;
+  --color-surface: #272822;
+  --color-on-accent: #1e1f1c;
+  --color-accent-2: #a6e22e;
+}
+
 [data-theme='klein'] {
   --color-theme-50: #ece6d8;
   --color-theme-100: #e4dcc8;

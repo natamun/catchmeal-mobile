@@ -9,6 +9,8 @@ export const THEMES = [
   { id: 'gruvbox', label: 'Gruvbox', dark: true },
   { id: 'catppuccin', label: 'Catppuccin Mocha', dark: true },
   { id: 'rose-pine', label: 'Rosé Pine', dark: true },
+  { id: 'tokyo-night', label: 'Tokyo Night', dark: true },
+  { id: 'monokai', label: 'Monokai', dark: true },
   { id: 'solarized', label: 'Solarized', dark: true },
   { id: 'solarized-light', label: 'Solarized clair', dark: false },
   { id: 'marine', label: 'Marine et corail', dark: true },
