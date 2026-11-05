@@ -44,6 +44,7 @@ describe('getProfile', () => {
       birthDate: null,
       activityLevel: null,
       goalType: null,
+      theme: null,
     });
   });
 });
@@ -68,6 +69,10 @@ describe('updateProfile', () => {
     expect(await getProfile(db)).toEqual(profile);
   });
 
+  it('saves the color theme', async () => {
+    expect((await updateProfile(db, { theme: 'nuit' })).theme).toBe('nuit');
+  });
+
   it('clears a field given null', async () => {
     await updateProfile(db, { height: 178, targetWeight: 70 });
 
@@ -90,6 +95,7 @@ describe('updateProfile', () => {
     ['an unknown gender', { gender: 'X' }],
     ['an unknown activity level', { activityLevel: 'LAZY' }],
     ['an unknown goal type', { goalType: 'BULK' }],
+    ['an unknown theme', { theme: 'rose' }],
     ['a birth date in another format', { birthDate: '12.04.1990' }],
     ['a birth date that does not exist', { birthDate: '1990-02-30' }],
   ])('refuses %s and saves nothing', async (_, input) => {
