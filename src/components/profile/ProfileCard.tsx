@@ -216,11 +216,7 @@ export function ProfileCard({ profile, onUpdate }: Props) {
               {summarize(profile)}
             </p>
           </div>
-          <EditIconButton
-            label="Modifier le profil"
-            onClick={handleEdit}
-            size="lg"
-          />
+          <EditIconButton onClick={handleEdit} size="lg" />
         </div>
       </div>
 
@@ -330,9 +326,9 @@ export function ProfileCard({ profile, onUpdate }: Props) {
                 onChange={(e) => handleChange(field, e.target.value)}
                 onFocus={() => handleFocus(field)}
                 onBlur={() => handleBlur(field)}
-                aria-invalid={isInvalid(field)}
+                data-invalid={isInvalid(field)}
               />
-              <FieldError id={`${id}-error`} message={errorMessage(field)} />
+              <FieldError message={errorMessage(field)} />
             </div>
           ))}
 

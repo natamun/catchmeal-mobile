@@ -105,7 +105,6 @@ export function BirthDatePicker({ id, label, value, onChange }: Props) {
                   type="button"
                   onClick={byMonth ? decreaseMonth : decreaseYear}
                   disabled={byMonth && prevMonthButtonDisabled}
-                  aria-label="Précédent"
                   className={ARROW_CLASS}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -118,7 +117,6 @@ export function BirthDatePicker({ id, label, value, onChange }: Props) {
                   <button
                     type="button"
                     onClick={() => setView(byMonth ? 'month' : 'year')}
-                    aria-label={`${title}, changer ${byMonth ? 'de mois' : "d'année"}`}
                     className="react-datepicker__current-month cursor-pointer transition-colors hover:text-green-600"
                   >
                     {title}
@@ -132,7 +130,6 @@ export function BirthDatePicker({ id, label, value, onChange }: Props) {
                       ? nextMonthButtonDisabled
                       : lastYear >= today.getFullYear()
                   }
-                  aria-label="Suivant"
                   className={ARROW_CLASS}
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -144,7 +141,7 @@ export function BirthDatePicker({ id, label, value, onChange }: Props) {
             <CalendarTrigger
               isOpen={isOpen}
               onClose={() => pickerRef.current?.setOpen(false)}
-              className="w-full rounded-xl border border-green-200 bg-white px-4 py-2.5 text-left text-sm text-green-800 transition-colors hover:bg-green-50 aria-expanded:bg-green-50"
+              className="w-full rounded-xl border border-green-200 bg-white px-4 py-2.5 text-left text-sm text-green-800 transition-colors hover:bg-green-50 data-[open=true]:bg-green-50"
             >
               {selected ? (
                 selected.toLocaleDateString('fr-FR')

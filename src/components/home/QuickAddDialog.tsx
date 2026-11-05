@@ -136,9 +136,7 @@ export function QuickAddDialog({
               <button
                 id="quick-add-meal-type"
                 type="button"
-                aria-haspopup="listbox"
-                aria-expanded={categoryOpen}
-                className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-green-200 bg-white px-4 py-2.5 text-sm text-green-800 transition-colors hover:bg-green-50 aria-expanded:bg-green-50"
+                className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-green-200 bg-white px-4 py-2.5 text-sm text-green-800 transition-colors hover:bg-green-50 data-[state=open]:bg-green-50"
               >
                 {MEAL_TYPE_LABELS[mealType]}
                 <ChevronRight
@@ -152,7 +150,6 @@ export function QuickAddDialog({
               <button
                 key={value}
                 type="button"
-                aria-current={value === mealType}
                 onClick={() => {
                   setMealType(value);
                   setCategoryOpen(false);
@@ -187,14 +184,10 @@ export function QuickAddDialog({
                 onChange={(e) => handleChange(field, e.target.value)}
                 onFocus={() => handleFocus(field)}
                 onBlur={() => handleBlur(field)}
-                aria-invalid={isInvalid(field)}
-                aria-describedby={`quick-add-${field}-error`}
+                data-invalid={isInvalid(field)}
                 autoComplete="off"
               />
-              <FieldError
-                id={`quick-add-${field}-error`}
-                message={errorMessage(field)}
-              />
+              <FieldError message={errorMessage(field)} />
             </div>
           ))}
         </div>

@@ -28,11 +28,7 @@ export function NutritionAverages({
   const kcal = averageOf(logged, 'totalKcal');
 
   return (
-    <SummaryCard
-      title="Moyennes par jour"
-      busy={isLoading}
-      className={className}
-    >
+    <SummaryCard title="Moyennes par jour" className={className}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
         {isLoading ? (
           <div className="flex flex-col gap-2">
@@ -42,18 +38,11 @@ export function NutritionAverages({
         ) : hasData ? (
           <div>
             <div className="flex items-end gap-2">
-              <span
-                className="text-4xl font-bold text-green-800"
-                aria-label={`Moyenne : ${kcal} kilocalories par jour`}
-              >
-                {kcal}
-              </span>
-              <span className="mb-1 text-green-500" aria-hidden="true">
-                kcal
-              </span>
+              <span className="text-4xl font-bold text-green-800">{kcal}</span>
+              <span className="mb-1 text-green-500">kcal</span>
             </div>
             <p className="mt-1 flex items-center gap-1 text-sm text-green-600">
-              <CalendarDays className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <CalendarDays className="h-4 w-4 shrink-0" />
               {logged.length} {logged.length > 1 ? 'jours' : 'jour'} de suivi
             </p>
           </div>

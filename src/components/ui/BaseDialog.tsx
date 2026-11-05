@@ -1,4 +1,4 @@
-import { useCallback, useId, type ReactNode, type RefObject } from 'react';
+import { useCallback, type ReactNode, type RefObject } from 'react';
 import { X } from 'lucide-react';
 
 const MAX_WIDTH_CLASS = {
@@ -35,8 +35,6 @@ export function BaseDialog({
   onDialogNode,
   children,
 }: BaseDialogProps) {
-  const titleId = useId();
-
   const setRefs = useCallback(
     (node: HTMLDialogElement | null) => {
       dialogRef.current = node;
@@ -50,10 +48,8 @@ export function BaseDialog({
   };
 
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <dialog
       ref={setRefs}
-      aria-labelledby={titleId}
       onClose={onClose}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -64,10 +60,7 @@ export function BaseDialog({
     >
       <div className="flex max-h-[calc(100dvh-3rem)] flex-col gap-5 overflow-y-auto p-4 sm:p-6 ios-typing:max-h-[calc(var(--visible-height)-2rem)]">
         <div className="flex items-center justify-between gap-3">
-          <h3
-            id={titleId}
-            className="min-w-0 truncate text-lg font-bold text-green-800"
-          >
+          <h3 className="min-w-0 truncate text-lg font-bold text-green-800">
             {title}
           </h3>
           <div className="flex shrink-0 items-center gap-3">
@@ -75,7 +68,6 @@ export function BaseDialog({
             <button
               type="button"
               onClick={closeDialog}
-              aria-label="Fermer"
               className="cursor-pointer text-green-400 transition-colors hover:text-green-600"
             >
               <X className="h-5 w-5" />

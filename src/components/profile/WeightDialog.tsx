@@ -125,13 +125,9 @@ function WeightForm({
         onChange={(e) => handleChange(field, e.target.value)}
         onFocus={() => handleFocus(field)}
         onBlur={() => handleBlur(field)}
-        aria-invalid={isInvalid(field)}
-        aria-describedby={`${formId}-${field}-error`}
+        data-invalid={isInvalid(field)}
       />
-      <FieldError
-        id={`${formId}-${field}-error`}
-        message={errorMessage(field)}
-      />
+      <FieldError message={errorMessage(field)} />
     </>
   );
 
@@ -169,12 +165,12 @@ function WeightForm({
       </fieldset>
 
       {hasFailed && (
-        <p role="alert" className="text-sm text-red-500">
+        <p className="text-sm text-red-500">
           Impossible d&apos;enregistrer la pesée. Réessayez.
         </p>
       )}
       {hasDeleteFailed && (
-        <p role="alert" className="text-sm text-red-500">
+        <p className="text-sm text-red-500">
           Impossible de supprimer la pesée. Réessayez.
         </p>
       )}
@@ -240,7 +236,6 @@ export function WeightDialog({
             <button
               type="button"
               onClick={() => confirmDialogRef.current?.showModal()}
-              aria-label="Supprimer la pesée"
               className="cursor-pointer text-green-400 transition-colors hover:text-red-500"
             >
               <Trash2 className="h-5 w-5" />

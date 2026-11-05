@@ -92,7 +92,7 @@ export function BackupCard() {
           disabled={isBusy}
           className={BUTTON_CLASS}
         >
-          <Download className="h-4 w-4" aria-hidden="true" />
+          <Download className="h-4 w-4" />
           Exporter
         </button>
         <button
@@ -101,22 +101,17 @@ export function BackupCard() {
           disabled={isBusy}
           className={BUTTON_CLASS}
         >
-          <Upload className="h-4 w-4" aria-hidden="true" />
+          <Upload className="h-4 w-4" />
           Restaurer
         </button>
         <input
           ref={fileInputRef}
           type="file"
           className="hidden"
-          aria-label="Fichier de sauvegarde"
           onChange={(e) => void handleFile(e.target.files?.[0])}
         />
       </div>
-      {error && (
-        <p role="alert" className="mt-3 text-sm text-red-500">
-          {error}
-        </p>
-      )}
+      {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
 
       <ConfirmDialog
         dialogRef={confirmDialogRef}

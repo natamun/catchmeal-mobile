@@ -184,15 +184,13 @@ export function BarcodeField({
               setIsTouched(true);
               setIsFocused(false);
             }}
-            aria-invalid={Boolean(isTouched && error) || lookupError?.onField}
-            aria-describedby="food-barcode-error"
+            data-invalid={Boolean(isTouched && error) || lookupError?.onField}
           />
           {hasCamera && (
             <button
               type="button"
               onClick={() => setIsScannerOpen(true)}
               disabled={isLookingUp}
-              aria-label="Scanner un code-barres"
               className={ICON_BUTTON_CLASS}
             >
               <ScanBarcode className="h-4 w-4" />
@@ -203,8 +201,6 @@ export function BarcodeField({
               type="button"
               onClick={() => void handleLookup()}
               disabled={barcode === '' || isLookingUp}
-              aria-label="Rechercher le produit"
-              aria-describedby="food-lookup-error"
               className={ICON_BUTTON_CLASS}
             >
               {isLookingUp ? (
@@ -214,7 +210,6 @@ export function BarcodeField({
               )}
             </button>
             <FieldError
-              id="food-lookup-error"
               align="right"
               message={
                 lookupError && !lookupError.onField
@@ -225,7 +220,6 @@ export function BarcodeField({
           </div>
         </div>
         <FieldError
-          id="food-barcode-error"
           message={lookupError?.onField ? lookupError.message : formatError}
         />
       </div>

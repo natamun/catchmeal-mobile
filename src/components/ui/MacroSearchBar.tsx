@@ -198,7 +198,6 @@ export function MacroSearchBar({
       <button
         type="button"
         onClick={openFilterDialog}
-        aria-label="Trier et filtrer"
         className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-green-400 transition-colors hover:text-green-600"
       >
         <Filter
@@ -217,8 +216,7 @@ export function MacroSearchBar({
           <Popover.Trigger asChild>
             <button
               type="button"
-              aria-label="Trier par"
-              className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-green-200 bg-white px-4 py-2.5 text-sm text-green-800 transition-colors hover:bg-green-50 aria-expanded:bg-green-50"
+              className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-green-200 bg-white px-4 py-2.5 text-sm text-green-800 transition-colors hover:bg-green-50 data-[state=open]:bg-green-50"
             >
               {SORT_OPTIONS.find((o) => o.value === currentSortValue)?.label}
               <ChevronRight
@@ -285,7 +283,6 @@ export function MacroSearchBar({
                           ),
                         })
                       }
-                      aria-label={`${label}, minimum`}
                       style={{ zIndex: minIsOnTop ? 2 : 1 }}
                       className="range-thumb pointer-events-none absolute inset-0 w-full appearance-none bg-transparent"
                     />
@@ -303,7 +300,6 @@ export function MacroSearchBar({
                           ),
                         })
                       }
-                      aria-label={`${label}, maximum`}
                       style={{ zIndex: minIsOnTop ? 1 : 2 }}
                       className="range-thumb pointer-events-none absolute inset-0 w-full appearance-none bg-transparent"
                     />

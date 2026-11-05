@@ -40,7 +40,6 @@ function NavItem({ tab, variant }: NavItemProps) {
     return (
       <NavLink
         to={PATHS[tab.id]}
-        aria-label={tab.label}
         title={tab.label}
         className={({ isActive }) =>
           `${NAV_ITEM_CLASS} flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium ${
@@ -50,7 +49,7 @@ function NavItem({ tab, variant }: NavItemProps) {
           }`
         }
       >
-        <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+        <Icon className="h-5 w-5 shrink-0" />
         <span className="hidden md:inline">{tab.label}</span>
       </NavLink>
     );
@@ -59,7 +58,6 @@ function NavItem({ tab, variant }: NavItemProps) {
   return (
     <NavLink
       to={PATHS[tab.id]}
-      aria-label={tab.label}
       className={({ isActive }) =>
         `${NAV_ITEM_CLASS} block w-full px-1 py-1.5 text-xs font-medium ${
           isActive ? 'text-green-800' : 'text-green-600'
@@ -70,7 +68,7 @@ function NavItem({ tab, variant }: NavItemProps) {
         <span
           className={`flex flex-col items-center gap-1 rounded-xl py-1.5 ${isActive ? 'animate-pill-select bg-green-100' : ''}`}
         >
-          <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <Icon className="h-5 w-5 shrink-0" />
           {tab.shortLabel ?? tab.label}
         </span>
       )}
@@ -90,7 +88,7 @@ export function Nav() {
           <div className="flex">
             <Brand />
           </div>
-          <nav aria-label="Navigation principale">
+          <nav>
             <ul className="flex items-center gap-1">
               {TABS.map((tab) => (
                 <li key={tab.id}>
@@ -103,7 +101,7 @@ export function Nav() {
       </header>
 
       <footer className="fixed right-0 bottom-0 left-0 z-10 hidden border-t border-green-200 bg-white pr-[max(0.5rem,env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] pl-[max(0.5rem,env(safe-area-inset-left))] pointer-coarse:block ios-typing:hidden">
-        <nav aria-label="Navigation principale">
+        <nav>
           <ul className="flex h-bottom-nav">
             {TABS.map((tab) => (
               <li key={tab.id} className="flex-1">

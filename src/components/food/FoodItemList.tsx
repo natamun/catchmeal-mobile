@@ -98,7 +98,7 @@ export function FoodItemList({
         </>
       }
     >
-      {isLoading && <ListCardLoading label="Chargement des aliments..." />}
+      {isLoading && <ListCardLoading />}
 
       {loadError && <LoadError message={loadError} onRetry={onRetry} />}
 
@@ -125,8 +125,6 @@ export function FoodItemList({
                 <button
                   type="button"
                   onClick={() => toggleExpanded(item.id)}
-                  aria-expanded={isExpanded}
-                  aria-label={`Afficher le détail de ${item.name}`}
                   className="shrink-0 cursor-pointer text-green-400 transition-colors hover:text-green-600 @lg:hidden"
                 >
                   <ChevronRight
@@ -164,9 +162,7 @@ export function FoodItemList({
                     <MacroBadge key={m.label} {...m} />
                   ))}
                   <span className="hidden shrink-0 items-center gap-1.5 text-xs font-normal text-green-500 @max-[400px]:flex">
-                    <span aria-hidden="true" className="text-green-300">
-                      |
-                    </span>
+                    <span className="text-green-300">|</span>
                     {formatBaseQuantity(item)}
                   </span>
                 </div>

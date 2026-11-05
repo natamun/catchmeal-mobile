@@ -239,7 +239,6 @@ export function MealForm({
             <button
               type="button"
               onClick={() => confirmDialogRef.current?.showModal()}
-              aria-label="Supprimer"
               className="cursor-pointer text-green-400 transition-colors hover:text-red-500"
             >
               <Trash2 className="h-5 w-5" />
@@ -269,11 +268,10 @@ export function MealForm({
                 setNameFocused(false);
                 setNameTouched(true);
               }}
-              aria-invalid={nameTouched && Boolean(nameError)}
-              aria-describedby="meal-name-error"
+              data-invalid={nameTouched && Boolean(nameError)}
               autoComplete="off"
             />
-            <FieldError id="meal-name-error" message={showNameError} />
+            <FieldError message={showNameError} />
           </div>
 
           <Popover.Root open={isSearchOpen} onOpenChange={() => {}}>
@@ -323,12 +321,10 @@ export function MealForm({
                                 }
                                 onFocus={() => quickAdd.handleFocus(field)}
                                 onBlur={() => quickAdd.handleBlur(field)}
-                                aria-invalid={quickAdd.isInvalid(field)}
-                                aria-describedby={`quick-${field}-error`}
+                                data-invalid={quickAdd.isInvalid(field)}
                                 autoComplete="off"
                               />
                               <FieldError
-                                id={`quick-${field}-error`}
                                 message={quickAdd.errorMessage(field)}
                               />
                             </div>
@@ -354,14 +350,10 @@ export function MealForm({
                 onChange={(e) => setSearch(e.target.value)}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
-                aria-invalid={submitAttempted && Boolean(itemsError)}
-                aria-describedby="meal-items-error"
+                data-invalid={submitAttempted && Boolean(itemsError)}
                 autoComplete="off"
               />
-              <FieldError
-                id="meal-items-error"
-                message={submitAttempted ? itemsError : undefined}
-              />
+              <FieldError message={submitAttempted ? itemsError : undefined} />
             </Popover.Anchor>
             <DropdownPanel container={dialogNode} matchAnchorWidth>
               {searchResults.map((foodItem) => (

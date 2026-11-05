@@ -4,7 +4,6 @@ const STEP_BUTTON_CLASS =
   'flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md bg-green-50 text-xs font-bold text-green-600 transition-colors hover:bg-green-100';
 
 interface QuantityStepperProps {
-  name: string;
   quantity: number;
   unitLabel: string;
   onAdjust: (delta: number) => void;
@@ -12,7 +11,6 @@ interface QuantityStepperProps {
 
 /** Buttons that change a quantity by -10, -1, +1 or +10, around its value. */
 export function QuantityStepper({
-  name,
   quantity,
   unitLabel,
   onAdjust,
@@ -21,7 +19,6 @@ export function QuantityStepper({
     <button
       type="button"
       onClick={() => onAdjust(delta)}
-      aria-label={`${delta < 0 ? 'Retirer' : 'Ajouter'} ${Math.abs(delta)} ${unitLabel} à ${name}`}
       className={STEP_BUTTON_CLASS}
     >
       {text}

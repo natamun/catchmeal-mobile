@@ -1,7 +1,7 @@
 import { forwardRef, type ComponentProps } from 'react';
 
 /**
- * Text input in the app's style; its border turns red when aria-invalid is
+ * Text input in the app's style; its border turns red when data-invalid is
  * true. The ref is forwarded so a form can focus it.
  */
 export const Input = forwardRef<HTMLInputElement, ComponentProps<'input'>>(
@@ -9,7 +9,7 @@ export const Input = forwardRef<HTMLInputElement, ComponentProps<'input'>>(
     <input
       ref={ref}
       {...props}
-      className={`w-full rounded-xl border border-green-200 bg-white px-4 py-2.5 text-sm text-green-800 outline-none focus:border-green-400 aria-invalid:border-red-400 ${className}`}
+      className={`w-full rounded-xl border border-green-200 bg-white px-4 py-2.5 text-sm text-green-800 outline-none focus:border-green-400 data-[invalid=true]:border-red-400 ${className}`}
     />
   ),
 );

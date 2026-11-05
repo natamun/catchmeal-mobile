@@ -114,13 +114,7 @@ export function WeightCard({ height, onLatestEntry }: Props) {
     <>
       <SummaryCard
         title="Composition corporelle"
-        busy={isLoading}
-        aside={
-          <AddCircleButton
-            label="Ajouter une pesée"
-            onClick={() => openDialog(null)}
-          />
-        }
+        aside={<AddCircleButton onClick={() => openDialog(null)} />}
       >
         {isLoading && (
           <div className="flex flex-col gap-2">
@@ -142,15 +136,10 @@ export function WeightCard({ height, onLatestEntry }: Props) {
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-8">
               <div className="shrink-0">
                 <div className="flex items-end gap-2">
-                  <span
-                    className="text-4xl font-bold text-green-800"
-                    aria-label={`Poids actuel : ${formatKg(latest.weight)} kilogrammes`}
-                  >
+                  <span className="text-4xl font-bold text-green-800">
                     {formatKg(latest.weight)}
                   </span>
-                  <span className="mb-1 text-green-500" aria-hidden="true">
-                    kg
-                  </span>
+                  <span className="mb-1 text-green-500">kg</span>
                 </div>
                 <p className="mt-1 text-sm text-green-600">
                   Dernière pesée le {formatDate(latest.loggedAt)}
@@ -177,7 +166,6 @@ export function WeightCard({ height, onLatestEntry }: Props) {
             <div className="mt-5 border-t border-green-100 pt-3">
               <div className="relative max-h-72 overflow-x-hidden overflow-y-auto md:pr-1">
                 <div
-                  aria-hidden="true"
                   className={`sticky top-0 hidden gap-x-3 bg-white pb-2 text-xs text-green-600 md:grid ${ROW_COLUMNS}`}
                 >
                   <span>Date</span>
@@ -186,10 +174,7 @@ export function WeightCard({ height, onLatestEntry }: Props) {
                     <span key={key}>{label}</span>
                   ))}
                 </div>
-                <ul
-                  aria-label="Historique des pesées"
-                  className="divide-y divide-green-100"
-                >
+                <ul className="divide-y divide-green-100">
                   {history.map((entry) => (
                     <li
                       key={entry.id}
@@ -213,7 +198,7 @@ export function WeightCard({ height, onLatestEntry }: Props) {
                             key={key}
                             className="flex min-w-0 justify-between gap-1 md:block"
                           >
-                            <dt className="truncate text-green-600 md:sr-only">
+                            <dt className="truncate text-green-600 md:hidden">
                               {label}
                             </dt>
                             <dd className="whitespace-nowrap text-green-800 tabular-nums">
@@ -222,10 +207,7 @@ export function WeightCard({ height, onLatestEntry }: Props) {
                           </div>
                         ))}
                       </dl>
-                      <EditIconButton
-                        label={`Modifier la pesée du ${formatDate(entry.loggedAt)}`}
-                        onClick={() => openDialog(entry)}
-                      />
+                      <EditIconButton onClick={() => openDialog(entry)} />
                     </li>
                   ))}
                 </ul>

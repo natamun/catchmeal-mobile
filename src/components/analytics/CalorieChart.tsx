@@ -173,7 +173,7 @@ export function CalorieChart({ days, isLoading = false }: Props) {
 
   if (isLoading) {
     return (
-      <SummaryCard title="Calories et macronutriments" busy>
+      <SummaryCard title="Calories et macronutriments">
         <ChartSkeleton />
       </SummaryCard>
     );

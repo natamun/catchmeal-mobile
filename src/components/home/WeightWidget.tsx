@@ -42,9 +42,9 @@ export function WeightWidget({ history, hasError = false, goalWeight }: Props) {
   const reached = gap !== null && Math.abs(gap) < 0.05;
 
   return (
-    <SummaryCard title="Poids & Objectif" busy={isLoading}>
+    <SummaryCard title="Poids & Objectif">
       {isLoading && (
-        <div className="flex animate-pulse flex-col gap-2" aria-hidden="true">
+        <div className="flex animate-pulse flex-col gap-2">
           <div className="h-10 w-24 rounded-lg bg-green-100" />
           <div className="h-4 w-40 rounded bg-green-100" />
         </div>
@@ -60,19 +60,14 @@ export function WeightWidget({ history, hasError = false, goalWeight }: Props) {
       {current !== null && (
         <>
           <div className="flex items-end gap-2">
-            <span
-              className="text-4xl font-bold text-green-800"
-              aria-label={`Poids actuel : ${formatKg(current.weight)} kilogrammes`}
-            >
+            <span className="text-4xl font-bold text-green-800">
               {formatKg(current.weight)}
             </span>
-            <span className="mb-1 text-green-500" aria-hidden="true">
-              kg
-            </span>
+            <span className="mb-1 text-green-500">kg</span>
           </div>
           {previous !== null && change !== null && (
             <p className="mt-1 flex items-center gap-1 text-sm text-green-600">
-              <TrendIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <TrendIcon className="h-4 w-4 shrink-0" />
               {stable
                 ? `Stable depuis le ${formatDay(previous.loggedAt)}`
                 : `${change > 0 ? '+' : '−'}${formatKg(Math.abs(change))} kg depuis le ${formatDay(previous.loggedAt)}`}

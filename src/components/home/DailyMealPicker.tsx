@@ -8,7 +8,7 @@ import type { FoodItem } from '../food/types';
 import { listMeals } from '../meal/api';
 import { buildDrafts, type MealItemDraft } from '../meal/draft';
 import { MealList } from '../meal/MealList';
-import { MEAL_TYPE_LABELS, type Meal, type MealType } from '../meal/types';
+import { type Meal, type MealType } from '../meal/types';
 import { PillTabs } from '../ui/PillTabs';
 import { SelectToggle } from '../ui/SelectToggle';
 import { DailyMealForm } from './DailyMealForm';
@@ -94,12 +94,10 @@ export function DailyMealPicker({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Retour à l'accueil"
             className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-green-500 text-white transition-colors hover:bg-green-600"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <h2 className="sr-only">Ajouter : {MEAL_TYPE_LABELS[mealType]}</h2>
           <PillTabs
             name="mealPickerTab"
             options={TAB_OPTIONS}
@@ -117,7 +115,6 @@ export function DailyMealPicker({
               renderAction={(food) => (
                 <SelectToggle
                   selected={selectedFoodIds.has(food.id)}
-                  label={`Sélectionner ${food.name}`}
                   onToggle={() => toggleFood(food.id)}
                 />
               )}
@@ -130,7 +127,6 @@ export function DailyMealPicker({
               renderAction={(meal) => (
                 <SelectToggle
                   selected={selectedMealIds.has(meal.id)}
-                  label={`Sélectionner ${meal.name ?? 'ce repas'}`}
                   onToggle={() => toggleMeal(meal.id)}
                 />
               )}

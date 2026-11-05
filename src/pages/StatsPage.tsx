@@ -26,7 +26,6 @@ export default function StatsPage() {
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
-      <h1 className="sr-only">Statistiques</h1>
       <PeriodSelector period={period} onChange={setPeriod} />
 
       {hasError ? (

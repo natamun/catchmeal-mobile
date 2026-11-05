@@ -91,18 +91,9 @@ export function DailyMealList({
 
   return (
     <ListCard>
-      {isLoading && (
-        <span role="status" className="sr-only">
-          Chargement du journal...
-        </span>
-      )}
-
       {loadError && <LoadError message={loadError} onRetry={onRetry} />}
 
-      <div
-        aria-busy={isLoading}
-        className={`divide-y divide-green-200 ${loadError ? 'hidden' : ''}`}
-      >
+      <div className={`divide-y divide-green-200 ${loadError ? 'hidden' : ''}`}>
         {MEAL_TYPES.map((mealType) => {
           const rows = rowsOf(
             meals
@@ -127,7 +118,6 @@ export function DailyMealList({
                   {canEdit && (
                     <div className="animate-fade-in-up">
                       <EditIconButton
-                        label={`Modifier ${MEAL_TYPE_LABELS[mealType]}`}
                         onClick={() => {
                           if (!isLoading) {
                             onEdit(mealType);
@@ -143,18 +133,12 @@ export function DailyMealList({
                       {Math.round(total)} kcal
                     </span>
                   )}
-                  <AddCircleButton
-                    label={`Ajouter à la catégorie ${MEAL_TYPE_LABELS[mealType]}`}
-                    onClick={() => onAdd(mealType)}
-                  />
+                  <AddCircleButton onClick={() => onAdd(mealType)} />
                 </div>
               </div>
 
               {isLoading && (
-                <div
-                  aria-hidden="true"
-                  className="flex h-12 animate-delayed-reveal items-center justify-center overflow-hidden border-t border-green-100"
-                >
+                <div className="flex h-12 animate-delayed-reveal items-center justify-center overflow-hidden border-t border-green-100">
                   <LoaderCircle className="h-5 w-5 animate-spin text-green-400" />
                 </div>
               )}

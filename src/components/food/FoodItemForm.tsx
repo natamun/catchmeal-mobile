@@ -303,7 +303,6 @@ export function FoodItemForm({
             <button
               type="button"
               onClick={() => confirmDialogRef.current?.showModal()}
-              aria-label="Supprimer"
               className="cursor-pointer text-green-400 transition-colors hover:text-red-500"
             >
               <Trash2 className="h-5 w-5" />
@@ -344,10 +343,9 @@ export function FoodItemForm({
                 onChange={(e) => handleChange('name', e.target.value)}
                 onFocus={() => handleFocus('name')}
                 onBlur={() => handleBlur('name')}
-                aria-invalid={isInvalid('name')}
-                aria-describedby="food-name-error"
+                data-invalid={isInvalid('name')}
               />
-              <FieldError id="food-name-error" message={errorMessage('name')} />
+              <FieldError message={errorMessage('name')} />
             </div>
 
             <div className="relative flex flex-col gap-1.5 sm:flex-1">
@@ -363,13 +361,9 @@ export function FoodItemForm({
                 onChange={(e) => handleChange('brand', e.target.value)}
                 onFocus={() => handleFocus('brand')}
                 onBlur={() => handleBlur('brand')}
-                aria-invalid={isInvalid('brand')}
-                aria-describedby="food-brand-error"
+                data-invalid={isInvalid('brand')}
               />
-              <FieldError
-                id="food-brand-error"
-                message={errorMessage('brand')}
-              />
+              <FieldError message={errorMessage('brand')} />
             </div>
           </div>
 
@@ -387,8 +381,7 @@ export function FoodItemForm({
                 onChange={(e) => handleChange('baseQuantity', e.target.value)}
                 onFocus={() => handleFocus('baseQuantity')}
                 onBlur={() => handleBlur('baseQuantity')}
-                aria-invalid={isInvalid('baseQuantity')}
-                aria-describedby="food-quantity-error"
+                data-invalid={isInvalid('baseQuantity')}
               />
               <PillTabs
                 name="baseUnit"
@@ -399,10 +392,7 @@ export function FoodItemForm({
                 }
               />
             </div>
-            <FieldError
-              id="food-quantity-error"
-              message={errorMessage('baseQuantity')}
-            />
+            <FieldError message={errorMessage('baseQuantity')} />
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -427,13 +417,9 @@ export function FoodItemForm({
                     onChange={(e) => handleChange(field, e.target.value)}
                     onFocus={() => handleFocus(field)}
                     onBlur={() => handleBlur(field)}
-                    aria-invalid={isInvalid(field)}
-                    aria-describedby={`food-${field}-error`}
+                    data-invalid={isInvalid(field)}
                   />
-                  <FieldError
-                    id={`food-${field}-error`}
-                    message={errorMessage(field)}
-                  />
+                  <FieldError message={errorMessage(field)} />
                 </div>
               ))}
             </div>

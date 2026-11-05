@@ -23,7 +23,7 @@ export function WeightVariation({ days, isLoading = false }: Props) {
 
   if (isLoading) {
     return (
-      <SummaryCard title="Variation de poids" busy>
+      <SummaryCard title="Variation de poids">
         <div className="flex flex-col gap-2">
           <Skeleton className="h-10 w-24" />
           <Skeleton className="h-4 w-36" />
@@ -48,24 +48,18 @@ export function WeightVariation({ days, isLoading = false }: Props) {
   const stable = Math.abs(change) < 0.05;
   const TrendIcon = stable ? Minus : change > 0 ? TrendingUp : TrendingDown;
   const sign = stable ? '' : change > 0 ? '+' : '−';
-  const spokenSign = stable ? '' : change > 0 ? 'plus ' : 'moins ';
 
   return (
     <SummaryCard title="Variation de poids">
       <div className="flex items-end gap-2">
-        <span
-          className="text-4xl font-bold text-green-800"
-          aria-label={`Variation : ${spokenSign}${formatKg(Math.abs(change))} kilogrammes`}
-        >
+        <span className="text-4xl font-bold text-green-800">
           {sign}
           {formatKg(Math.abs(change))}
         </span>
-        <span className="mb-1 text-green-500" aria-hidden="true">
-          kg
-        </span>
+        <span className="mb-1 text-green-500">kg</span>
       </div>
       <p className="mt-1 flex items-center gap-1 text-sm text-green-600">
-        <TrendIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+        <TrendIcon className="h-4 w-4 shrink-0" />
         {stable
           ? `Stable à ${formatKg(last)} kg`
           : `De ${formatKg(first)} à ${formatKg(last)} kg`}

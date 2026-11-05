@@ -30,14 +30,10 @@ export function CalorieSummary({
   );
 
   return (
-    <SummaryCard title="Calories du jour" busy={isLoading}>
+    <SummaryCard title="Calories du jour">
       <div className="flex flex-1 items-center gap-4">
         <div className="relative h-28 w-28 shrink-0">
-          <svg
-            viewBox="0 0 100 100"
-            className="h-full w-full -rotate-90"
-            aria-hidden="true"
-          >
+          <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
             <circle
               cx="50"
               cy="50"
@@ -67,20 +63,11 @@ export function CalorieSummary({
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
             {isLoading ? (
-              <span
-                className="h-7 w-12 animate-pulse rounded bg-green-100"
-                aria-hidden="true"
-              />
+              <span className="h-7 w-12 animate-pulse rounded bg-green-100" />
             ) : (
-              <p
-                className="flex flex-col items-center leading-tight"
-                aria-live="polite"
-              >
+              <p className="flex flex-col items-center leading-tight">
                 <span className="text-2xl font-bold text-green-800">
                   {unavailable ? '–' : difference}
-                  {!unavailable && (
-                    <span className="sr-only"> kilocalories</span>
-                  )}
                 </span>
                 <span className="text-xs text-green-600">
                   {unavailable
@@ -100,10 +87,7 @@ export function CalorieSummary({
           </StatTile>
           <StatTile label="Consommées">
             {isLoading ? (
-              <span
-                className="block h-6 w-16 animate-pulse rounded bg-green-100"
-                aria-hidden="true"
-              />
+              <span className="block h-6 w-16 animate-pulse rounded bg-green-100" />
             ) : unavailable ? (
               '–'
             ) : (

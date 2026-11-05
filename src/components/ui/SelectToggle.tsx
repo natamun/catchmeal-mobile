@@ -2,21 +2,14 @@ import { Check } from 'lucide-react';
 
 interface SelectToggleProps {
   selected: boolean;
-  label: string;
   onToggle: () => void;
 }
 
-/**
- * Square check button used to pick items in a list (role="checkbox" for screen
- * readers).
- */
-export function SelectToggle({ selected, label, onToggle }: SelectToggleProps) {
+/** Square check button used to pick items in a list. */
+export function SelectToggle({ selected, onToggle }: SelectToggleProps) {
   return (
     <button
       type="button"
-      role="checkbox"
-      aria-checked={selected}
-      aria-label={label}
       onClick={onToggle}
       className={`flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border transition-colors ${
         selected

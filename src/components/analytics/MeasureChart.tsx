@@ -29,7 +29,6 @@ import { ChartTooltip } from './ChartTooltip';
 import type { DashboardDay } from './types';
 
 const TITLE = 'Évolution';
-const SELECT_ID = 'stats-measure';
 const SCALE_MARGIN = 1;
 const MAX_INTERVALS = 8;
 const SCALE_STEPS = [1, 2, 5, 10, 20];
@@ -114,11 +113,7 @@ export function MeasureChart({
     MEASURES.find(({ value }) => value === measure) ?? MEASURES[0];
   const selector = (
     <>
-      <label htmlFor={SELECT_ID} className="sr-only">
-        Mesure affichée
-      </label>
       <SelectDropdown
-        id={SELECT_ID}
         size="sm"
         className="w-36"
         value={measure}
@@ -131,7 +126,7 @@ export function MeasureChart({
 
   if (isLoading) {
     return (
-      <SummaryCard title={TITLE} aside={selector} inlineAside busy>
+      <SummaryCard title={TITLE} aside={selector} inlineAside>
         <ChartSkeleton />
       </SummaryCard>
     );

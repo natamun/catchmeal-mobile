@@ -1,4 +1,4 @@
-import { useId, type RefObject } from 'react';
+import type { RefObject } from 'react';
 
 interface ConfirmDialogProps {
   dialogRef: RefObject<HTMLDialogElement | null>;
@@ -31,22 +31,13 @@ export function ConfirmDialog({
   onConfirm,
   tone = 'danger',
 }: ConfirmDialogProps) {
-  const titleId = useId();
-  const descId = useId();
-
   return (
     <dialog
       ref={dialogRef}
-      aria-labelledby={titleId}
-      aria-describedby={descId}
       className="dialog-fade m-auto w-[calc(100vw-2rem)] max-w-sm rounded-2xl border-none bg-white p-6 shadow-lg backdrop:backdrop-blur-sm"
     >
-      <h3 id={titleId} className="text-lg font-bold text-green-800">
-        {title}
-      </h3>
-      <p id={descId} className="mt-2 text-sm text-green-500">
-        {description}
-      </p>
+      <h3 className="text-lg font-bold text-green-800">{title}</h3>
+      <p className="mt-2 text-sm text-green-500">{description}</p>
       <div className="mt-5 flex gap-3">
         <button
           type="button"

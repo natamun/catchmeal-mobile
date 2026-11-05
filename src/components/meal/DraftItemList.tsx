@@ -39,7 +39,6 @@ export function DraftItemList({
               <button
                 type="button"
                 onClick={() => onRemove(item.id)}
-                aria-label="Retirer cet ajout rapide"
                 className={REMOVE_CLASS}
               >
                 <X className="h-4 w-4" />
@@ -55,7 +54,6 @@ export function DraftItemList({
               {foodItem.name}
             </span>
             <QuantityStepper
-              name={foodItem.name}
               quantity={quantity}
               unitLabel={UNIT_LABELS[foodItem.baseUnit]}
               onAdjust={(delta) => onAdjust(item.id, delta)}
@@ -63,7 +61,6 @@ export function DraftItemList({
             <button
               type="button"
               onClick={() => onRemove(item.id)}
-              aria-label={`Retirer ${foodItem.name}`}
               className={REMOVE_CLASS}
             >
               <X className="h-4 w-4" />

@@ -56,9 +56,7 @@ export function CalendarTrigger({
         }
       }}
       onKeyDown={onKeyDown}
-      aria-haspopup="dialog"
-      aria-expanded={isOpen}
-      aria-live="polite"
+      data-open={isOpen}
       className={`cursor-pointer *:pointer-events-none ${className ?? ''}`}
     >
       {children}

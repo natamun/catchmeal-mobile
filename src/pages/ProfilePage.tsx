@@ -14,8 +14,6 @@ export default function ProfilePage() {
 
   return (
     <div className="flex animate-fade-in-up flex-col gap-6">
-      <h1 className="sr-only">Profil</h1>
-
       <ProfileCard profile={profile} onUpdate={updateProfile} />
 
       <WeightCard height={profile.height} onLatestEntry={setLatestEntry} />

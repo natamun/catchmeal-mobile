@@ -61,7 +61,7 @@ export function SelectDropdown({
           id={id}
           ref={triggerRef}
           type="button"
-          className={`flex cursor-pointer items-center justify-between border border-green-200 bg-white text-left text-green-800 transition-colors outline-none hover:bg-green-50 focus:border-green-400 aria-expanded:bg-green-50 ${SIZE[size].trigger} ${className}`}
+          className={`flex cursor-pointer items-center justify-between border border-green-200 bg-white text-left text-green-800 transition-colors outline-none hover:bg-green-50 focus:border-green-400 data-[state=open]:bg-green-50 ${SIZE[size].trigger} ${className}`}
         >
           <span className={selected ? '' : 'text-green-800/50'}>
             {selected?.label ?? placeholder}
@@ -87,7 +87,6 @@ export function SelectDropdown({
           <button
             key={o.value}
             type="button"
-            aria-current={o.value === value}
             onClick={() => {
               onChange(o.value);
               setOpen(false);

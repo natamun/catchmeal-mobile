@@ -39,10 +39,7 @@ function Bar({
         <span className="font-medium text-green-600">{label}</span>
         <span className="flex items-center gap-1 text-green-500">
           {isLoading ? (
-            <span
-              className="h-4 w-8 animate-pulse rounded bg-green-100"
-              aria-hidden="true"
-            />
+            <span className="h-4 w-8 animate-pulse rounded bg-green-100" />
           ) : unavailable ? (
             '–'
           ) : (
@@ -51,18 +48,7 @@ function Bar({
           <span>/ {goal}g</span>
         </span>
       </div>
-      <div
-        className="relative h-2 overflow-hidden rounded-full bg-green-100"
-        role="progressbar"
-        aria-valuenow={isLoading ? undefined : Math.min(value, goal)}
-        aria-valuemin={0}
-        aria-valuemax={goal}
-        aria-label={
-          isLoading
-            ? `${label} : chargement`
-            : `${label} : ${value}g sur ${goal}g`
-        }
-      >
+      <div className="relative h-2 overflow-hidden rounded-full bg-green-100">
         <div
           className="h-full bg-green-400"
           style={{ width: `${lap * 100}%` }}
@@ -88,7 +74,7 @@ export function MacroBreakdown({
   unavailable = false,
 }: Macros) {
   return (
-    <SummaryCard title="Macronutriments" busy={isLoading}>
+    <SummaryCard title="Macronutriments">
       <div className="flex flex-1 flex-col justify-between gap-4">
         <Bar
           label="Protéines"

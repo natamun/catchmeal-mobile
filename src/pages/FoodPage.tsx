@@ -135,7 +135,6 @@ export default function FoodPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="sr-only">Alimentation</h1>
       <div className="flex items-center justify-between gap-3">
         <PillTabs
           name="foodPageTab"
@@ -152,8 +151,6 @@ export default function FoodPage() {
           <button
             type="button"
             onClick={() => !supportsHover && setShowLegend((prev) => !prev)}
-            aria-expanded={showLegend}
-            aria-label="Afficher la légende des couleurs"
             className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-green-200 text-xs font-bold text-green-500 transition-colors hover:bg-green-50"
           >
             ?
@@ -203,17 +200,9 @@ export default function FoodPage() {
               setIsLoading(true);
               setFoodsAttempt((attempt) => attempt + 1);
             }}
-            headerAction={
-              <AddCircleButton
-                label="Ajouter un aliment"
-                onClick={() => openDialog(null)}
-              />
-            }
+            headerAction={<AddCircleButton onClick={() => openDialog(null)} />}
             renderAction={(item) => (
-              <EditIconButton
-                label={`Modifier ${item.name}`}
-                onClick={() => openDialog(item)}
-              />
+              <EditIconButton onClick={() => openDialog(item)} />
             )}
           />
         ) : (
@@ -227,16 +216,10 @@ export default function FoodPage() {
               setMealsAttempt((attempt) => attempt + 1);
             }}
             headerAction={
-              <AddCircleButton
-                label="Ajouter un repas"
-                onClick={() => openMealDialog(null)}
-              />
+              <AddCircleButton onClick={() => openMealDialog(null)} />
             }
             renderAction={(meal) => (
-              <EditIconButton
-                label={`Modifier ${meal.name ?? 'ce repas'}`}
-                onClick={() => openMealDialog(meal)}
-              />
+              <EditIconButton onClick={() => openMealDialog(meal)} />
             )}
           />
         )}

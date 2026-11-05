@@ -92,7 +92,7 @@ export function MealList({
         </>
       }
     >
-      {isLoading && <ListCardLoading label="Chargement des repas..." />}
+      {isLoading && <ListCardLoading />}
 
       {loadError && <LoadError message={loadError} onRetry={onRetry} />}
 
@@ -119,8 +119,6 @@ export function MealList({
                 <button
                   type="button"
                   onClick={() => toggleExpanded(meal.id)}
-                  aria-expanded={isExpanded}
-                  aria-label={`Afficher le détail de ${meal.name ?? 'ce repas'}`}
                   className="shrink-0 cursor-pointer text-green-400 transition-colors hover:text-green-600 @lg:hidden"
                 >
                   <ChevronRight

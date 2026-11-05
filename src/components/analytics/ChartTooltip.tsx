@@ -32,7 +32,6 @@ export function TooltipRow({
       <span
         className="h-2 w-2 shrink-0 rounded-full"
         style={{ backgroundColor: color }}
-        aria-hidden="true"
       />
       <span className="text-green-600">{name}</span>
       <span className="ml-auto pl-4 font-semibold text-green-800 tabular-nums">

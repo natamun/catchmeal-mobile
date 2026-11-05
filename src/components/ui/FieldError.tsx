@@ -4,15 +4,12 @@ import { useDelayedUnmount } from '../../hooks/useDelayedUnmount';
 
 /**
  * Red bubble under a field with its error. It stays 100 ms after the message
- * disappears so it can fade out. `id` is what the field's aria-describedby
- * points to.
+ * disappears so it can fade out.
  */
 export function FieldError({
-  id,
   message,
   align = 'left',
 }: {
-  id: string;
   message?: string;
   align?: 'left' | 'right';
 }) {
@@ -24,7 +21,6 @@ export function FieldError({
 
   return (
     <div
-      id={id}
       className={`absolute top-full z-10 mt-2 ${align === 'right' ? 'right-0' : 'left-0'} ${message ? 'animate-fade-in-up' : 'animate-fade-out'}`}
     >
       <div

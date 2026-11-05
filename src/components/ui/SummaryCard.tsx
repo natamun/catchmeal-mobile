@@ -4,27 +4,23 @@ interface Props {
   title: string;
   aside?: ReactNode;
   inlineAside?: boolean;
-  busy?: boolean;
   className?: string;
   children: ReactNode;
 }
 
 /**
  * White card with a small title and optional content next to it (`aside`).
- * `busy` tells screen readers it is loading.
  */
 export function SummaryCard({
   title,
   aside,
   inlineAside = false,
-  busy = false,
   className = '',
   children,
 }: Props) {
   return (
     <div
       className={`flex flex-col rounded-2xl border border-green-200 bg-white p-6 shadow-sm ${className}`}
-      aria-busy={busy || undefined}
     >
       <div
         className={`mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 ${inlineAside ? '' : 'justify-between'}`}

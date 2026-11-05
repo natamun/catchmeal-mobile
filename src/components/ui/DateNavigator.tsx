@@ -51,7 +51,6 @@ export function DateNavigator({ value, onChange }: DateNavigatorProps) {
       <button
         type="button"
         onClick={() => onChange(shiftDay(value, -1))}
-        aria-label="Jour précédent"
         className={ARROW_CLASS}
       >
         <ChevronLeft className="h-4 w-4" />
@@ -67,7 +66,6 @@ export function DateNavigator({ value, onChange }: DateNavigatorProps) {
       <button
         type="button"
         onClick={() => onChange(shiftDay(value, 1))}
-        aria-label="Jour suivant"
         className={ARROW_CLASS}
       >
         <ChevronRight className="h-4 w-4" />

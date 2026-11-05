@@ -96,7 +96,6 @@ export default function HomePage() {
   return (
     <>
       <div className="animate-fade-in-up">
-        <h1 className="sr-only">Accueil</h1>
         <div className="flex flex-col gap-4 md:gap-6">
           <div className="flex flex-wrap justify-between gap-3">
             <DateNavigator
@@ -108,7 +107,6 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => quickAddDialogRef.current?.showModal()}
-              aria-label="Ajout rapide"
               title="Ajout rapide"
               className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-green-500 px-3 text-sm font-medium text-white transition-colors hover:bg-green-600 max-2xs:order-first max-2xs:w-full max-2xs:py-2.5 xs:px-4"
             >
