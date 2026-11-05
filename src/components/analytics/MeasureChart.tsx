@@ -113,16 +113,16 @@ export function MeasureChart({
   const { label, unit } =
     MEASURES.find(({ value }) => value === measure) ?? MEASURES[0];
   const selector = (
-    <>
+    <span className="flex min-w-0 flex-1 basis-40">
       <SelectDropdown
         size="sm"
-        className="w-36"
+        className="min-w-0 flex-1 whitespace-nowrap"
         value={measure}
         options={MEASURES}
         onChange={(value) => onMeasureChange(value as MeasureKey)}
         container={document.body}
       />
-    </>
+    </span>
   );
 
   if (isLoading) {
