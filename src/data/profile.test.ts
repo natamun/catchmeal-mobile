@@ -70,7 +70,7 @@ describe('updateProfile', () => {
   });
 
   it('saves the color theme', async () => {
-    expect((await updateProfile(db, { theme: 'nuit' })).theme).toBe('nuit');
+    expect((await updateProfile(db, { theme: 'nord' })).theme).toBe('nord');
   });
 
   it('clears a field given null', async () => {

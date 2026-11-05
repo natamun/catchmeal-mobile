@@ -136,6 +136,26 @@ describe('migrate', () => {
   });
 });
 
+describe('migration 4', () => {
+  it.each([
+    ['a theme that no longer exists goes back to the default', 'nuit', null],
+    ['graphite stays', 'graphite', 'graphite'],
+  ])('%s', async (_, before, after) => {
+    const old = openMemoryDatabase();
+    await migrate(old, MIGRATIONS.slice(0, 3));
+    await old.run(
+      "UPDATE profile SET theme = ?, height = 178, goal_type = 'LOSE_FAT' WHERE id = 1",
+      [before],
+    );
+
+    await migrate(old);
+
+    expect(
+      await old.query('SELECT theme, height, goal_type FROM profile'),
+    ).toEqual([{ theme: after, height: 178, goal_type: 'LOSE_FAT' }]);
+  });
+});
+
 describe('profile', () => {
   it('accepts a complete profile', async () => {
     await updateProfile({
@@ -161,7 +181,6 @@ describe('profile', () => {
     ['an unknown gender', { gender: 'X' }],
     ['an unknown activity level', { activity_level: 'LAZY' }],
     ['an unknown goal type', { goal_type: 'BULK' }],
-    ['an unknown theme', { theme: 'rose' }],
     ['a birth date in another format', { birth_date: '12.04.1990' }],
     ['a zero height', { height: 0 }],
     ['a zero target weight', { target_weight: 0 }],
