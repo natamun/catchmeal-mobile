@@ -20,6 +20,8 @@ import { formatMeasure } from './measures';
 interface Props {
   profile: Profile;
   latestEntry: WeightEntry | null | undefined;
+  /** Called once the measured expenditure has been read the first time. */
+  onReady?: () => void;
 }
 
 const formatPace = (pace: number) => `${pace.toLocaleString('fr-FR')} %/sem.`;
@@ -33,10 +35,11 @@ const formatDay = (date: Date) =>
  * enough of it, otherwise estimated from the BMR and the activity level. The
  * goal type and the weekly pace set the deficit or surplus.
  */
-export function GoalsCard({ profile, latestEntry }: Props) {
+export function GoalsCard({ profile, latestEntry, onReady }: Props) {
   const [paceChoice, setPaceChoice] = useState<string | null>(null);
-  const [measured, setMeasured] = useState<MeasuredExpenditure | null>(null);
-  const isLoading = latestEntry === undefined;
+  // undefined while it is read, null when there is not enough journal.
+  const [measured, setMeasured] = useState<MeasuredExpenditure | null>();
+  const isLoading = latestEntry === undefined || measured === undefined;
   const latestWeight = latestEntry?.weight;
 
   // A new weigh-in can change the measure: read it again with each one.
@@ -53,6 +56,11 @@ export function GoalsCard({ profile, latestEntry }: Props) {
       cancelled = true;
     };
   }, [latestEntry]);
+
+  const isMeasureRead = measured !== undefined;
+  useEffect(() => {
+    if (isMeasureRead) onReady?.();
+  }, [isMeasureRead, onReady]);
 
   const bmr =
     latestWeight && profile.height && profile.birthDate && profile.gender
