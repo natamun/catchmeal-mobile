@@ -7,6 +7,12 @@ import { createDatabase, type Database } from './database';
  * @capacitor-community/sqlite plugin. Each statement is sent with the plugin's
  * own transaction turned off: createDatabase decides where transactions
  * start and end.
+ *
+ * Never let a COMMIT be the step that fails (deferred foreign keys, for
+ * example): on Android the plugin then forgets the transaction while SQLite
+ * keeps it open with its rows, and every later transaction is refused until
+ * the app restarts. A rule must make its own statement fail, before the
+ * COMMIT, so the normal rollback runs.
  */
 export async function openCapacitorDatabase(name: string): Promise<Database> {
   const sqlite = new SQLiteConnection(CapacitorSQLite);
