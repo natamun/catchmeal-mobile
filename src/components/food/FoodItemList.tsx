@@ -120,7 +120,7 @@ export function FoodItemList({
           const isExpanded = expandedIds.has(item.id);
           const macros = macrosOf(item);
           return (
-            <li key={item.id} className="px-5 py-4 even:bg-gray-50">
+            <li key={item.id} className="px-5 py-4 even:bg-theme-50/60">
               <div className="flex items-center gap-3">
                 <button
                   type="button"

@@ -114,7 +114,7 @@ export function MealList({
           const isExpanded = expandedIds.has(meal.id);
           const { kcal, macros } = macrosOf(meal);
           return (
-            <li key={meal.id} className="px-5 py-4 even:bg-gray-50">
+            <li key={meal.id} className="px-5 py-4 even:bg-theme-50/60">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
