@@ -3,23 +3,15 @@ import type { Meal, MealInput } from './types';
 
 const BASE_URL: string = import.meta.env.VITE_API_URL;
 
-function mealsUrl(userId: number) {
-  return `${BASE_URL}/users/${userId}/meals`;
-}
+const MEALS_URL = `${BASE_URL}/meals`;
 
 /**
- * GET /users/:id/meals: every meal, or with `logged` only the journal meals
- * (true) or only the library meals (false).
+ * Every meal, or with `logged` only the journal meals (true) or only the
+ * library meals (false).
  */
-export function listMeals(
-  userId: number,
-  logged?: boolean,
-  signal?: AbortSignal,
-) {
+export function listMeals(logged?: boolean, signal?: AbortSignal) {
   const url =
-    logged === undefined
-      ? mealsUrl(userId)
-      : `${mealsUrl(userId)}?logged=${logged}`;
+    logged === undefined ? MEALS_URL : `${MEALS_URL}?logged=${logged}`;
   return request<Meal[]>(url, { signal });
 }
 
@@ -32,43 +24,33 @@ export function toApiDate(date: Date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-/** GET /users/:id/meals?date=YYYY-MM-DD: the journal meals of one day. */
-export function listMealsOnDate(
-  userId: number,
-  dateKey: string,
-  signal?: AbortSignal,
-) {
-  return request<Meal[]>(`${mealsUrl(userId)}?date=${dateKey}`, { signal });
+/** The journal meals of one day (YYYY-MM-DD). */
+export function listMealsOnDate(dateKey: string, signal?: AbortSignal) {
+  return request<Meal[]>(`${MEALS_URL}?date=${dateKey}`, { signal });
 }
 
 /**
- * POST /users/:id/meals: creates a journal meal (with loggedAt and typeMeal) or
- * a library meal (without them).
+ * Creates a journal meal (with loggedAt and typeMeal) or a library meal
+ * (without them).
  */
-export function createMeal(userId: number, input: MealInput) {
-  return request<Meal>(mealsUrl(userId), {
+export function createMeal(input: MealInput) {
+  return request<Meal>(MEALS_URL, {
     method: 'POST',
     headers: JSON_HEADERS,
     body: JSON.stringify(input),
   });
 }
 
-/**
- * PATCH /users/:id/meals/:mealId: sending `items` replaces all the meal's
- * items.
- */
-export function updateMeal(userId: number, id: number, input: MealInput) {
-  return request<Meal>(`${mealsUrl(userId)}/${id}`, {
+/** Saves a meal; sending `items` replaces all the meal's items. */
+export function updateMeal(id: number, input: MealInput) {
+  return request<Meal>(`${MEALS_URL}/${id}`, {
     method: 'PATCH',
     headers: JSON_HEADERS,
     body: JSON.stringify(input),
   });
 }
 
-/**
- * DELETE /users/:id/meals/:mealId: meals are really deleted, they are not
- * archived like foods.
- */
-export function deleteMeal(userId: number, id: number) {
-  return request<Meal>(`${mealsUrl(userId)}/${id}`, { method: 'DELETE' });
+/** Meals are really deleted, they are not archived like foods. */
+export function deleteMeal(id: number) {
+  return request<Meal>(`${MEALS_URL}/${id}`, { method: 'DELETE' });
 }

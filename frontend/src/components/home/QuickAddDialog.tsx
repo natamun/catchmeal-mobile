@@ -2,7 +2,6 @@ import { useState, type RefObject } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { ChevronRight } from 'lucide-react';
 
-import { useCurrentUser } from '../../auth/authContext';
 import { useFormValidation } from '../../hooks/useFormValidation';
 import { parseDecimal } from '../../utils/decimals';
 import { requestErrorMessage } from '../../utils/requestErrorMessage';
@@ -55,7 +54,6 @@ export function QuickAddDialog({
   date,
   onSaved,
 }: QuickAddDialogProps) {
-  const { userId } = useCurrentUser();
   const [mealType, setMealType] = useState<MealType>(defaultMealType);
   const {
     form,
@@ -90,7 +88,7 @@ export function QuickAddDialog({
 
     setIsSubmitting(true);
     try {
-      await createMeal(userId, {
+      await createMeal({
         typeMeal: mealType,
         loggedAt: toApiDate(date),
         items: [

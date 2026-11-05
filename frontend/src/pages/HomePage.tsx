@@ -2,9 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Zap } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router';
 
-import { useCurrentUser } from '../auth/authContext';
-import { FriendsActivity } from '../components/friends/FriendsActivity';
-import { latestActivityPerFriend } from '../components/friends/latestActivityPerFriend';
 import { CalorieSummary } from '../components/home/CalorieSummary';
 import { DailyMealForm } from '../components/home/DailyMealForm';
 import { DailyMealList } from '../components/home/DailyMealList';
@@ -14,18 +11,15 @@ import { WeightWidget } from '../components/home/WeightWidget';
 import { buildDrafts, type MealItemDraft } from '../components/meal/draft';
 import { mealTotals, type Meal, type MealType } from '../components/meal/types';
 import { getWeightHistory, type WeightEntry } from '../components/profile/api';
+import { useProfile } from '../components/profile/profileContext';
 import { DateNavigator } from '../components/ui/DateNavigator';
 import { useToast } from '../components/ui/toastContext';
-import { useActivityFeed } from '../hooks/useActivityFeed';
 import { useDailyMeals } from '../hooks/useDailyMeals';
-import { usePresence } from '../hooks/usePresence';
 import {
   journalAddPath,
   journalPath,
   parseDateParam,
 } from '../routing/journal';
-import type { NavigationState } from '../routing/navigation';
-import { PATHS } from '../routing/paths';
 
 interface SectionEdit {
   mealType: MealType;
@@ -36,12 +30,12 @@ interface SectionEdit {
 
 /**
  * The journal of a day (?date= in the URL): calorie and macro progress, latest
- * weigh-in, the four meal sections and the friends feed. Adding to a section
+ * weigh-in and the four meal sections. Adding to a section
  * opens its own page; editing a section opens DailyMealForm with all its meals
  * merged.
  */
 export default function HomePage() {
-  const user = useCurrentUser();
+  const { profile } = useProfile();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const dateParam = searchParams.get('date');
@@ -57,13 +51,13 @@ export default function HomePage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    getWeightHistory(user.userId, controller.signal)
+    getWeightHistory(controller.signal)
       .then(setWeightHistory)
       .catch(() => {
         if (!controller.signal.aborted) setWeightError(true);
       });
     return () => controller.abort();
-  }, [user]);
+  }, []);
 
   const dayTotals = meals.reduce(
     (acc, meal) => {
@@ -85,9 +79,6 @@ export default function HomePage() {
   });
   const editDialogRef = useRef<HTMLDialogElement>(null);
   const quickAddDialogRef = useRef<HTMLDialogElement>(null);
-  const presence = usePresence(user.userId);
-  const activities = useActivityFeed(user.userId);
-  const latestActivities = latestActivityPerFriend(activities);
 
   const openSectionEditor = (mealType: MealType) => {
     const sectionMeals = meals
@@ -134,24 +125,24 @@ export default function HomePage() {
             <div className="grid auto-rows-fr grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
               <CalorieSummary
                 consumed={Math.round(dayTotals.kcal)}
-                goal={user.dailyCalorieGoal ?? 2000}
+                goal={profile.dailyCalorieGoal ?? 2000}
                 isLoading={isLoading}
                 unavailable={unavailable}
               />
               <MacroBreakdown
                 protein={Math.round(dayTotals.protein)}
-                proteinGoal={user.dailyProteinGoal ?? 150}
+                proteinGoal={profile.dailyProteinGoal ?? 150}
                 carbs={Math.round(dayTotals.carbs)}
-                carbsGoal={user.dailyCarbsGoal ?? 250}
+                carbsGoal={profile.dailyCarbsGoal ?? 250}
                 fat={Math.round(dayTotals.fat)}
-                fatGoal={user.dailyFatGoal ?? 65}
+                fatGoal={profile.dailyFatGoal ?? 65}
                 isLoading={isLoading}
                 unavailable={unavailable}
               />
               <WeightWidget
                 history={weightHistory}
                 hasError={weightError}
-                goalWeight={user.targetWeight ?? null}
+                goalWeight={profile.targetWeight ?? null}
               />
             </div>
             <DailyMealList
@@ -166,15 +157,6 @@ export default function HomePage() {
               onEdit={openSectionEditor}
             />
           </div>
-          <FriendsActivity
-            activities={latestActivities}
-            presence={presence}
-            onReply={(activity) =>
-              void navigate(PATHS.friends, {
-                state: { replyTo: activity } satisfies NavigationState,
-              })
-            }
-          />
         </div>
       </div>
       <DailyMealForm

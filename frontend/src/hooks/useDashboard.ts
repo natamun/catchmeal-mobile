@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 
-import { useCurrentUser } from '../auth/authContext';
 import { getDashboard } from '../components/analytics/api';
 import type { DashboardDay } from '../components/analytics/types';
 
@@ -12,8 +11,7 @@ const NO_DAYS: DashboardDay[] = [];
  * error.
  */
 export function useDashboard(from: string, to: string) {
-  const { userId } = useCurrentUser();
-  const key = `${userId}:${from}:${to}`;
+  const key = `${from}:${to}`;
   const [loaded, setLoaded] = useState<Record<string, DashboardDay[]>>({});
   const [failedKey, setFailedKey] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -24,14 +22,14 @@ export function useDashboard(from: string, to: string) {
     if (isCached) return;
     const controller = new AbortController();
 
-    getDashboard(userId, from, to, controller.signal)
+    getDashboard(from, to, controller.signal)
       .then((data) => setLoaded((previous) => ({ ...previous, [key]: data })))
       .catch(() => {
         if (!controller.signal.aborted) setFailedKey(key);
       });
 
     return () => controller.abort();
-  }, [userId, from, to, key, isCached, attempt]);
+  }, [from, to, key, isCached, attempt]);
 
   const hasError = !isCached && failedKey === key;
 

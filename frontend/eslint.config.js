@@ -31,12 +31,4 @@ export default defineConfig([
       'no-console': ['error', { allow: ['warn', 'error'] }],
     },
   },
-  {
-    // Footer links to pages that don't exist yet (privacy policy, ToS, GDPR).
-    // Remove once those pages are built and hrefs point somewhere real.
-    files: ['src/pages/LandingPage.tsx'],
-    rules: {
-      'jsx-a11y/anchor-is-valid': 'off',
-    },
-  },
 ]);

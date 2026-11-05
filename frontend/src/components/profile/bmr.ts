@@ -10,7 +10,7 @@ const ACTIVITY_MULTIPLIERS: Record<string, number> = {
 };
 
 /** Age in full years at today's date. */
-function getAge(birthDate: string): number {
+export function getAge(birthDate: string): number {
   const today = new Date();
   const birth = new Date(birthDate);
   const age = today.getFullYear() - birth.getFullYear();

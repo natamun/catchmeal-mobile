@@ -1,6 +1,5 @@
 import { useState, type RefObject } from 'react';
 
-import { useCurrentUser } from '../../auth/authContext';
 import { requestErrorMessage } from '../../utils/requestErrorMessage';
 import { createMeal, deleteMeal, toApiDate, updateMeal } from '../meal/api';
 import { draftsToInput, draftTotals, type MealItemDraft } from '../meal/draft';
@@ -32,7 +31,6 @@ export function DailyMealForm({
   existingMeals = [],
   onSaved,
 }: DailyMealFormProps) {
-  const { userId } = useCurrentUser();
   const [items, setItems] = useState<MealItemDraft[]>(initialItems);
   const [syncedKey, setSyncedKey] = useState(sessionKey);
   const [error, setError] = useState<string | null>(null);
@@ -70,21 +68,19 @@ export function DailyMealForm({
     setIsSubmitting(true);
     try {
       if (!isEdit) {
-        await createMeal(userId, {
+        await createMeal({
           typeMeal: mealType,
           loggedAt: toApiDate(date),
           items: draftsToInput(items),
         });
       } else if (items.length === 0) {
-        await Promise.all(
-          existingMeals.map((meal) => deleteMeal(userId, meal.id)),
-        );
+        await Promise.all(existingMeals.map((meal) => deleteMeal(meal.id)));
       } else {
         // A section may hold several meals: the first one receives every item
         // and the others are deleted.
         const [first, ...others] = existingMeals;
-        await updateMeal(userId, first.id, { items: draftsToInput(items) });
-        await Promise.all(others.map((meal) => deleteMeal(userId, meal.id)));
+        await updateMeal(first.id, { items: draftsToInput(items) });
+        await Promise.all(others.map((meal) => deleteMeal(meal.id)));
       }
       dialogRef.current?.close();
       onSaved();

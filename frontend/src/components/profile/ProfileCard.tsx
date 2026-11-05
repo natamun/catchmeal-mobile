@@ -1,7 +1,5 @@
 import { useRef, useState } from 'react';
-import { Trash2 } from 'lucide-react';
 
-import type { AuthUser } from '../../auth/api';
 import { useFormValidation } from '../../hooks/useFormValidation';
 import {
   hasTooManyDecimals,
@@ -10,30 +8,23 @@ import {
   WHOLE_NUMBER_ONLY,
 } from '../../utils/decimals';
 import { requestErrorMessage } from '../../utils/requestErrorMessage';
-import { usernameError } from '../../utils/validation';
-import { Avatar } from '../ui/Avatar';
 import { BaseDialog } from '../ui/BaseDialog';
 import { EditIconButton } from '../ui/EditIconButton';
 import { FieldError } from '../ui/FieldError';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
 import { SelectDropdown } from '../ui/SelectDropdown';
-import {
-  removeAvatar,
-  updateProfile,
-  uploadAvatar,
-  type UpdateProfileInput,
-  type UserProfile,
-} from './api';
+import { updateProfile, type Profile, type UpdateProfileInput } from './api';
 import { BirthDatePicker } from './BirthDatePicker';
+import { getAge } from './bmr';
+import { formatMeasure } from './measures';
 
 interface Props {
-  user: AuthUser;
-  onUpdate: (partial: Partial<AuthUser>) => void;
+  profile: Profile;
+  onUpdate: (partial: Partial<Profile>) => void;
 }
 
 type Field =
-  | 'username'
   | 'height'
   | 'targetWeight'
   | 'dailyCalorieGoal'
@@ -42,8 +33,6 @@ type Field =
   | 'dailyFatGoal';
 
 interface FormState {
-  username: string;
-  name: string;
   height: string;
   targetWeight: string;
   dailyCalorieGoal: string;
@@ -78,13 +67,25 @@ const ACTIVITY_OPTIONS = [
 ];
 
 /**
- * Username 3 to 30 characters; height, target weight and goals within their
- * limits; goals as whole numbers.
+ * One line about the person: gender, age, height and activity, or a hint when
+ * nothing is filled in yet.
+ */
+function summarize(profile: Profile) {
+  const parts = [
+    GENDER_OPTIONS.find((o) => o.value === profile.gender)?.label,
+    profile.birthDate ? `${getAge(profile.birthDate)} ans` : undefined,
+    profile.height === null ? undefined : formatMeasure(profile.height, 'cm'),
+    ACTIVITY_OPTIONS.find((o) => o.value === profile.activityLevel)?.label,
+  ].filter(Boolean);
+
+  return parts.length > 0 ? parts.join(' · ') : 'Profil à compléter';
+}
+
+/**
+ * Height, target weight and goals within their limits; goals as whole numbers.
  */
 function validate(form: FormState): Partial<Record<Field, string>> {
   const errors: Partial<Record<Field, string>> = {};
-  const usernameMessage = usernameError(form.username);
-  if (usernameMessage) errors.username = usernameMessage;
   if (form.height) {
     const h = parseDecimal(form.height);
     if (h === null || isNaN(h)) errors.height = 'Valeur invalide';
@@ -110,29 +111,23 @@ function validate(form: FormState): Partial<Record<Field, string>> {
 }
 
 /**
- * Identity card of the profile: photo (upload or remove), name and username,
- * and a dialog to edit the profile and the goals. Only the fields that changed
- * are sent.
+ * Profile card: a summary of the body measures, and a dialog to edit them with
+ * the goals. Only the fields that changed are saved.
  */
-export function ProfileIdentityCard({ user, onUpdate }: Props) {
-  const [avatarBusy, setAvatarBusy] = useState(false);
-  const [avatarError, setAvatarError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+export function ProfileCard({ profile, onUpdate }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [dialogNode, setDialogNode] = useState<HTMLDialogElement | null>(null);
 
   const initForm = (): FormState => ({
-    username: user.username,
-    name: user.name ?? '',
-    height: user.height?.toString() ?? '',
-    targetWeight: user.targetWeight?.toString() ?? '',
-    dailyCalorieGoal: user.dailyCalorieGoal?.toString() ?? '',
-    dailyProteinGoal: user.dailyProteinGoal?.toString() ?? '',
-    dailyCarbsGoal: user.dailyCarbsGoal?.toString() ?? '',
-    dailyFatGoal: user.dailyFatGoal?.toString() ?? '',
-    gender: user.gender ?? '',
-    birthDate: user.birthDate ? user.birthDate.slice(0, 10) : '',
-    activityLevel: user.activityLevel ?? '',
+    height: profile.height?.toString() ?? '',
+    targetWeight: profile.targetWeight?.toString() ?? '',
+    dailyCalorieGoal: profile.dailyCalorieGoal?.toString() ?? '',
+    dailyProteinGoal: profile.dailyProteinGoal?.toString() ?? '',
+    dailyCarbsGoal: profile.dailyCarbsGoal?.toString() ?? '',
+    dailyFatGoal: profile.dailyFatGoal?.toString() ?? '',
+    gender: profile.gender ?? '',
+    birthDate: profile.birthDate ? profile.birthDate.slice(0, 10) : '',
+    activityLevel: profile.activityLevel ?? '',
   });
 
   const {
@@ -153,38 +148,8 @@ export function ProfileIdentityCard({ user, onUpdate }: Props) {
     setForm(initForm());
     resetValidation();
     setSaveError(null);
-    setAvatarError(null);
     setDialogNode(dialogRef.current);
     dialogRef.current?.showModal();
-  }
-
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (fileInputRef.current) fileInputRef.current.value = '';
-    if (!file) return;
-    setAvatarBusy(true);
-    setAvatarError(null);
-    try {
-      const updated = await uploadAvatar(user.userId, file);
-      onUpdate({ avatarUrl: updated.avatarUrl });
-    } catch {
-      setAvatarError("Impossible d'envoyer la photo. Réessayez.");
-    } finally {
-      setAvatarBusy(false);
-    }
-  }
-
-  async function handleAvatarRemove() {
-    setAvatarBusy(true);
-    setAvatarError(null);
-    try {
-      await removeAvatar(user.userId);
-      onUpdate({ avatarUrl: null });
-    } catch {
-      setAvatarError('Impossible de supprimer la photo. Réessayez.');
-    } finally {
-      setAvatarBusy(false);
-    }
   }
 
   async function handleSave() {
@@ -194,33 +159,32 @@ export function ProfileIdentityCard({ user, onUpdate }: Props) {
 
     const input: UpdateProfileInput = {};
 
-    const trimmedUsername = form.username.trim();
-    const trimmedName = form.name.trim();
-    if (trimmedUsername !== user.username) input.username = trimmedUsername;
-    if (trimmedName !== (user.name ?? '')) input.name = trimmedName;
-    // An emptied field sends null, so the backend clears the value.
+    // An emptied field sends null, which clears the value.
     const parsedHeight = parseDecimal(form.height);
-    if (parsedHeight !== (user.height ?? null)) input.height = parsedHeight;
+    if (parsedHeight !== (profile.height ?? null)) input.height = parsedHeight;
     const parsedTargetWeight = parseDecimal(form.targetWeight);
-    if (parsedTargetWeight !== (user.targetWeight ?? null))
+    if (parsedTargetWeight !== (profile.targetWeight ?? null))
       input.targetWeight = parsedTargetWeight;
     const parsedDailyCalorieGoal = parseDecimal(form.dailyCalorieGoal);
-    if (parsedDailyCalorieGoal !== (user.dailyCalorieGoal ?? null))
+    if (parsedDailyCalorieGoal !== (profile.dailyCalorieGoal ?? null))
       input.dailyCalorieGoal = parsedDailyCalorieGoal;
     const parsedDailyProteinGoal = parseDecimal(form.dailyProteinGoal);
-    if (parsedDailyProteinGoal !== (user.dailyProteinGoal ?? null))
+    if (parsedDailyProteinGoal !== (profile.dailyProteinGoal ?? null))
       input.dailyProteinGoal = parsedDailyProteinGoal;
     const parsedDailyCarbsGoal = parseDecimal(form.dailyCarbsGoal);
-    if (parsedDailyCarbsGoal !== (user.dailyCarbsGoal ?? null))
+    if (parsedDailyCarbsGoal !== (profile.dailyCarbsGoal ?? null))
       input.dailyCarbsGoal = parsedDailyCarbsGoal;
     const parsedDailyFatGoal = parseDecimal(form.dailyFatGoal);
-    if (parsedDailyFatGoal !== (user.dailyFatGoal ?? null))
+    if (parsedDailyFatGoal !== (profile.dailyFatGoal ?? null))
       input.dailyFatGoal = parsedDailyFatGoal;
-    if (form.gender !== (user.gender ?? ''))
+    if (form.gender !== (profile.gender ?? ''))
       input.gender = form.gender || undefined;
-    if (form.birthDate !== (user.birthDate ? user.birthDate.slice(0, 10) : ''))
+    if (
+      form.birthDate !==
+      (profile.birthDate ? profile.birthDate.slice(0, 10) : '')
+    )
       input.birthDate = form.birthDate || undefined;
-    if (form.activityLevel !== (user.activityLevel ?? ''))
+    if (form.activityLevel !== (profile.activityLevel ?? ''))
       input.activityLevel = form.activityLevel || undefined;
 
     if (Object.keys(input).length === 0) {
@@ -231,20 +195,7 @@ export function ProfileIdentityCard({ user, onUpdate }: Props) {
     setSaving(true);
     setSaveError(null);
     try {
-      const updated: UserProfile = await updateProfile(user.userId, input);
-      onUpdate({
-        username: updated.username,
-        name: updated.name,
-        height: updated.height ?? undefined,
-        targetWeight: updated.targetWeight ?? undefined,
-        dailyCalorieGoal: updated.dailyCalorieGoal ?? undefined,
-        dailyProteinGoal: updated.dailyProteinGoal ?? undefined,
-        dailyCarbsGoal: updated.dailyCarbsGoal ?? undefined,
-        dailyFatGoal: updated.dailyFatGoal ?? undefined,
-        gender: updated.gender ?? undefined,
-        birthDate: updated.birthDate ?? undefined,
-        activityLevel: updated.activityLevel ?? undefined,
-      });
+      onUpdate(await updateProfile(input));
       dialogRef.current?.close();
     } catch (err) {
       setSaveError(requestErrorMessage(err, 'Erreur lors de la sauvegarde'));
@@ -257,18 +208,13 @@ export function ProfileIdentityCard({ user, onUpdate }: Props) {
     <>
       <div className="rounded-2xl border border-green-200 bg-white p-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <Avatar
-            username={user.username}
-            avatarUrl={user.avatarUrl}
-            size="lg"
-          />
           <div className="min-w-0 flex-1">
             <p className="truncate text-base font-bold text-green-800">
-              {user.username}
+              Mon profil
             </p>
-            {user.name && (
-              <p className="truncate text-xs text-green-500">{user.name}</p>
-            )}
+            <p className="truncate text-xs text-green-500">
+              {summarize(profile)}
+            </p>
           </div>
           <EditIconButton
             label="Modifier le profil"
@@ -284,88 +230,6 @@ export function ProfileIdentityCard({ user, onUpdate }: Props) {
         onClose={() => setSaveError(null)}
       >
         <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2 flex items-center gap-3">
-            <Avatar username={user.username} avatarUrl={user.avatarUrl} />
-            <div className="min-w-0 flex-1">
-              <p className={LABEL_CLASS}>Photo de profil</p>
-              {avatarError ? (
-                <p role="alert" className="text-xs text-red-500">
-                  {avatarError}
-                </p>
-              ) : (
-                avatarBusy && (
-                  <p role="status" className="text-xs text-green-500">
-                    Envoi en cours...
-                  </p>
-                )
-              )}
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => void handleFileChange(e)}
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={avatarBusy}
-              aria-label={
-                user.avatarUrl
-                  ? 'Changer la photo de profil'
-                  : 'Ajouter une photo de profil'
-              }
-              className="cursor-pointer rounded-xl border border-green-200 px-4 py-2.5 text-sm font-medium text-green-600 transition-colors hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {user.avatarUrl ? 'Changer' : 'Ajouter'}
-            </button>
-            {user.avatarUrl && (
-              <button
-                type="button"
-                onClick={() => void handleAvatarRemove()}
-                disabled={avatarBusy}
-                aria-label="Supprimer la photo"
-                className="cursor-pointer text-green-400 transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Trash2 className="h-5 w-5" />
-              </button>
-            )}
-          </div>
-
-          <div className="relative col-span-2 flex flex-col gap-1">
-            <label htmlFor="pf-username" className={LABEL_CLASS}>
-              Nom d'utilisateur
-            </label>
-            <Input
-              id="pf-username"
-              placeholder="Ex : jdupont"
-              value={form.username}
-              onChange={(e) => handleChange('username', e.target.value)}
-              onFocus={() => handleFocus('username')}
-              onBlur={() => handleBlur('username')}
-              aria-invalid={isInvalid('username')}
-              aria-describedby="pf-username-error"
-            />
-            <FieldError
-              id="pf-username-error"
-              message={errorMessage('username')}
-            />
-          </div>
-
-          <div className="col-span-2 flex flex-col gap-1">
-            <label htmlFor="pf-name" className={LABEL_CLASS}>
-              Nom complet
-            </label>
-            <Input
-              id="pf-name"
-              placeholder="Nom Prénom"
-              value={form.name}
-              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-              maxLength={80}
-            />
-          </div>
-
           <div className="flex flex-col gap-1">
             <label htmlFor="pf-gender" className={LABEL_CLASS}>
               Genre

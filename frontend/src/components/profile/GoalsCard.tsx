@@ -1,12 +1,11 @@
 import { useState } from 'react';
 
-import type { AuthUser } from '../../auth/api';
 import { formatKg } from '../../utils/format';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { Skeleton } from '../ui/Skeleton';
 import { StatTile } from '../ui/StatTile';
 import { SummaryCard } from '../ui/SummaryCard';
-import type { WeightEntry } from './api';
+import type { Profile, WeightEntry } from './api';
 import { calculateBMR, calculateTDEE, fatFreeMassOf } from './bmr';
 import { formatMeasure } from './measures';
 
@@ -22,7 +21,7 @@ const DURATION_OPTIONS = [
 ];
 
 interface Props {
-  user: AuthUser;
+  profile: Profile;
   latestEntry: WeightEntry | null | undefined;
 }
 
@@ -31,28 +30,30 @@ interface Props {
  * latest weigh-in: the BMR and daily needs (bmr.ts), then the calories to reach
  * the target weight in the chosen time.
  */
-export function GoalsCard({ user, latestEntry }: Props) {
+export function GoalsCard({ profile, latestEntry }: Props) {
   const [duration, setDuration] = useState('90');
   const isLoading = latestEntry === undefined;
   const latestWeight = latestEntry?.weight;
 
   const bmr =
-    latestWeight && user.height && user.birthDate && user.gender
+    latestWeight && profile.height && profile.birthDate && profile.gender
       ? calculateBMR(
           latestWeight,
-          user.height,
-          user.birthDate,
-          user.gender,
+          profile.height,
+          profile.birthDate,
+          profile.gender,
           latestEntry ? fatFreeMassOf(latestEntry) : null,
         )
       : null;
 
   const tdee =
-    bmr && user.activityLevel ? calculateTDEE(bmr, user.activityLevel) : null;
+    bmr && profile.activityLevel
+      ? calculateTDEE(bmr, profile.activityLevel)
+      : null;
 
   const kcalToReachGoal = (() => {
-    if (!tdee || !latestWeight || !user.targetWeight) return null;
-    const diff = latestWeight - user.targetWeight;
+    if (!tdee || !latestWeight || !profile.targetWeight) return null;
+    const diff = latestWeight - profile.targetWeight;
     // Calories per kg of body weight used here: 7700 to lose it, 4800 to gain
     // it, spread over the chosen duration.
     const coefficient = diff > 0 ? 7700 : 4800;
@@ -80,31 +81,33 @@ export function GoalsCard({ user, latestEntry }: Props) {
     {
       label: 'Calories',
       unit: 'kcal',
-      goal: user.dailyCalorieGoal ?? null,
+      goal: profile.dailyCalorieGoal ?? null,
       recommended: recommendedKcal,
     },
     {
       label: 'Protéines',
       unit: 'g',
-      goal: user.dailyProteinGoal ?? null,
+      goal: profile.dailyProteinGoal ?? null,
       recommended: recommendedMacros?.protein ?? null,
     },
     {
       label: 'Glucides',
       unit: 'g',
-      goal: user.dailyCarbsGoal ?? null,
+      goal: profile.dailyCarbsGoal ?? null,
       recommended: recommendedMacros?.carbs ?? null,
     },
     {
       label: 'Lipides',
       unit: 'g',
-      goal: user.dailyFatGoal ?? null,
+      goal: profile.dailyFatGoal ?? null,
       recommended: recommendedMacros?.fat ?? null,
     },
   ];
 
   const gap =
-    latestWeight && user.targetWeight ? latestWeight - user.targetWeight : null;
+    latestWeight && profile.targetWeight
+      ? latestWeight - profile.targetWeight
+      : null;
   const remaining =
     gap === null
       ? null
@@ -125,7 +128,7 @@ export function GoalsCard({ user, latestEntry }: Props) {
 
     return (
       <>
-        Recommandé pour {formatMeasure(user.targetWeight ?? null, 'kg')}{' '}
+        Recommandé pour {formatMeasure(profile.targetWeight ?? null, 'kg')}{' '}
         <span className="inline-flex items-center gap-1.5 align-middle whitespace-nowrap">
           en
           <SelectDropdown

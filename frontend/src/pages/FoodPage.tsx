@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { useCurrentUser } from '../auth/authContext';
 import { listFoodItems } from '../components/food/api';
 import { FoodItemForm } from '../components/food/FoodItemForm';
 import { FoodItemList } from '../components/food/FoodItemList';
@@ -59,7 +58,6 @@ function LegendBubble({ show }: { show: boolean }) {
  * its create and edit dialog.
  */
 export default function FoodPage() {
-  const { userId } = useCurrentUser();
   const [activeTab, setActiveTab] = useState<Tab>('food');
   const [showLegend, setShowLegend] = useState(false);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
@@ -95,7 +93,7 @@ export default function FoodPage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    listFoodItems(userId, controller.signal)
+    listFoodItems(controller.signal)
       .then(setFoodItems)
       .catch(() => {
         if (controller.signal.aborted) return;
@@ -107,11 +105,11 @@ export default function FoodPage() {
         }
       });
     return () => controller.abort();
-  }, [userId, foodsAttempt]);
+  }, [foodsAttempt]);
 
   useEffect(() => {
     const controller = new AbortController();
-    listMeals(userId, false, controller.signal)
+    listMeals(false, controller.signal)
       .then(setMeals)
       .catch(() => {
         if (controller.signal.aborted) return;
@@ -123,7 +121,7 @@ export default function FoodPage() {
         }
       });
     return () => controller.abort();
-  }, [userId, mealsAttempt]);
+  }, [mealsAttempt]);
 
   const openDialog = (item: FoodItem | null) => {
     setEditingItem(item);

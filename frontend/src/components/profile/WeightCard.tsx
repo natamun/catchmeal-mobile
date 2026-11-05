@@ -38,7 +38,6 @@ function describeBmi(weight: number, height: number) {
 }
 
 interface Props {
-  userId: number;
   height?: number | null;
   onLatestEntry?: (entry: WeightEntry | null) => void;
 }
@@ -48,7 +47,7 @@ interface Props {
  * add, correct or delete a weigh-in. It reports the latest weigh-in to the
  * page, which GoalsCard needs.
  */
-export function WeightCard({ userId, height, onLatestEntry }: Props) {
+export function WeightCard({ height, onLatestEntry }: Props) {
   const [history, setHistory] = useState<WeightEntry[] | null>(null);
   const [hasError, setHasError] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -61,7 +60,7 @@ export function WeightCard({ userId, height, onLatestEntry }: Props) {
   useEffect(() => {
     const controller = new AbortController();
 
-    getWeightHistory(userId, controller.signal)
+    getWeightHistory(controller.signal)
       .then((entries) => {
         setHistory(entries);
         onLatestEntry?.(entries[0] ?? null);
@@ -74,7 +73,7 @@ export function WeightCard({ userId, height, onLatestEntry }: Props) {
       });
 
     return () => controller.abort();
-  }, [userId, onLatestEntry, attempt]);
+  }, [onLatestEntry, attempt]);
 
   const retry = () => {
     setHasError(false);
@@ -239,7 +238,6 @@ export function WeightCard({ userId, height, onLatestEntry }: Props) {
       <WeightDialog
         dialogRef={dialogRef}
         openCount={dialog.openCount}
-        userId={userId}
         entry={dialog.entry}
         onSaved={handleSaved}
         onDeleted={handleDeleted}

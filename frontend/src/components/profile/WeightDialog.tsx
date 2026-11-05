@@ -59,7 +59,6 @@ function validate(form: Record<MeasureKey, string>) {
 }
 
 interface WeightFormProps {
-  userId: number;
   entry: WeightEntry | null;
   onSaved: (entry: WeightEntry) => void;
 }
@@ -69,7 +68,6 @@ interface WeightFormProps {
  * the right weigh-in.
  */
 function WeightForm({
-  userId,
   entry,
   onSaved,
   hasDeleteFailed,
@@ -107,9 +105,7 @@ function WeightForm({
     setIsSubmitting(true);
     try {
       onSaved(
-        entry
-          ? await updateWeight(userId, entry.id, input)
-          : await logWeight(userId, input),
+        entry ? await updateWeight(entry.id, input) : await logWeight(input),
       );
     } catch {
       setHasFailed(true);
@@ -204,7 +200,6 @@ interface Props extends WeightFormProps {
 export function WeightDialog({
   dialogRef,
   openCount,
-  userId,
   entry,
   onSaved,
   onDeleted,
@@ -222,7 +217,7 @@ export function WeightDialog({
     setHasDeleteFailed(false);
     setIsDeleting(true);
     try {
-      await deleteWeight(userId, entry.id);
+      await deleteWeight(entry.id);
       dialogRef.current?.close();
       onDeleted(entry.id);
     } catch {
@@ -255,7 +250,6 @@ export function WeightDialog({
       >
         <WeightForm
           key={openCount}
-          userId={userId}
           entry={entry}
           hasDeleteFailed={hasDeleteFailed}
           onSaved={(saved) => {

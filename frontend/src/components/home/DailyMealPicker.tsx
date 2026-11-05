@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 
-import { useCurrentUser } from '../../auth/authContext';
 import { useToggleSet } from '../../hooks/useToggleSet';
 import { listFoodItems } from '../food/api';
 import { FoodItemList } from '../food/FoodItemList';
@@ -39,7 +38,6 @@ export function DailyMealPicker({
   onClose,
   onAdded,
 }: DailyMealPickerProps) {
-  const { userId } = useCurrentUser();
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [templates, setTemplates] = useState<Meal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,8 +54,8 @@ export function DailyMealPicker({
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([
-      listFoodItems(userId, controller.signal),
-      listMeals(userId, false, controller.signal),
+      listFoodItems(controller.signal),
+      listMeals(false, controller.signal),
     ])
       .then(([foods, meals]) => {
         setFoodItems(foods);
@@ -75,7 +73,7 @@ export function DailyMealPicker({
         }
       });
     return () => controller.abort();
-  }, [userId]);
+  }, []);
 
   const selectedCount = selectedFoodIds.size + selectedMealIds.size;
 

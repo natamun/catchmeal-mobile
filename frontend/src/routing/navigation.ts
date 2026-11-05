@@ -1,30 +1,4 @@
-import { useLocation, useNavigate, type Location } from 'react-router';
-
-import type { ActivityItem } from '../components/friends/types';
-
-/** Why an OAuth sign-in came back to the login page. */
-export type OAuthError = 'failed' | 'unverified-email';
-
-/**
- * Data passed from one page to the next through the router's location.state.
- */
-export interface NavigationState {
-  /**
-   * The protected page the user asked for, to go back to it after logging in.
-   */
-  from?: Location;
-  /** Set when the backend sends the browser back after a failed OAuth sign-in. */
-  oauthError?: OAuthError;
-  /** The activity to quote when a reply starts from the home page feed. */
-  replyTo?: ActivityItem;
-  /** Address a confirmation link was sent to */
-  email?: string;
-}
-
-/** Reads location.state with a safe default: it is untyped and often empty. */
-export function navigationState(location: Location): NavigationState {
-  return (location.state as NavigationState | null) ?? {};
-}
+import { useLocation, useNavigate } from 'react-router';
 
 /**
  * Goes back to the previous page, or to `fallback` when the page was opened

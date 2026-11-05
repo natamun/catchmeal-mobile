@@ -1,7 +1,6 @@
 import { useRef, useState, type RefObject } from 'react';
 import { Trash2 } from 'lucide-react';
 
-import { useCurrentUser } from '../../auth/authContext';
 import { useFormValidation } from '../../hooks/useFormValidation';
 import {
   hasTooManyDecimals,
@@ -166,7 +165,6 @@ export function FoodItemForm({
   onItemUpdated,
   onItemDeleted,
 }: FoodItemFormProps) {
-  const { userId } = useCurrentUser();
   const {
     form,
     setForm,
@@ -251,8 +249,8 @@ export function FoodItemForm({
         fat: parseDecimal(form.fat) ?? 0,
       };
       const savedItem = editingItem
-        ? await updateFoodItem(userId, editingItem.id, input)
-        : await createFoodItem(userId, input);
+        ? await updateFoodItem(editingItem.id, input)
+        : await createFoodItem(input);
 
       if (editingItem) {
         onItemUpdated(savedItem);
@@ -283,7 +281,7 @@ export function FoodItemForm({
     setError(null);
     setIsSubmitting(true);
     try {
-      await deleteFoodItem(userId, editingItem.id);
+      await deleteFoodItem(editingItem.id);
       onItemDeleted(editingItem.id);
       closeDialog();
       showToast('Produit supprimé');

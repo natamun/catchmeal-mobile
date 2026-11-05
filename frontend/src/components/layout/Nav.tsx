@@ -1,28 +1,10 @@
-import { useState, type ReactNode } from 'react';
-import * as Popover from '@radix-ui/react-popover';
-import {
-  Apple,
-  ChartColumn,
-  House,
-  LogOut,
-  ShieldCheck,
-  User,
-  Users,
-  type LucideIcon,
-} from 'lucide-react';
-import { NavLink, useMatch } from 'react-router';
+import { Apple, ChartColumn, House, User, type LucideIcon } from 'lucide-react';
+import { NavLink } from 'react-router';
 
-import { useAuth, useCurrentUser } from '../../auth/authContext';
 import { PATHS } from '../../routing/paths';
-import { Avatar } from '../ui/Avatar';
 import { Brand } from '../ui/Brand';
-import { DropdownPanel } from '../ui/DropdownPanel';
 
-export type Tab = 'home' | 'food' | 'stats' | 'friends' | 'profile' | 'admin';
-
-interface Props {
-  isAdmin?: boolean;
-}
+type Tab = 'home' | 'food' | 'stats' | 'profile';
 
 interface TabDef {
   id: Tab;
@@ -34,10 +16,9 @@ interface TabDef {
 interface NavItemProps {
   tab: TabDef;
   variant: 'top' | 'bottom';
-  icon?: ReactNode;
 }
 
-const MAIN_TABS: TabDef[] = [
+const TABS: TabDef[] = [
   { id: 'home', label: 'Accueil', icon: House },
   { id: 'food', label: 'Alimentation', shortLabel: 'Aliments', icon: Apple },
   {
@@ -46,21 +27,14 @@ const MAIN_TABS: TabDef[] = [
     shortLabel: 'Stats',
     icon: ChartColumn,
   },
-  { id: 'friends', label: 'Amis', icon: Users },
+  { id: 'profile', label: 'Profil', icon: User },
 ];
-
-const PROFILE_TAB: TabDef = { id: 'profile', label: 'Profil', icon: User };
-
-const ADMIN_TAB: TabDef = { id: 'admin', label: 'Admin', icon: ShieldCheck };
-
-const MENU_ITEM_CLASS =
-  'flex w-full cursor-pointer items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors';
 
 const NAV_ITEM_CLASS =
   'cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-green-400 focus-visible:outline-offset-2';
 
 /** A tab link, in the top bar or in the bottom bar. */
-function NavItem({ tab, variant, icon }: NavItemProps) {
+function NavItem({ tab, variant }: NavItemProps) {
   const Icon = tab.icon;
 
   if (variant === 'top') {
@@ -97,7 +71,7 @@ function NavItem({ tab, variant, icon }: NavItemProps) {
         <span
           className={`flex flex-col items-center gap-1 rounded-xl py-1.5 ${isActive ? 'animate-pill-select bg-green-100' : ''}`}
         >
-          {icon ?? <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />}
+          <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
           {tab.shortLabel ?? tab.label}
         </span>
       )}
@@ -106,27 +80,10 @@ function NavItem({ tab, variant, icon }: NavItemProps) {
 }
 
 /**
- * Navigation of the logged-in app. With a mouse: a top bar, whose tabs move
- * into the avatar menu under 450 px wide. On touch screens: a bottom tab bar,
- * hidden while typing on iPhone. The avatar menu holds the profile, the admin
- * page and the logout.
+ * Navigation of the app. With a mouse: a top bar, the labels hidden on narrow
+ * screens. On touch screens: a bottom tab bar, hidden while typing on iPhone.
  */
-export function Nav({ isAdmin = false }: Props) {
-  const user = useCurrentUser();
-  const { logout } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [menuContainer, setMenuContainer] = useState<HTMLDivElement | null>(
-    null,
-  );
-  const profileMatch = useMatch(PATHS.profile);
-  const adminMatch = useMatch(PATHS.admin);
-
-  const onAccountPage = profileMatch !== null || adminMatch !== null;
-  const bottomTabs = isAdmin
-    ? [...MAIN_TABS, ADMIN_TAB, PROFILE_TAB]
-    : [...MAIN_TABS, PROFILE_TAB];
-  const closeMenu = () => setMenuOpen(false);
-
+export function Nav() {
   return (
     <>
       <header className="sticky top-0 z-10 h-header border-b border-green-200 bg-white/75 backdrop-blur-md pointer-coarse:hidden">
@@ -134,114 +91,24 @@ export function Nav({ isAdmin = false }: Props) {
           <div className="flex">
             <Brand />
           </div>
-          <nav
-            aria-label="Navigation principale"
-            className="max-[450px]:hidden"
-          >
+          <nav aria-label="Navigation principale">
             <ul className="flex items-center gap-1">
-              {MAIN_TABS.map((tab) => (
+              {TABS.map((tab) => (
                 <li key={tab.id}>
                   <NavItem tab={tab} variant="top" />
                 </li>
               ))}
             </ul>
           </nav>
-          <div ref={setMenuContainer} className="flex">
-            <Popover.Root open={menuOpen} onOpenChange={setMenuOpen}>
-              <Popover.Trigger asChild>
-                <button
-                  type="button"
-                  aria-label="Menu du compte"
-                  className={`cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-400 ${
-                    onAccountPage ? 'ring-2 ring-green-500 ring-offset-2' : ''
-                  }`}
-                >
-                  <Avatar
-                    username={user.username}
-                    avatarUrl={user.avatarUrl}
-                    size="sm"
-                  />
-                </button>
-              </Popover.Trigger>
-              <DropdownPanel container={menuContainer} align="end" fitViewport>
-                {MAIN_TABS.map((tab, index) => (
-                  <NavLink
-                    key={tab.id}
-                    to={PATHS[tab.id]}
-                    onClick={closeMenu}
-                    className={({ isActive }) =>
-                      `${MENU_ITEM_CLASS} text-green-800 hover:bg-green-50 min-[450px]:hidden ${index > 0 ? 'border-t border-green-100' : ''} ${isActive ? 'font-semibold' : ''}`
-                    }
-                  >
-                    <tab.icon
-                      className="h-4 w-4 text-green-500"
-                      aria-hidden="true"
-                    />
-                    {tab.label}
-                  </NavLink>
-                ))}
-                <NavLink
-                  to={PATHS.profile}
-                  onClick={closeMenu}
-                  className={({ isActive }) =>
-                    `${MENU_ITEM_CLASS} text-green-800 hover:bg-green-50 max-[450px]:border-t max-[450px]:border-green-100 ${isActive ? 'font-semibold' : ''}`
-                  }
-                >
-                  <User className="h-4 w-4 text-green-500" aria-hidden="true" />
-                  Profil
-                </NavLink>
-                {isAdmin && (
-                  <NavLink
-                    to={PATHS.admin}
-                    onClick={closeMenu}
-                    className={({ isActive }) =>
-                      `${MENU_ITEM_CLASS} border-t border-green-100 text-green-800 hover:bg-green-50 ${isActive ? 'font-semibold' : ''}`
-                    }
-                  >
-                    <ShieldCheck
-                      className="h-4 w-4 text-green-500"
-                      aria-hidden="true"
-                    />
-                    Admin
-                  </NavLink>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeMenu();
-                    void logout();
-                  }}
-                  className={`${MENU_ITEM_CLASS} border-t border-green-100 whitespace-nowrap text-red-500 hover:bg-red-50`}
-                >
-                  <LogOut className="h-4 w-4" aria-hidden="true" />
-                  Se déconnecter
-                </button>
-              </DropdownPanel>
-            </Popover.Root>
-          </div>
         </div>
       </header>
 
       <footer className="fixed right-0 bottom-0 left-0 z-10 hidden border-t border-green-200 bg-white pr-[max(0.5rem,env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] pl-[max(0.5rem,env(safe-area-inset-left))] pointer-coarse:block ios-typing:hidden">
         <nav aria-label="Navigation principale">
           <ul className="flex h-bottom-nav">
-            {bottomTabs.map((tab) => (
+            {TABS.map((tab) => (
               <li key={tab.id} className="flex-1">
-                <NavItem
-                  tab={tab}
-                  variant="bottom"
-                  icon={
-                    tab.id === 'profile' ? (
-                      <span aria-hidden="true">
-                        <Avatar
-                          username={user.username}
-                          avatarUrl={user.avatarUrl}
-                          size="xs"
-                        />
-                      </span>
-                    ) : undefined
-                  }
-                />
+                <NavItem tab={tab} variant="bottom" />
               </li>
             ))}
           </ul>

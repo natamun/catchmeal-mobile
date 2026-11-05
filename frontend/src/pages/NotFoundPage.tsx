@@ -15,7 +15,7 @@ export function NotFoundPage() {
         </p>
       </div>
       <Link
-        to={PATHS.landing}
+        to={PATHS.home}
         className="rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-600"
       >
         Retour à l'accueil

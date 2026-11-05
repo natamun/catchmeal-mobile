@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useCurrentUser } from '../auth/authContext';
 import { listFoodItems } from '../components/food/api';
 import type { FoodItem } from '../components/food/types';
 import { listMealsOnDate, toApiDate } from '../components/meal/api';
@@ -25,7 +24,6 @@ function neighbourKey(dateKey: string, offset: number) {
  * to day is instant.
  */
 export function useDailyMeals(date: Date) {
-  const { userId } = useCurrentUser();
   const dateKey = toApiDate(date);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [foodsError, setFoodsError] = useState<string | null>(null);
@@ -40,14 +38,14 @@ export function useDailyMeals(date: Date) {
 
   useEffect(() => {
     const controller = new AbortController();
-    listFoodItems(userId, controller.signal)
+    listFoodItems(controller.signal)
       .then(setFoodItems)
       .catch(() => {
         if (controller.signal.aborted) return;
         setFoodsError('Impossible de charger les aliments.');
       });
     return () => controller.abort();
-  }, [userId, foodsAttempt]);
+  }, [foodsAttempt]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -59,54 +57,49 @@ export function useDailyMeals(date: Date) {
     };
   }, []);
 
-  const loadDay = useCallback(
-    (dayKey: string) => {
-      const cacheKey = `${userId}:${dayKey}`;
-      if (pending.current.has(cacheKey)) return;
-      pending.current.add(cacheKey);
-      const signal = lifetime.current?.signal;
+  const loadDay = useCallback((dayKey: string) => {
+    if (pending.current.has(dayKey)) return;
+    pending.current.add(dayKey);
+    const signal = lifetime.current?.signal;
 
-      listMealsOnDate(userId, dayKey, signal)
-        .then((meals) => {
-          loaded.current.add(cacheKey);
-          setDays((prev) => ({ ...prev, [cacheKey]: meals }));
-          setErrors((prev) => {
-            if (!(cacheKey in prev)) return prev;
-            const next = { ...prev };
-            delete next[cacheKey];
-            return next;
-          });
-        })
-        .catch(() => {
-          if (signal?.aborted) return;
-          setErrors((prev) => ({
-            ...prev,
-            [cacheKey]: 'Impossible de charger le journal.',
-          }));
-        })
-        .finally(() => {
-          if (!signal?.aborted) pending.current.delete(cacheKey);
+    listMealsOnDate(dayKey, signal)
+      .then((meals) => {
+        loaded.current.add(dayKey);
+        setDays((prev) => ({ ...prev, [dayKey]: meals }));
+        setErrors((prev) => {
+          if (!(dayKey in prev)) return prev;
+          const next = { ...prev };
+          delete next[dayKey];
+          return next;
         });
-    },
-    [userId],
-  );
+      })
+      .catch(() => {
+        if (signal?.aborted) return;
+        setErrors((prev) => ({
+          ...prev,
+          [dayKey]: 'Impossible de charger le journal.',
+        }));
+      })
+      .finally(() => {
+        if (!signal?.aborted) pending.current.delete(dayKey);
+      });
+  }, []);
 
   useEffect(() => {
-    if (!loaded.current.has(`${userId}:${dateKey}`)) loadDay(dateKey);
+    if (!loaded.current.has(dateKey)) loadDay(dateKey);
 
     const timer = setTimeout(() => {
       [-1, 1].forEach((offset) => {
         const neighbour = neighbourKey(dateKey, offset);
-        if (!loaded.current.has(`${userId}:${neighbour}`)) loadDay(neighbour);
+        if (!loaded.current.has(neighbour)) loadDay(neighbour);
       });
     }, PREFETCH_DELAY_MS);
 
     return () => clearTimeout(timer);
-  }, [userId, dateKey, loadDay]);
+  }, [dateKey, loadDay]);
 
-  const cacheKey = `${userId}:${dateKey}`;
-  const meals = days[cacheKey];
-  const dayError = errors[cacheKey];
+  const meals = days[dateKey];
+  const dayError = errors[dateKey];
 
   return {
     meals: meals ?? NO_MEALS,
@@ -121,9 +114,9 @@ export function useDailyMeals(date: Date) {
         setFoodsAttempt((attempt) => attempt + 1);
       }
       setErrors((prev) => {
-        if (!(cacheKey in prev)) return prev;
+        if (!(dateKey in prev)) return prev;
         const next = { ...prev };
-        delete next[cacheKey];
+        delete next[dateKey];
         return next;
       });
       loadDay(dateKey);

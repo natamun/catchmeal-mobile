@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, LoaderCircle, ScanBarcode, Search } from 'lucide-react';
 
-import { useCurrentUser } from '../../auth/authContext';
 import { useHasCamera } from '../../hooks/useHasCamera';
 import { useTimeout } from '../../hooks/useTimeout';
 import { ApiError } from '../../utils/request';
@@ -47,7 +46,6 @@ export function BarcodeField({
   onChange,
   onProduct,
 }: BarcodeFieldProps) {
-  const { userId } = useCurrentUser();
   const hasCamera = useHasCamera();
   const [isTouched, setIsTouched] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -87,7 +85,7 @@ export function BarcodeField({
     }
     setIsLookingUp(true);
     try {
-      const product = await lookupOffProduct(userId, code);
+      const product = await lookupOffProduct(code);
       if (lookupId !== lookupIdRef.current) {
         return;
       }
