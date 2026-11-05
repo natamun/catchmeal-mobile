@@ -149,7 +149,7 @@ export function BirthDatePicker({ id, label, value, onChange }: Props) {
               {selected ? (
                 selected.toLocaleDateString('fr-FR')
               ) : (
-                <span className="text-green-800/50">Sélectionner une date</span>
+                <span className="text-green-800/50">Date</span>
               )}
             </CalendarTrigger>
           }
