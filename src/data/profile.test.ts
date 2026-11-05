@@ -43,6 +43,7 @@ describe('getProfile', () => {
       gender: null,
       birthDate: null,
       activityLevel: null,
+      goalType: null,
     });
   });
 });
@@ -54,6 +55,7 @@ describe('updateProfile', () => {
     const profile = await updateProfile(db, {
       birthDate: '1990-04-12',
       activityLevel: 'MODERATELY_ACTIVE',
+      goalType: 'LOSE_FAT',
     });
 
     expect(profile).toMatchObject({
@@ -61,6 +63,7 @@ describe('updateProfile', () => {
       gender: 'MALE',
       birthDate: '1990-04-12',
       activityLevel: 'MODERATELY_ACTIVE',
+      goalType: 'LOSE_FAT',
     });
     expect(await getProfile(db)).toEqual(profile);
   });
@@ -86,6 +89,7 @@ describe('updateProfile', () => {
     ['a fat goal over 1000 g', { dailyFatGoal: 1001 }],
     ['an unknown gender', { gender: 'X' }],
     ['an unknown activity level', { activityLevel: 'LAZY' }],
+    ['an unknown goal type', { goalType: 'BULK' }],
     ['a birth date in another format', { birthDate: '12.04.1990' }],
     ['a birth date that does not exist', { birthDate: '1990-02-30' }],
   ])('refuses %s and saves nothing', async (_, input) => {

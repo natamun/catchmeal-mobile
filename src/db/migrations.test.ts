@@ -160,6 +160,7 @@ describe('profile', () => {
   it.each<[string, Row]>([
     ['an unknown gender', { gender: 'X' }],
     ['an unknown activity level', { activity_level: 'LAZY' }],
+    ['an unknown goal type', { goal_type: 'BULK' }],
     ['a birth date in another format', { birth_date: '12.04.1990' }],
     ['a zero height', { height: 0 }],
     ['a zero target weight', { target_weight: 0 }],
