@@ -22,6 +22,7 @@ const TABLES = {
     'birth_date',
     'activity_level',
     'goal_type',
+    'theme',
   ],
   food_item: [
     'id',

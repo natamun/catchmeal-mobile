@@ -100,10 +100,16 @@ const GOAL_TYPE_V2 = `
 ALTER TABLE profile ADD COLUMN goal_type TEXT CHECK (goal_type IN ('LOSE_FAT', 'LOSE_WEIGHT', 'MAINTAIN', 'GAIN_MUSCLE'));
 `;
 
+/** The color theme picked in the profile; null is the default one. */
+const THEME_V3 = `
+ALTER TABLE profile ADD COLUMN theme TEXT CHECK (theme IN ('foret', 'sable', 'nuit', 'ocean', 'graphite', 'prune'));
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: SCHEMA_V1 },
   { version: 2, sql: GOAL_TYPE_V2 },
+  { version: 3, sql: THEME_V3 },
 ];
 
 /**

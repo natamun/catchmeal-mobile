@@ -1,4 +1,5 @@
 import type { Profile, UpdateProfileInput } from '../components/profile/api';
+import { THEME_IDS } from '../components/theme/themeList';
 import type { Database, Executor, SqlValue } from '../db/database';
 import { checkChoice, checkDateOnly, checkOptionalNumber } from './validation';
 
@@ -30,6 +31,7 @@ interface ProfileRow {
   birth_date: string | null;
   activity_level: string | null;
   goal_type: string | null;
+  theme: string | null;
 }
 
 /** Where each profile field is stored, and the rule its value follows. */
@@ -73,7 +75,7 @@ const NUMBER_FIELDS = [
 ] as const;
 
 const PROFILE_COLUMNS =
-  'height, target_weight, daily_calorie_goal, daily_protein_goal, daily_carbs_goal, daily_fat_goal, gender, birth_date, activity_level, goal_type';
+  'height, target_weight, daily_calorie_goal, daily_protein_goal, daily_carbs_goal, daily_fat_goal, gender, birth_date, activity_level, goal_type, theme';
 
 function toProfile(row: ProfileRow): Profile {
   return {
@@ -87,6 +89,7 @@ function toProfile(row: ProfileRow): Profile {
     birthDate: row.birth_date,
     activityLevel: row.activity_level,
     goalType: row.goal_type,
+    theme: row.theme,
   };
 }
 
@@ -144,6 +147,14 @@ function changesFrom(input: UpdateProfileInput) {
       input.goalType === null
         ? null
         : checkChoice(input.goalType, 'objectif', GOAL_TYPES),
+    ]);
+  }
+  if (input.theme !== undefined) {
+    changes.push([
+      'theme',
+      input.theme === null
+        ? null
+        : checkChoice(input.theme, 'thème', THEME_IDS),
     ]);
   }
   return changes;

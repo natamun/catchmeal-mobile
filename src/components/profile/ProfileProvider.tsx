@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 
+import { applyTheme } from '../theme/themes';
 import { LoadError } from '../ui/LoadError';
 import { getProfile, type Profile } from './api';
 import { ProfileContext } from './profileContext';
@@ -27,6 +28,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [attempt]);
+
+  // The theme stored in the profile wins over the copy used at startup.
+  const theme = profile?.theme;
+  useEffect(() => {
+    if (theme !== undefined) applyTheme(theme);
+  }, [theme]);
 
   const updateProfile = useCallback((partial: Partial<Profile>) => {
     setProfile((prev) => (prev ? { ...prev, ...partial } : prev));

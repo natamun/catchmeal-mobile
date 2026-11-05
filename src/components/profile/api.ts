@@ -16,6 +16,7 @@ export interface Profile {
   birthDate: string | null;
   activityLevel: string | null;
   goalType: string | null;
+  theme: string | null;
 }
 
 /**
@@ -33,6 +34,7 @@ export interface UpdateProfileInput {
   birthDate?: string | null;
   activityLevel?: string | null;
   goalType?: string | null;
+  theme?: string | null;
 }
 
 export interface WeightEntry {
