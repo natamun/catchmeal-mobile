@@ -108,6 +108,100 @@
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
+/*
+ * Color themes, picked in the profile (data-theme on <html>). Each one sets the
+ * 9 steps of the scale, the card color and the text on the accent. Dark
+ * themes reverse the scale (50 is the darkest), so every screen works as is.
+ * Forêt repeats the defaults of @theme so a preview can show it anywhere.
+ */
+[data-theme='foret'] {
+  --color-theme-50: #d8f3dc;
+  --color-theme-100: #b7e4c7;
+  --color-theme-200: #95d5b2;
+  --color-theme-300: #74c69d;
+  --color-theme-400: #52b788;
+  --color-theme-500: #40916c;
+  --color-theme-600: #2d6a4f;
+  --color-theme-700: #1b4332;
+  --color-theme-800: #081c15;
+  --color-surface: #ffffff;
+  --color-on-accent: #ffffff;
+}
+
+[data-theme='sable'] {
+  --color-theme-50: #f6ede1;
+  --color-theme-100: #ecdcc6;
+  --color-theme-200: #e0c3a0;
+  --color-theme-300: #d2a57a;
+  --color-theme-400: #c27f52;
+  --color-theme-500: #a85d32;
+  --color-theme-600: #7f4424;
+  --color-theme-700: #552d18;
+  --color-theme-800: #2b170c;
+  --color-surface: #fffaf3;
+  --color-on-accent: #ffffff;
+}
+
+[data-theme='nuit'] {
+  color-scheme: dark;
+  --color-theme-50: #0b1210;
+  --color-theme-100: #1b2823;
+  --color-theme-200: #2e443b;
+  --color-theme-300: #355047;
+  --color-theme-400: #4f8f74;
+  --color-theme-500: #3ecf8e;
+  --color-theme-600: #a7cbbb;
+  --color-theme-700: #d0e6dc;
+  --color-theme-800: #eef7f2;
+  --color-surface: #131c18;
+  --color-on-accent: #04170e;
+}
+
+[data-theme='ocean'] {
+  color-scheme: dark;
+  --color-theme-50: #0a1220;
+  --color-theme-100: #18273d;
+  --color-theme-200: #2a4060;
+  --color-theme-300: #2f4a6b;
+  --color-theme-400: #3f86a8;
+  --color-theme-500: #2ec4d6;
+  --color-theme-600: #a3c3dc;
+  --color-theme-700: #cfe0ee;
+  --color-theme-800: #edf5fb;
+  --color-surface: #111c2e;
+  --color-on-accent: #03191e;
+}
+
+[data-theme='graphite'] {
+  color-scheme: dark;
+  --color-theme-50: #121212;
+  --color-theme-100: #242427;
+  --color-theme-200: #3a3a40;
+  --color-theme-300: #45454b;
+  --color-theme-400: #8a7a52;
+  --color-theme-500: #f5b642;
+  --color-theme-600: #b9b9bf;
+  --color-theme-700: #dcdce0;
+  --color-theme-800: #f2f2f4;
+  --color-surface: #1b1b1d;
+  --color-on-accent: #241800;
+}
+
+[data-theme='prune'] {
+  color-scheme: dark;
+  --color-theme-50: #160f1a;
+  --color-theme-100: #2a1e31;
+  --color-theme-200: #45324f;
+  --color-theme-300: #4d3859;
+  --color-theme-400: #9a6aa8;
+  --color-theme-500: #e07bd6;
+  --color-theme-600: #c9b3d2;
+  --color-theme-700: #e3d6e8;
+  --color-theme-800: #f6effa;
+  --color-surface: #1f1625;
+  --color-on-accent: #2a0a26;
+}
+
 :root {
   font-family: var(--font-sans);
   font-size: var(--text-base);
