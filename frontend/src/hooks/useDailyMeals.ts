@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { listFoodItems } from '../components/food/api';
 import type { FoodItem } from '../components/food/types';
-import { listMealsOnDate, toApiDate } from '../components/meal/api';
+import { listMealsOnDate, toDateKey } from '../components/meal/api';
 import type { Meal } from '../components/meal/types';
 
 const PREFETCH_DELAY_MS = 200;
@@ -15,7 +15,7 @@ const NO_MEALS: Meal[] = [];
 function neighbourKey(dateKey: string, offset: number) {
   const day = new Date(`${dateKey}T12:00:00`);
   day.setDate(day.getDate() + offset);
-  return toApiDate(day);
+  return toDateKey(day);
 }
 
 /**
@@ -24,7 +24,7 @@ function neighbourKey(dateKey: string, offset: number) {
  * to day is instant.
  */
 export function useDailyMeals(date: Date) {
-  const dateKey = toApiDate(date);
+  const dateKey = toDateKey(date);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [foodsError, setFoodsError] = useState<string | null>(null);
   const [foodsAttempt, setFoodsAttempt] = useState(0);

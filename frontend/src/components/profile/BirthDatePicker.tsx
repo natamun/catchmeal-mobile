@@ -6,7 +6,7 @@ import DatePicker from 'react-datepicker';
 
 import 'react-datepicker/dist/react-datepicker.css';
 
-import { toApiDate } from '../meal/api';
+import { toDateKey } from '../meal/api';
 import { CalendarTrigger } from '../ui/CalendarButton';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 
@@ -58,7 +58,7 @@ export function BirthDatePicker({ id, label, value, onChange }: Props) {
               return;
             }
             if (view === 'day') {
-              onChange(toApiDate(date));
+              onChange(toDateKey(date));
             } else {
               setView(view === 'year' ? 'month' : 'day');
             }

@@ -5,7 +5,7 @@ import { ChevronRight } from 'lucide-react';
 import { useFormValidation } from '../../hooks/useFormValidation';
 import { parseDecimal } from '../../utils/decimals';
 import { failureMessage } from '../../utils/failureMessage';
-import { createMeal, toApiDate } from '../meal/api';
+import { createMeal, toDateKey } from '../meal/api';
 import {
   EMPTY_QUICK_ADD_FORM,
   QUICK_ADD_FIELDS,
@@ -90,7 +90,7 @@ export function QuickAddDialog({
     try {
       await createMeal({
         typeMeal: mealType,
-        loggedAt: toApiDate(date),
+        loggedAt: toDateKey(date),
         items: [
           {
             quantity: 1,

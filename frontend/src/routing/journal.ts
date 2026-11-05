@@ -1,7 +1,7 @@
 import { isToday } from 'date-fns';
 import { generatePath } from 'react-router';
 
-import { toApiDate } from '../components/meal/api';
+import { toDateKey } from '../components/meal/api';
 import type { MealType } from '../components/meal/types';
 import { PATHS } from './paths';
 
@@ -17,7 +17,7 @@ const DATE_PARAM = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 /** Today's journal has no ?date= so its URL stays /home. */
 function withDate(path: string, date: Date) {
-  return isToday(date) ? path : `${path}?date=${toApiDate(date)}`;
+  return isToday(date) ? path : `${path}?date=${toDateKey(date)}`;
 }
 
 /** URL of the journal for a given day. */

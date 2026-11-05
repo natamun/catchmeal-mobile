@@ -1,7 +1,7 @@
 import { useState, type RefObject } from 'react';
 
 import { failureMessage } from '../../utils/failureMessage';
-import { createMeal, deleteMeal, toApiDate, updateMeal } from '../meal/api';
+import { createMeal, deleteMeal, toDateKey, updateMeal } from '../meal/api';
 import { draftsToInput, draftTotals, type MealItemDraft } from '../meal/draft';
 import { DraftItemList } from '../meal/DraftItemList';
 import { MEAL_TYPE_LABELS, type Meal, type MealType } from '../meal/types';
@@ -70,7 +70,7 @@ export function DailyMealForm({
       if (!isEdit) {
         await createMeal({
           typeMeal: mealType,
-          loggedAt: toApiDate(date),
+          loggedAt: toDateKey(date),
           items: draftsToInput(items),
         });
       } else if (items.length === 0) {

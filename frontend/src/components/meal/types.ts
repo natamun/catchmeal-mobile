@@ -35,8 +35,8 @@ export interface Meal {
 }
 
 /**
- * An item sent to the API: a food id with a quantity, or for a quick add the
- * quantity and the macros.
+ * An item to save: a food id with a quantity, or for a quick add the quantity
+ * and the macros.
  */
 export interface MealItemInput {
   foodItemId?: number;
@@ -48,8 +48,8 @@ export interface MealItemInput {
 }
 
 export interface MealInput {
-  name?: string;
-  typeMeal?: MealType;
+  name?: string | null;
+  typeMeal?: MealType | null;
   loggedAt?: string;
   items: MealItemInput[];
 }

@@ -9,7 +9,7 @@ import { NutritionAverages } from '../components/analytics/NutritionAverages';
 import { lastDays } from '../components/analytics/period';
 import { PeriodSelector } from '../components/analytics/PeriodSelector';
 import { WeightVariation } from '../components/analytics/WeightVariation';
-import { toApiDate } from '../components/meal/api';
+import { toDateKey } from '../components/meal/api';
 import { LoadError } from '../components/ui/LoadError';
 import { useDashboard } from '../hooks/useDashboard';
 
@@ -20,8 +20,8 @@ import { useDashboard } from '../hooks/useDashboard';
 export default function StatsPage() {
   const [period, setPeriod] = useState(() => lastDays(7));
   const [measure, setMeasure] = useState<MeasureKey>('weight');
-  const from = toApiDate(period.from);
-  const to = toApiDate(period.to);
+  const from = toDateKey(period.from);
+  const to = toDateKey(period.to);
   const { days, isLoading, hasError, retry } = useDashboard(from, to);
 
   return (
