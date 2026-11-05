@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { ChevronRight, Filter, Search } from 'lucide-react';
 
@@ -131,6 +131,22 @@ export function MacroSearchBar({
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [dialogNode, setDialogNode] = useState<HTMLDialogElement | null>(null);
   const filterDialogRef = useRef<HTMLDialogElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Android keeps the focus when its back button closes the keyboard: drop it
+  // once the page is back to full height, or the tab bar would stay hidden.
+  useEffect(() => {
+    let fullHeight = window.innerHeight;
+    const handleResize = () => {
+      if (window.innerHeight < fullHeight) return;
+      fullHeight = window.innerHeight;
+      if (document.activeElement === inputRef.current) {
+        inputRef.current?.blur();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const macroBounds = useMemo<MacroDraft>(
     () => ({
@@ -189,7 +205,9 @@ export function MacroSearchBar({
     <div className="relative flex-1">
       <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-theme-400" />
       <Input
+        ref={inputRef}
         type="text"
+        data-hides-nav
         placeholder={placeholder}
         className="pr-10 pl-9"
         value={criteria.query}

@@ -78,7 +78,7 @@ function NavItem({ tab, variant }: NavItemProps) {
 
 /**
  * Navigation of the app. With a mouse: a top bar, the labels hidden on narrow
- * screens. On touch screens: a bottom tab bar.
+ * screens. On touch screens: a bottom tab bar, hidden while searching a list.
  */
 export function Nav() {
   return (
@@ -100,7 +100,7 @@ export function Nav() {
         </div>
       </header>
 
-      <footer className="fixed right-0 bottom-0 left-0 z-10 hidden border-t border-theme-200 bg-surface pr-[max(0.5rem,env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] pl-[max(0.5rem,env(safe-area-inset-left))] pointer-coarse:block">
+      <footer className="fixed right-0 bottom-0 left-0 z-10 hidden border-t border-theme-200 bg-surface pr-[max(0.5rem,env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] pl-[max(0.5rem,env(safe-area-inset-left))] pointer-coarse:block list-search:hidden!">
         <nav>
           <ul className="flex h-bottom-nav">
             {TABS.map((tab) => (

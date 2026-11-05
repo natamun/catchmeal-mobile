@@ -1,5 +1,15 @@
 @import 'tailwindcss';
 
+/*
+ * While a list search (data-hides-nav) has the focus, the bottom tab bar
+ * hides, so the keyboard covers it instead of pushing it above the keyboard.
+ */
+@custom-variant list-search {
+  :root:has(input[data-hides-nav]:focus) & {
+    @slot;
+  }
+}
+
 @custom-variant hover {
   &:active {
     @slot;
