@@ -10,7 +10,7 @@ export function AddCircleButton({ onClick }: AddCircleButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-green-500 text-white transition-colors hover:bg-green-600"
+      className="tap-area relative flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-green-500 text-white transition-colors hover:bg-green-600"
     >
       <Plus className="h-4 w-4" />
     </button>

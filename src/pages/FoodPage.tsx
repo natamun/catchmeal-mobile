@@ -151,7 +151,7 @@ export default function FoodPage() {
           <button
             type="button"
             onClick={() => !supportsHover && setShowLegend((prev) => !prev)}
-            className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-green-200 text-xs font-bold text-green-500 transition-colors hover:bg-green-50"
+            className="tap-area relative flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-green-200 text-xs font-bold text-green-500 transition-colors hover:bg-green-50"
           >
             ?
           </button>

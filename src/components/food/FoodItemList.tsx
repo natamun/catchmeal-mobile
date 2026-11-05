@@ -125,7 +125,7 @@ export function FoodItemList({
                 <button
                   type="button"
                   onClick={() => toggleExpanded(item.id)}
-                  className="shrink-0 cursor-pointer text-green-400 transition-colors hover:text-green-600 @lg:hidden"
+                  className="tap-area relative shrink-0 cursor-pointer text-green-400 transition-colors hover:text-green-600 @lg:hidden"
                 >
                   <ChevronRight
                     className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}

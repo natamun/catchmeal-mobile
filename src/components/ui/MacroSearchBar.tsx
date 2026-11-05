@@ -198,7 +198,7 @@ export function MacroSearchBar({
       <button
         type="button"
         onClick={openFilterDialog}
-        className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-green-400 transition-colors hover:text-green-600"
+        className="tap-area absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-green-400 transition-colors hover:text-green-600"
       >
         <Filter
           className={`h-4 w-4 ${hasActiveFilters ? 'fill-green-400' : ''}`}

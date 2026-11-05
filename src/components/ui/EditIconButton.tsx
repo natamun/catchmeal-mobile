@@ -10,13 +10,13 @@ interface EditIconButtonProps {
   size?: keyof typeof SIZE;
 }
 
-/** Pencil button. On touch screens its tap area is larger than the icon. */
+/** Pencil button; its touch area is larger than the icon. */
 export function EditIconButton({ onClick, size = 'md' }: EditIconButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`relative flex shrink-0 cursor-pointer items-center justify-center text-green-400 transition-colors hover:text-green-600 pointer-coarse:after:absolute pointer-coarse:after:-inset-2.5 ${SIZE[size].button}`}
+      className={`tap-area relative flex shrink-0 cursor-pointer items-center justify-center text-green-400 transition-colors hover:text-green-600 ${SIZE[size].button}`}
     >
       <Pencil className={SIZE[size].icon} />
     </button>

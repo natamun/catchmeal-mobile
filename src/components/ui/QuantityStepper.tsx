@@ -1,7 +1,7 @@
 import { roundDecimals } from '../../utils/decimals';
 
 const STEP_BUTTON_CLASS =
-  'flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md bg-green-50 text-xs font-bold text-green-600 transition-colors hover:bg-green-100';
+  'tap-area relative flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md bg-green-50 text-xs font-bold text-green-600 transition-colors hover:bg-green-100';
 
 interface QuantityStepperProps {
   quantity: number;

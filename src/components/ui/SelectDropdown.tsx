@@ -17,10 +17,10 @@ const SIZE = {
     option: 'px-4 py-2 text-sm',
   },
   sm: {
-    trigger: 'gap-1 rounded-lg px-2 py-0.5 text-xs',
+    trigger: 'tap-area relative gap-1 rounded-lg px-3 py-1.5 text-sm',
     width: 'w-28',
-    icon: 'h-3 w-3',
-    option: 'px-3 py-1.5 text-xs',
+    icon: 'h-3.5 w-3.5',
+    option: 'px-3 py-2 text-sm',
   },
 } as const;
 

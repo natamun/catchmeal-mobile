@@ -68,7 +68,7 @@ export function BaseDialog({
             <button
               type="button"
               onClick={closeDialog}
-              className="cursor-pointer text-green-400 transition-colors hover:text-green-600"
+              className="tap-area relative cursor-pointer text-green-400 transition-colors hover:text-green-600"
             >
               <X className="h-5 w-5" />
             </button>

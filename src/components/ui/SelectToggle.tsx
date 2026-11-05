@@ -11,7 +11,7 @@ export function SelectToggle({ selected, onToggle }: SelectToggleProps) {
     <button
       type="button"
       onClick={onToggle}
-      className={`flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border transition-colors ${
+      className={`tap-area relative flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border transition-colors ${
         selected
           ? 'border-green-500 bg-green-500 text-white'
           : 'border-green-300 text-transparent hover:border-green-500'
