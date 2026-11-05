@@ -9,6 +9,7 @@ import {
   createScannerError,
   prepareZXingModule,
   Scanner,
+  type IScannerError,
   type ScannerErrorKind,
 } from '@yudiel/react-qr-scanner';
 import { LoaderCircle } from 'lucide-react';
@@ -45,8 +46,14 @@ const SCANNER_ERRORS: Partial<Record<ScannerErrorKind, string>> = {
   'insecure-context': 'La caméra nécessite une connexion sécurisée',
 };
 
-const errorMessage = (kind: ScannerErrorKind) =>
-  SCANNER_ERRORS[kind] ?? 'Caméra indisponible';
+/** The decoder (WebAssembly) failing to start, rather than the camera. */
+const DECODER_FAILURE = /WebAssembly|LinkError|Aborted\(/;
+
+const errorMessage = ({ kind, message }: IScannerError) =>
+  SCANNER_ERRORS[kind] ??
+  (DECODER_FAILURE.test(message)
+    ? 'Lecteur de codes-barres indisponible'
+    : 'Caméra indisponible');
 
 interface BarcodeScannerDialogProps {
   onDetected: (barcode: string) => void;
@@ -81,7 +88,7 @@ export default function BarcodeScannerDialog({
       })
       .catch((cause: unknown) => {
         if (!cancelled) {
-          setError(errorMessage(createScannerError(cause).kind));
+          setError(errorMessage(createScannerError(cause)));
         }
       })
       .finally(() => {
@@ -124,7 +131,7 @@ export default function BarcodeScannerDialog({
             onDetected(barcode);
           }
         }}
-        onError={(scannerError) => setError(errorMessage(scannerError.kind))}
+        onError={(scannerError) => setError(errorMessage(scannerError))}
       >
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="h-2/5 w-4/5 rounded-xl border-2 border-green-400 shadow-[0_0_0_100vmax_rgba(0,0,0,0.35)]" />
