@@ -21,7 +21,7 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 - **Goals**: daily calories and macros recommended from a goal (lose fat, lose weight, maintain, build muscle) and a weekly pace, never under the BMR. The daily expenditure is measured from the last four weeks of journal and weigh-ins, or estimated (Mifflin-St Jeor or Katch-McArdle) until there is enough data. Past goals are kept for the stats.
 - **Statistics**: calorie, macro and body composition charts over a chosen period.
 - **Backup and restore**: all the data in one JSON file, shared through Android (Drive, e-mail, Files) and restored all or nothing.
-- **Color themes**: six themes, two light and four dark, picked in the profile.
+- **Color themes**: ten themes from known palettes (Graphite, Nord, Dracula, Gruvbox, Catppuccin, Rosé Pine, Solarized dark and light, navy and coral, Klein and cream), each with two accents, picked in the profile.
 
 ## Technical stack
 
