@@ -1,5 +1,5 @@
-APP = npm --prefix frontend run
-CAP = cd frontend && npx cap
+APP = npm run
+CAP = npx cap
 DEV_PORT = 5174
 # First phone in `adb devices`, so Capacitor does not ask which device to use.
 PHONE = $(shell adb devices 2>/dev/null | awk 'NR > 1 && $$2 == "device" { print $$1; exit }')
