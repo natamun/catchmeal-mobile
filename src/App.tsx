@@ -3,7 +3,6 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 
 import { AppLayout } from './components/layout/AppLayout';
 import { ProfileProvider } from './components/profile/ProfileProvider';
-import { useIosVisibleViewport } from './hooks/useIosVisibleViewport';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { PATHS } from './routing/paths';
 import { ScrollToTop } from './routing/ScrollToTop';
@@ -20,8 +19,6 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 
 /** All the routes of the app. The app opens on the journal. */
 function AppRoutes() {
-  useIosVisibleViewport();
-
   return (
     <Routes>
       <Route path="/" element={<Navigate to={PATHS.home} replace />} />

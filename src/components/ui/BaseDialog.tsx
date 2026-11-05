@@ -56,9 +56,9 @@ export function BaseDialog({
           closeDialog();
         }
       }}
-      className={`dialog-fade m-auto w-[calc(100vw-2rem)] ${MAX_WIDTH_CLASS[maxWidth]} overflow-hidden rounded-2xl border-none bg-white p-0 shadow-lg backdrop:backdrop-blur-sm ios-typing:mt-[calc(var(--visible-top)+1rem)] ios-typing:mb-auto`}
+      className={`dialog-fade m-auto w-[calc(100vw-2rem)] ${MAX_WIDTH_CLASS[maxWidth]} overflow-hidden rounded-2xl border-none bg-white p-0 shadow-lg backdrop:backdrop-blur-sm`}
     >
-      <div className="flex max-h-[calc(100dvh-3rem)] flex-col gap-5 overflow-y-auto p-4 sm:p-6 ios-typing:max-h-[calc(var(--visible-height)-2rem)]">
+      <div className="flex max-h-[calc(100dvh-3rem)] flex-col gap-5 overflow-y-auto p-4 sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h3 className="min-w-0 truncate text-lg font-bold text-green-800">
             {title}

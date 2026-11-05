@@ -1,24 +1,5 @@
 @import 'tailwindcss';
 
-@custom-variant ios-typing {
-  @supports (-webkit-touch-callout: none) {
-    :root:has(
-        :is(
-          input:not(
-            [type='checkbox'],
-            [type='radio'],
-            [type='range'],
-            [type='file']
-          ),
-          textarea
-        ):focus
-      )
-      & {
-      @slot;
-    }
-  }
-}
-
 @custom-variant hover {
   &:active {
     @slot;
@@ -119,19 +100,15 @@
   --color-swiss-red: #c92215;
 
   /* Fonts */
-  --font-sans: 'Inter Variable', -apple-system, sans-serif;
+  --font-sans: 'Inter Variable', sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
 :root {
-  --visible-top: 0px;
-  --visible-height: 100dvh;
   font-family: var(--font-sans);
   font-size: var(--text-base);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-green-50);
   color: var(--color-green-800);
 }
@@ -339,10 +316,3 @@ body {
   outline: none;
 }
 
-@supports (-webkit-touch-callout: none) {
-  input,
-  textarea,
-  select {
-    font-size: max(16px, 1em);
-  }
-}
