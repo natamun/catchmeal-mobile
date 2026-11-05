@@ -5,6 +5,9 @@ import '@fontsource-variable/inter';
 import './index.css';
 
 import { App } from './App';
+import { handleAndroidBackButton } from './native/androidBackButton';
+
+handleAndroidBackButton();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
