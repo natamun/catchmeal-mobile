@@ -32,6 +32,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     setProfile((prev) => (prev ? { ...prev, ...partial } : prev));
   }, []);
 
+  const reloadProfile = useCallback(async () => {
+    setProfile(await getProfile());
+  }, []);
+
   if (hasFailed) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-green-50">
@@ -51,7 +55,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ProfileContext.Provider value={{ profile, updateProfile }}>
+    <ProfileContext.Provider value={{ profile, updateProfile, reloadProfile }}>
       {children}
     </ProfileContext.Provider>
   );

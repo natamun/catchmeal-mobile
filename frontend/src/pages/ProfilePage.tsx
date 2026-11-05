@@ -1,12 +1,13 @@
 import { useState } from 'react';
 
+import { BackupCard } from '../components/backup/BackupCard';
 import type { WeightEntry } from '../components/profile/api';
 import { GoalsCard } from '../components/profile/GoalsCard';
 import { ProfileCard } from '../components/profile/ProfileCard';
 import { useProfile } from '../components/profile/profileContext';
 import { WeightCard } from '../components/profile/WeightCard';
 
-/** Profile page: body measures, body composition and goals. */
+/** Profile page: body measures, body composition, goals and backup. */
 export default function ProfilePage() {
   const { profile, updateProfile } = useProfile();
   const [latestEntry, setLatestEntry] = useState<WeightEntry | null>();
@@ -20,6 +21,8 @@ export default function ProfilePage() {
       <WeightCard height={profile.height} onLatestEntry={setLatestEntry} />
 
       <GoalsCard profile={profile} latestEntry={latestEntry} />
+
+      <BackupCard />
     </div>
   );
 }
