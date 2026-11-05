@@ -1,38 +1,54 @@
+APP = npm --prefix frontend run
+CAP = cd frontend && npx cap
+DEV_PORT = 5174
+# First phone in `adb devices`, so Capacitor does not ask which device to use.
+PHONE = $(shell adb devices 2>/dev/null | awk 'NR > 1 && $$2 == "device" { print $$1; exit }')
+
 all: check
 
-#-----	CI / Quality	-----#
+#-----	Quality (same checks as CI)	-----#
 
 format:
-	npm run format --prefix frontend
-	npm run format --prefix backend
+	$(APP) format
 
 formatCheck:
-	npm run format:check --prefix frontend
-	npm run format:check --prefix backend
+	$(APP) format:check
 
 lint:
-	npm run lint --prefix frontend
-	npm run lint --prefix backend
+	$(APP) lint
 
 lintCheck:
-	npm run lint:check --prefix frontend
-	npm run lint:check --prefix backend
+	$(APP) lint:check
 
 build:
-	npm run build --prefix frontend
-	npm run build --prefix backend
+	$(APP) build
 
 test:
-	npm run test --prefix frontend
-	npm run test --prefix backend
+	$(APP) test
 
 testVerbose:
-	npm run test --prefix frontend -- --reporter=verbose
-	npm run test --prefix backend -- --verbose
+	$(APP) test -- --reporter=verbose
 
 check: formatCheck lintCheck build test
 
-migrate:
-	cd backend && npx prisma migrate dev --name $(name)
+#-----	Phone (connected with adb)	-----#
 
-.PHONY: all format formatCheck lint lintCheck build test testVerbose check migrate
+# Builds the app and installs it on the phone, working without the computer.
+phone: build hasPhone
+	$(CAP) run android --target $(PHONE)
+
+# Live development, in two terminals: `make dev` serves the code, then
+# `make live` installs an app that loads it through the USB cable and reloads
+# on every change. Stop `make live` with Ctrl+C, then `make phone` to get the
+# normal app back.
+dev:
+	$(APP) dev -- --host 127.0.0.1 --port $(DEV_PORT) --strictPort
+
+live: hasPhone
+	$(CAP) run android --target $(PHONE) --live-reload --host localhost --port $(DEV_PORT) --forwardPorts $(DEV_PORT):$(DEV_PORT)
+
+hasPhone:
+	@test -n "$(PHONE)" || { echo "No phone found: check adb devices"; exit 1; }
+
+.PHONY: all format formatCheck lint lintCheck build test testVerbose check \
+	phone dev live hasPhone
