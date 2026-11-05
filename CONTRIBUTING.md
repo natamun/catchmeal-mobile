@@ -1,18 +1,6 @@
 # Contributing
 
-## Branches
-
-`main` is the stable branch. All changes land on it through a reviewed pull request.
-
-Naming: `feat/name`, `fix/name`, `ci/name`, `refactor/name`, `docs/name`, `test/name`, `chore/name`
-
-Before opening a PR, and again if `main` moves while your PR is still open, rebase your branch onto `main` (not a merge commit) so conflicts are resolved locally without adding extra "merge main" commits to the history.
-
-## Issues
-
-Large features get one umbrella issue, broken down into smaller sub-issues. Each sub-issue should be small enough to ship as its own PR: this is how we push code incrementally instead of one large batch at the end.
-
-Use GitHub's native sub-issue linking so the umbrella issue tracks real progress: create the sub-issues first, then link them from the umbrella issue with "Add sub-issue".
+Work is committed directly on `main`. Run `make check` before pushing: it runs the same checks as CI (format, lint, build, unit tests).
 
 ## Commits
 
@@ -38,14 +26,3 @@ docs: update README with installation steps
 ```
 
 Each commit should represent one complete, logical change, not more, not less. If a change touches several independent pieces (e.g. multiple pages, or a feature plus unrelated config), split it into separate commits, one per piece.
-
-## Pull Requests
-
-- One PR = one sub-issue = one feature or fix. Keep unrelated infrastructure/config changes in their own PR. If a config change is a direct dependency of the feature you are shipping (e.g. a new environment variable or docker-compose service the feature needs to run), include it in the same PR.
-- Splitting is not about maximizing the number of PRs either. A PR should map to one coherent, reviewable unit, not be broken down further than its natural size.
-- The description includes a short summary and `Closes #<issue-number>`, so the linked issue closes automatically on merge.
-- Run `make check` locally before pushing. It runs the same checks as CI (format, lint, build, unit tests), so failures show up before you push, not after.
-- The CI pipeline must pass before merging. It checks formatting, linting, build, and unit tests.
-- Codeowners must approve before merging.
-- The PR author merges their own branch once approved and CI passes. If `main` has moved since, rebase first, never merge `main` into your branch.
-- PRs are merged with "Create a merge commit" (not squash), so every individual commit and its real author stay visible on `main` for the whole team's contribution history.
