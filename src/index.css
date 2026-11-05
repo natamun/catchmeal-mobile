@@ -87,17 +87,21 @@
   --breakpoint-xs: 28.75rem;
 
   /* Colors */
-  --color-green-50: #d8f3dc;
-  --color-green-100: #b7e4c7;
-  --color-green-200: #95d5b2;
-  --color-green-300: #74c69d;
-  --color-green-400: #52b788;
-  --color-green-500: #40916c;
-  --color-green-600: #2d6a4f;
-  --color-green-700: #1b4332;
-  --color-green-800: #081c15;
+  --color-theme-50: #d8f3dc;
+  --color-theme-100: #b7e4c7;
+  --color-theme-200: #95d5b2;
+  --color-theme-300: #74c69d;
+  --color-theme-400: #52b788;
+  --color-theme-500: #40916c;
+  --color-theme-600: #2d6a4f;
+  --color-theme-700: #1b4332;
+  --color-theme-800: #081c15;
   /* Red of the Swiss cross: brand only (logo, "CH" of the name), never for UI states */
   --color-swiss-red: #c92215;
+
+  /* Cards and fields, and text on the accent color (buttons) */
+  --color-surface: #ffffff;
+  --color-on-accent: #ffffff;
 
   /* Fonts */
   --font-sans: 'Inter Variable', sans-serif;
@@ -109,8 +113,8 @@
   font-size: var(--text-base);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  background-color: var(--color-green-50);
-  color: var(--color-green-800);
+  background-color: var(--color-theme-50);
+  color: var(--color-theme-800);
 }
 
 /* In the Android app the page is drawn under the status bar: keep it clear. */
@@ -165,8 +169,8 @@ body {
   width: 16px;
   height: 16px;
   border-radius: 999px;
-  background: var(--color-green-500);
-  border: 2px solid white;
+  background: var(--color-theme-500);
+  border: 2px solid var(--color-surface);
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
   cursor: pointer;
   transition: box-shadow 0.15s ease;
@@ -186,8 +190,8 @@ body {
   width: 16px;
   height: 16px;
   border-radius: 999px;
-  background: var(--color-green-500);
-  border: 2px solid white;
+  background: var(--color-theme-500);
+  border: 2px solid var(--color-surface);
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
   cursor: pointer;
   transition: box-shadow 0.15s ease;
@@ -204,8 +208,8 @@ body {
 }
 
 .kcal-datepicker .react-datepicker__day--keyboard-selected {
-  background-color: var(--color-green-100);
-  color: var(--color-green-800);
+  background-color: var(--color-theme-100);
+  color: var(--color-theme-800);
 }
 
 .kcal-datepicker .react-datepicker__day--in-range,
@@ -237,13 +241,13 @@ body {
   .react-datepicker__day--in-selecting-range:not(
     .react-datepicker__day--in-range
   ) {
-  background-color: var(--color-green-100);
-  color: var(--color-green-800);
+  background-color: var(--color-theme-100);
+  color: var(--color-theme-800);
 }
 
 .kcal-datepicker .react-datepicker__day:not([aria-disabled='true']):hover {
-  background-color: var(--color-green-100);
-  color: var(--color-green-800);
+  background-color: var(--color-theme-100);
+  color: var(--color-theme-800);
 }
 
 .kcal-datepicker
@@ -256,8 +260,8 @@ body {
   ) {
   &,
   &:not([aria-disabled='true']):hover {
-    background-color: var(--color-green-500);
-    color: white;
+    background-color: var(--color-theme-500);
+    color: var(--color-on-accent);
   }
 }
 
@@ -291,8 +295,8 @@ body {
     .react-datepicker__month-text--keyboard-selected
   ) {
   border-radius: 0.3rem;
-  background-color: var(--color-green-100);
-  color: var(--color-green-800);
+  background-color: var(--color-theme-100);
+  color: var(--color-theme-800);
 }
 
 .kcal-datepicker
@@ -303,13 +307,13 @@ body {
   &,
   &:not([aria-disabled='true']):hover {
     border-radius: 0.3rem;
-    background-color: var(--color-green-500);
-    color: white;
+    background-color: var(--color-theme-500);
+    color: var(--color-on-accent);
   }
 }
 
 .kcal-datepicker .react-datepicker__navigation:hover *::before {
-  border-color: var(--color-green-500);
+  border-color: var(--color-theme-500);
 }
 
 /*

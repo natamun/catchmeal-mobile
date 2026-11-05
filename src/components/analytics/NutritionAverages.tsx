@@ -38,16 +38,16 @@ export function NutritionAverages({
         ) : hasData ? (
           <div>
             <div className="flex items-end gap-2">
-              <span className="text-4xl font-bold text-green-800">{kcal}</span>
-              <span className="mb-1 text-green-500">kcal</span>
+              <span className="text-4xl font-bold text-theme-800">{kcal}</span>
+              <span className="mb-1 text-theme-500">kcal</span>
             </div>
-            <p className="mt-1 flex items-center gap-1 text-sm text-green-600">
+            <p className="mt-1 flex items-center gap-1 text-sm text-theme-600">
               <CalendarDays className="h-4 w-4 shrink-0" />
               {logged.length} {logged.length > 1 ? 'jours' : 'jour'} de suivi
             </p>
           </div>
         ) : (
-          <p className="text-sm text-green-600">
+          <p className="text-sm text-theme-600">
             Aucun repas enregistré sur cette période.
           </p>
         )}

@@ -40,7 +40,7 @@ export function CalorieSummary({
               r={RADIUS}
               fill="none"
               strokeWidth="10"
-              className="stroke-green-100"
+              className="stroke-theme-100"
             />
             <circle
               cx="50"
@@ -49,7 +49,7 @@ export function CalorieSummary({
               fill="none"
               strokeWidth="10"
               strokeDasharray={`${lap * CIRCUMFERENCE} ${CIRCUMFERENCE}`}
-              className="stroke-green-400"
+              className="stroke-theme-400"
             />
             <circle
               cx="50"
@@ -58,18 +58,18 @@ export function CalorieSummary({
               fill="none"
               strokeWidth="10"
               strokeDasharray={`${extraLap * CIRCUMFERENCE} ${CIRCUMFERENCE}`}
-              className="stroke-green-500"
+              className="stroke-theme-500"
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
             {isLoading ? (
-              <span className="h-7 w-12 animate-pulse rounded bg-green-100" />
+              <span className="h-7 w-12 animate-pulse rounded bg-theme-100" />
             ) : (
               <p className="flex flex-col items-center leading-tight">
-                <span className="text-2xl font-bold text-green-800">
+                <span className="text-2xl font-bold text-theme-800">
                   {unavailable ? '–' : difference}
                 </span>
-                <span className="text-xs text-green-600">
+                <span className="text-xs text-theme-600">
                   {unavailable
                     ? 'indisponible'
                     : over
@@ -87,7 +87,7 @@ export function CalorieSummary({
           </StatTile>
           <StatTile label="Consommées">
             {isLoading ? (
-              <span className="block h-6 w-16 animate-pulse rounded bg-green-100" />
+              <span className="block h-6 w-16 animate-pulse rounded bg-theme-100" />
             ) : unavailable ? (
               '–'
             ) : (

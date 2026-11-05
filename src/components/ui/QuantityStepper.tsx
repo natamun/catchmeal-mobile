@@ -1,7 +1,7 @@
 import { roundDecimals } from '../../utils/decimals';
 
 const STEP_BUTTON_CLASS =
-  'tap-area relative flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md bg-green-50 text-xs font-bold text-green-600 transition-colors hover:bg-green-100';
+  'tap-area relative flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md bg-theme-50 text-xs font-bold text-theme-600 transition-colors hover:bg-theme-100';
 
 interface QuantityStepperProps {
   quantity: number;
@@ -29,7 +29,7 @@ export function QuantityStepper({
     <div className="flex shrink-0 items-center gap-1.5 select-none">
       {stepButton(-10, '--')}
       {stepButton(-1, '-')}
-      <span className="min-w-10 text-center text-xs font-semibold text-green-800">
+      <span className="min-w-10 text-center text-xs font-semibold text-theme-800">
         {roundDecimals(quantity, 1)}
         {unitLabel}
       </span>

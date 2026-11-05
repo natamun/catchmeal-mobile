@@ -135,7 +135,7 @@ export function MeasureChart({
   if (points.length === 0) {
     return (
       <SummaryCard title={TITLE} aside={selector} inlineAside>
-        <p className="text-sm text-green-600">
+        <p className="text-sm text-theme-600">
           {measure === 'weight'
             ? 'Aucune pesée sur cette période.'
             : 'Aucune mesure sur cette période.'}

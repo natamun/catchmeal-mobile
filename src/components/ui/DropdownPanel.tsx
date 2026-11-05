@@ -46,7 +46,7 @@ export function DropdownPanel({
         onOpenAutoFocus={keepFocus}
         onCloseAutoFocus={keepFocus}
         onInteractOutside={onInteractOutside}
-        className={`z-10 overflow-hidden rounded-xl border border-green-200 bg-white shadow-md data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in-up ${matchAnchorWidth ? 'w-(--radix-popover-trigger-width)' : ''}`}
+        className={`z-10 overflow-hidden rounded-xl border border-theme-200 bg-surface shadow-md data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in-up ${matchAnchorWidth ? 'w-(--radix-popover-trigger-width)' : ''}`}
       >
         <div
           className={`flex flex-col overflow-y-auto ${fitViewport ? 'max-h-(--radix-popover-content-available-height)' : 'max-h-48'}`}

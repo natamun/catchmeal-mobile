@@ -19,6 +19,6 @@ export const MACRO_SERIES = MACROS.map(({ key, label }, index) => ({
 /** Series for the calories that cannot be split by macro. */
 export const UNSPLIT_SERIES = {
   label: 'Non réparti',
-  fill: 'var(--color-green-100)',
+  fill: 'var(--color-theme-100)',
   dataKey: 'otherKcal',
 } as const;

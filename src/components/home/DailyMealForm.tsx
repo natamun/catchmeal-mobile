@@ -106,14 +106,14 @@ export function DailyMealForm({
           onRemove={removeItem}
         />
       ) : (
-        <p className="py-4 text-center text-sm text-green-400">
+        <p className="py-4 text-center text-sm text-theme-400">
           {isEdit
             ? 'Plus aucun aliment : enregistrer videra cette section.'
             : 'Aucun élément à ajouter.'}
         </p>
       )}
 
-      <div className="flex flex-col gap-3 border-t border-green-100 pt-5">
+      <div className="flex flex-col gap-3 border-t border-theme-100 pt-5">
         {items.length > 0 && <MacroSummary totals={totals} />}
 
         {error && <p className="text-sm text-red-500">{error}</p>}
@@ -122,7 +122,7 @@ export function DailyMealForm({
           type="button"
           onClick={() => void handleSubmit()}
           disabled={isSubmitting || (!isEdit && items.length === 0)}
-          className="w-full cursor-pointer rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full cursor-pointer rounded-xl bg-theme-500 px-6 py-3 font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting
             ? 'Enregistrement...'

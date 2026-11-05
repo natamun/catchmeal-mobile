@@ -56,11 +56,11 @@ export function BaseDialog({
           closeDialog();
         }
       }}
-      className={`dialog-fade m-auto w-[calc(100vw-2rem)] ${MAX_WIDTH_CLASS[maxWidth]} overflow-hidden rounded-2xl border-none bg-white p-0 shadow-lg backdrop:backdrop-blur-sm`}
+      className={`dialog-fade m-auto w-[calc(100vw-2rem)] ${MAX_WIDTH_CLASS[maxWidth]} overflow-hidden rounded-2xl border-none bg-surface p-0 shadow-lg backdrop:backdrop-blur-sm`}
     >
       <div className="flex max-h-[calc(100dvh-3rem)] flex-col gap-5 overflow-y-auto p-4 sm:p-6">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="min-w-0 truncate text-lg font-bold text-green-800">
+          <h3 className="min-w-0 truncate text-lg font-bold text-theme-800">
             {title}
           </h3>
           <div className="flex shrink-0 items-center gap-3">
@@ -68,7 +68,7 @@ export function BaseDialog({
             <button
               type="button"
               onClick={closeDialog}
-              className="tap-area relative cursor-pointer text-green-400 transition-colors hover:text-green-600"
+              className="tap-area relative cursor-pointer text-theme-400 transition-colors hover:text-theme-600"
             >
               <X className="h-5 w-5" />
             </button>

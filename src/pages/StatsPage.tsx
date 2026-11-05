@@ -29,7 +29,7 @@ export default function StatsPage() {
       <PeriodSelector period={period} onChange={setPeriod} />
 
       {hasError ? (
-        <div className="rounded-2xl border border-green-200 bg-white shadow-sm">
+        <div className="rounded-2xl border border-theme-200 bg-surface shadow-sm">
           <LoadError
             message="Impossible de charger les statistiques."
             onRetry={retry}

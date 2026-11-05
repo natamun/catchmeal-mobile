@@ -94,7 +94,7 @@ export function DailyMealPicker({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-green-500 text-white transition-colors hover:bg-green-600"
+            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-theme-500 text-on-accent transition-colors hover:bg-theme-600"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -134,8 +134,8 @@ export function DailyMealPicker({
           )}
         </div>
 
-        <div className="sticky bottom-[calc(var(--spacing-bottom-nav)+1rem+env(safe-area-inset-bottom))] z-20 mx-3 flex items-center justify-between gap-3 rounded-2xl border border-green-200 bg-white p-3 shadow-lg md:mx-auto md:w-full md:max-w-md md:pointer-fine:bottom-4">
-          <span className="text-sm text-green-600">
+        <div className="sticky bottom-[calc(var(--spacing-bottom-nav)+1rem+env(safe-area-inset-bottom))] z-20 mx-3 flex items-center justify-between gap-3 rounded-2xl border border-theme-200 bg-surface p-3 shadow-lg md:mx-auto md:w-full md:max-w-md md:pointer-fine:bottom-4">
+          <span className="text-sm text-theme-600">
             {selectedCount === 0
               ? 'Aucune sélection'
               : `${selectedCount} sélectionné${selectedCount > 1 ? 's' : ''}`}
@@ -144,7 +144,7 @@ export function DailyMealPicker({
             type="button"
             onClick={openReview}
             disabled={selectedCount === 0}
-            className="cursor-pointer rounded-xl bg-green-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className="cursor-pointer rounded-xl bg-theme-500 px-5 py-2 text-sm font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Ajouter
           </button>

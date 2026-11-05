@@ -38,7 +38,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   if (hasFailed) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-green-50">
+      <div className="flex min-h-screen items-center justify-center bg-theme-50">
         <LoadError
           message="Impossible d'ouvrir les données de l'app."
           onRetry={() => {

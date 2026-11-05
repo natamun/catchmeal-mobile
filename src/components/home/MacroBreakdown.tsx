@@ -36,10 +36,10 @@ function Bar({
   return (
     <div>
       <div className="mb-1 flex justify-between text-sm">
-        <span className="font-medium text-green-600">{label}</span>
-        <span className="flex items-center gap-1 text-green-500">
+        <span className="font-medium text-theme-600">{label}</span>
+        <span className="flex items-center gap-1 text-theme-500">
           {isLoading ? (
-            <span className="h-4 w-8 animate-pulse rounded bg-green-100" />
+            <span className="h-4 w-8 animate-pulse rounded bg-theme-100" />
           ) : unavailable ? (
             '–'
           ) : (
@@ -48,13 +48,13 @@ function Bar({
           <span>/ {goal}g</span>
         </span>
       </div>
-      <div className="relative h-2 overflow-hidden rounded-full bg-green-100">
+      <div className="relative h-2 overflow-hidden rounded-full bg-theme-100">
         <div
-          className="h-full bg-green-400"
+          className="h-full bg-theme-400"
           style={{ width: `${lap * 100}%` }}
         />
         <div
-          className="absolute inset-y-0 left-0 bg-green-500"
+          className="absolute inset-y-0 left-0 bg-theme-500"
           style={{ width: `${extraLap * 100}%` }}
         />
       </div>

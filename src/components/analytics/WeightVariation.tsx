@@ -35,7 +35,7 @@ export function WeightVariation({ days, isLoading = false }: Props) {
   if (first === undefined || last === undefined || weights.length < 2) {
     return (
       <SummaryCard title="Variation de poids">
-        <p className="text-sm text-green-600">
+        <p className="text-sm text-theme-600">
           {first === undefined
             ? 'Aucune pesée sur cette période.'
             : `Une seule pesée sur cette période : ${formatKg(first)} kg.`}
@@ -52,13 +52,13 @@ export function WeightVariation({ days, isLoading = false }: Props) {
   return (
     <SummaryCard title="Variation de poids">
       <div className="flex items-end gap-2">
-        <span className="text-4xl font-bold text-green-800">
+        <span className="text-4xl font-bold text-theme-800">
           {sign}
           {formatKg(Math.abs(change))}
         </span>
-        <span className="mb-1 text-green-500">kg</span>
+        <span className="mb-1 text-theme-500">kg</span>
       </div>
-      <p className="mt-1 flex items-center gap-1 text-sm text-green-600">
+      <p className="mt-1 flex items-center gap-1 text-sm text-theme-600">
         <TrendIcon className="h-4 w-4 shrink-0" />
         {stable
           ? `Stable à ${formatKg(last)} kg`

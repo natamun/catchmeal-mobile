@@ -61,13 +61,13 @@ export function SelectDropdown({
           id={id}
           ref={triggerRef}
           type="button"
-          className={`flex cursor-pointer items-center justify-between border border-green-200 bg-white text-left text-green-800 transition-colors outline-none hover:bg-green-50 focus:border-green-400 data-[state=open]:bg-green-50 ${SIZE[size].trigger} ${className}`}
+          className={`flex cursor-pointer items-center justify-between border border-theme-200 bg-surface text-left text-theme-800 transition-colors outline-none hover:bg-theme-50 focus:border-theme-400 data-[state=open]:bg-theme-50 ${SIZE[size].trigger} ${className}`}
         >
-          <span className={selected ? '' : 'text-green-800/50'}>
+          <span className={selected ? '' : 'text-theme-800/50'}>
             {selected?.label ?? placeholder}
           </span>
           <ChevronRight
-            className={`shrink-0 text-green-400 transition-transform ${SIZE[size].icon} ${open ? 'rotate-90' : ''}`}
+            className={`shrink-0 text-theme-400 transition-transform ${SIZE[size].icon} ${open ? 'rotate-90' : ''}`}
           />
         </button>
       </Popover.Trigger>
@@ -91,10 +91,10 @@ export function SelectDropdown({
               onChange(o.value);
               setOpen(false);
             }}
-            className={`cursor-pointer border-t border-green-100 text-left transition-colors first:border-t-0 hover:bg-green-50 ${SIZE[size].option} ${
+            className={`cursor-pointer border-t border-theme-100 text-left transition-colors first:border-t-0 hover:bg-theme-50 ${SIZE[size].option} ${
               o.value === value
-                ? 'font-semibold text-green-800'
-                : 'text-green-600'
+                ? 'font-semibold text-theme-800'
+                : 'text-theme-600'
             }`}
           >
             {o.label}

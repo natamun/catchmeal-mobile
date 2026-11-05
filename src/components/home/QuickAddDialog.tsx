@@ -128,7 +128,7 @@ export function QuickAddDialog({
           <div className="flex flex-col gap-1">
             <label
               htmlFor="quick-add-meal-type"
-              className="text-xs text-green-500"
+              className="text-xs text-theme-500"
             >
               Catégorie
             </label>
@@ -136,11 +136,11 @@ export function QuickAddDialog({
               <button
                 id="quick-add-meal-type"
                 type="button"
-                className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-green-200 bg-white px-4 py-2.5 text-sm text-green-800 transition-colors hover:bg-green-50 data-[state=open]:bg-green-50"
+                className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-theme-200 bg-surface px-4 py-2.5 text-sm text-theme-800 transition-colors hover:bg-theme-50 data-[state=open]:bg-theme-50"
               >
                 {MEAL_TYPE_LABELS[mealType]}
                 <ChevronRight
-                  className={`h-4 w-4 text-green-400 transition-transform ${categoryOpen ? 'rotate-90' : ''}`}
+                  className={`h-4 w-4 text-theme-400 transition-transform ${categoryOpen ? 'rotate-90' : ''}`}
                 />
               </button>
             </Popover.Trigger>
@@ -154,10 +154,10 @@ export function QuickAddDialog({
                   setMealType(value);
                   setCategoryOpen(false);
                 }}
-                className={`cursor-pointer border-t border-green-100 px-4 py-2 text-left text-sm transition-colors first:border-t-0 hover:bg-green-50 ${
+                className={`cursor-pointer border-t border-theme-100 px-4 py-2 text-left text-sm transition-colors first:border-t-0 hover:bg-theme-50 ${
                   value === mealType
-                    ? 'font-semibold text-green-800'
-                    : 'text-green-600'
+                    ? 'font-semibold text-theme-800'
+                    : 'text-theme-600'
                 }`}
               >
                 {label}
@@ -171,7 +171,7 @@ export function QuickAddDialog({
             <div key={field} className="relative flex flex-col gap-1">
               <label
                 htmlFor={`quick-add-${field}`}
-                className="text-xs text-green-500"
+                className="text-xs text-theme-500"
               >
                 {label}
               </label>
@@ -197,7 +197,7 @@ export function QuickAddDialog({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full cursor-pointer rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full cursor-pointer rounded-xl bg-theme-500 px-6 py-3 font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? 'Enregistrement...' : 'Ajouter au journal'}
         </button>

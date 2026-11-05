@@ -37,8 +37,8 @@ function LegendBubble({ show }: { show: boolean }) {
     <div
       className={`absolute top-full right-0 z-10 mt-1.5 ${show ? 'animate-fade-in-up' : 'animate-fade-out'}`}
     >
-      <div className="absolute -top-1 right-4 h-2 w-2 rotate-45 border-t border-l border-green-200 bg-white" />
-      <div className="flex flex-col items-start gap-1.5 rounded-lg border border-green-200 bg-white px-3 py-2 text-xs whitespace-nowrap text-green-700 shadow-sm min-[420px]:flex-row min-[420px]:items-center min-[420px]:gap-3">
+      <div className="absolute -top-1 right-4 h-2 w-2 rotate-45 border-t border-l border-theme-200 bg-surface" />
+      <div className="flex flex-col items-start gap-1.5 rounded-lg border border-theme-200 bg-surface px-3 py-2 text-xs whitespace-nowrap text-theme-700 shadow-sm min-[420px]:flex-row min-[420px]:items-center min-[420px]:gap-3">
         <div className="flex items-center gap-3">
           {MACROS.map(({ label, color }) => (
             <span key={label} className="flex items-center gap-1.5">
@@ -47,7 +47,7 @@ function LegendBubble({ show }: { show: boolean }) {
             </span>
           ))}
         </div>
-        <span className="text-green-400">Valeurs en grammes</span>
+        <span className="text-theme-400">Valeurs en grammes</span>
       </div>
     </div>
   );
@@ -151,7 +151,7 @@ export default function FoodPage() {
           <button
             type="button"
             onClick={() => !supportsHover && setShowLegend((prev) => !prev)}
-            className="tap-area relative flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-green-200 text-xs font-bold text-green-500 transition-colors hover:bg-green-50"
+            className="tap-area relative flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-theme-200 text-xs font-bold text-theme-500 transition-colors hover:bg-theme-50"
           >
             ?
           </button>

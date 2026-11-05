@@ -189,9 +189,9 @@ export function GoalsCard({ profile, latestEntry }: Props) {
     <SummaryCard
       title="Mes objectifs"
       aside={
-        <div className="text-sm text-green-600">
+        <div className="text-sm text-theme-600">
           {remaining && (
-            <p className="font-semibold text-green-800">{remaining}</p>
+            <p className="font-semibold text-theme-800">{remaining}</p>
           )}
           <div>{renderBasis()}</div>
         </div>
@@ -205,7 +205,7 @@ export function GoalsCard({ profile, latestEntry }: Props) {
             ) : (
               <>
                 {goal === null ? '–' : formatKg(goal)}{' '}
-                <span className="font-normal whitespace-nowrap text-green-600">
+                <span className="font-normal whitespace-nowrap text-theme-600">
                   / {formatMeasure(recommended, unit)}
                 </span>
               </>

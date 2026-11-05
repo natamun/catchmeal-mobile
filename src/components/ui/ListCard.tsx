@@ -13,10 +13,10 @@ interface ListCardProps {
 export function ListCard({ header, className = '', children }: ListCardProps) {
   return (
     <div
-      className={`overflow-hidden rounded-2xl border border-green-200 bg-white shadow-sm ${className}`}
+      className={`overflow-hidden rounded-2xl border border-theme-200 bg-surface shadow-sm ${className}`}
     >
       {header && (
-        <div className="flex items-center gap-3 border-b border-green-200 px-5 py-4">
+        <div className="flex items-center gap-3 border-b border-theme-200 px-5 py-4">
           {header}
         </div>
       )}
@@ -29,7 +29,7 @@ export function ListCard({ header, className = '', children }: ListCardProps) {
 export function ListCardLoading() {
   return (
     <div className="flex justify-center py-10">
-      <LoaderCircle className="h-6 w-6 animate-spin text-green-400" />
+      <LoaderCircle className="h-6 w-6 animate-spin text-theme-400" />
     </div>
   );
 }
@@ -37,6 +37,6 @@ export function ListCardLoading() {
 /** Message shown when a list is empty. */
 export function ListCardEmpty({ children }: { children: ReactNode }) {
   return (
-    <p className="px-5 py-10 text-center text-sm text-green-400">{children}</p>
+    <p className="px-5 py-10 text-center text-sm text-theme-400">{children}</p>
   );
 }

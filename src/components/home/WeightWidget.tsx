@@ -45,28 +45,28 @@ export function WeightWidget({ history, hasError = false, goalWeight }: Props) {
     <SummaryCard title="Poids & Objectif">
       {isLoading && (
         <div className="flex animate-pulse flex-col gap-2">
-          <div className="h-10 w-24 rounded-lg bg-green-100" />
-          <div className="h-4 w-40 rounded bg-green-100" />
+          <div className="h-10 w-24 rounded-lg bg-theme-100" />
+          <div className="h-4 w-40 rounded bg-theme-100" />
         </div>
       )}
       {hasError && (
-        <p className="text-sm text-green-600">
+        <p className="text-sm text-theme-600">
           Impossible de charger les pesées.
         </p>
       )}
       {history !== null && current === null && (
-        <p className="text-sm text-green-600">Aucune pesée enregistrée.</p>
+        <p className="text-sm text-theme-600">Aucune pesée enregistrée.</p>
       )}
       {current !== null && (
         <>
           <div className="flex items-end gap-2">
-            <span className="text-4xl font-bold text-green-800">
+            <span className="text-4xl font-bold text-theme-800">
               {formatKg(current.weight)}
             </span>
-            <span className="mb-1 text-green-500">kg</span>
+            <span className="mb-1 text-theme-500">kg</span>
           </div>
           {previous !== null && change !== null && (
-            <p className="mt-1 flex items-center gap-1 text-sm text-green-600">
+            <p className="mt-1 flex items-center gap-1 text-sm text-theme-600">
               <TrendIcon className="h-4 w-4 shrink-0" />
               {stable
                 ? `Stable depuis le ${formatDay(previous.loggedAt)}`

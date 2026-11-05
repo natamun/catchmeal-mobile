@@ -8,7 +8,7 @@ interface MacroSummaryProps {
 /** Macros and calories of a meal being edited, on one line. */
 export function MacroSummary({ totals }: MacroSummaryProps) {
   return (
-    <div className="mb-2 flex items-center justify-between rounded-xl border border-green-200 px-3 py-2">
+    <div className="mb-2 flex items-center justify-between rounded-xl border border-theme-200 px-3 py-2">
       <div className="flex items-center gap-3">
         {MACROS.map(({ key, label, color }) => (
           <MacroBadge
@@ -19,7 +19,7 @@ export function MacroSummary({ totals }: MacroSummaryProps) {
           />
         ))}
       </div>
-      <span className="shrink-0 rounded-full bg-green-50 px-2.5 py-0.5 text-sm font-semibold text-green-800">
+      <span className="shrink-0 rounded-full bg-theme-50 px-2.5 py-0.5 text-sm font-semibold text-theme-800">
         {Math.round(totals.kcal)} kcal
       </span>
     </div>

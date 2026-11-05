@@ -212,13 +212,13 @@ export function ProfileCard({ profile, onUpdate }: Props) {
 
   return (
     <>
-      <div className="rounded-2xl border border-green-200 bg-white p-4 shadow-sm">
+      <div className="rounded-2xl border border-theme-200 bg-surface p-4 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-bold text-green-800">
+            <p className="truncate text-base font-bold text-theme-800">
               Mon profil
             </p>
-            <p className="truncate text-xs text-green-500">
+            <p className="truncate text-xs text-theme-500">
               {summarize(profile)}
             </p>
           </div>
@@ -360,7 +360,7 @@ export function ProfileCard({ profile, onUpdate }: Props) {
             type="button"
             onClick={() => void handleSave()}
             disabled={saving}
-            className="col-span-2 mt-2 w-full cursor-pointer rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className="col-span-2 mt-2 w-full cursor-pointer rounded-xl bg-theme-500 px-6 py-3 font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? 'Enregistrement...' : 'Enregistrer'}
           </button>

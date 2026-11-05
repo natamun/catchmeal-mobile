@@ -16,7 +16,7 @@ export function EditIconButton({ onClick, size = 'md' }: EditIconButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`tap-area relative flex shrink-0 cursor-pointer items-center justify-center text-green-400 transition-colors hover:text-green-600 ${SIZE[size].button}`}
+      className={`tap-area relative flex shrink-0 cursor-pointer items-center justify-center text-theme-400 transition-colors hover:text-theme-600 ${SIZE[size].button}`}
     >
       <Pencil className={SIZE[size].icon} />
     </button>

@@ -14,7 +14,7 @@ type View = 'year' | 'month' | 'day';
 
 const YEARS_PER_PAGE = 20;
 const ARROW_CLASS =
-  'flex h-6 w-6 cursor-pointer items-center justify-center text-green-400 transition-colors hover:text-green-600 disabled:pointer-events-none disabled:opacity-30';
+  'flex h-6 w-6 cursor-pointer items-center justify-center text-theme-400 transition-colors hover:text-theme-600 disabled:pointer-events-none disabled:opacity-30';
 
 /**
  * Clicks on the label don't count as clicks outside, so they don't close the
@@ -117,7 +117,7 @@ export function BirthDatePicker({ id, label, value, onChange }: Props) {
                   <button
                     type="button"
                     onClick={() => setView(byMonth ? 'month' : 'year')}
-                    className="react-datepicker__current-month cursor-pointer transition-colors hover:text-green-600"
+                    className="react-datepicker__current-month cursor-pointer transition-colors hover:text-theme-600"
                   >
                     {title}
                   </button>
@@ -141,12 +141,12 @@ export function BirthDatePicker({ id, label, value, onChange }: Props) {
             <CalendarTrigger
               isOpen={isOpen}
               onClose={() => pickerRef.current?.setOpen(false)}
-              className="w-full rounded-xl border border-green-200 bg-white px-4 py-2.5 text-left text-sm text-green-800 transition-colors hover:bg-green-50 data-[open=true]:bg-green-50"
+              className="w-full rounded-xl border border-theme-200 bg-surface px-4 py-2.5 text-left text-sm text-theme-800 transition-colors hover:bg-theme-50 data-[open=true]:bg-theme-50"
             >
               {selected ? (
                 selected.toLocaleDateString('fr-FR')
               ) : (
-                <span className="text-green-800/50">Date</span>
+                <span className="text-theme-800/50">Date</span>
               )}
             </CalendarTrigger>
           }

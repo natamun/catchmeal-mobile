@@ -44,8 +44,8 @@ function NavItem({ tab, variant }: NavItemProps) {
         className={({ isActive }) =>
           `${NAV_ITEM_CLASS} flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium ${
             isActive
-              ? 'animate-pill-select bg-green-100 text-green-800'
-              : 'text-green-700 hover:bg-green-100'
+              ? 'animate-pill-select bg-theme-100 text-theme-800'
+              : 'text-theme-700 hover:bg-theme-100'
           }`
         }
       >
@@ -60,13 +60,13 @@ function NavItem({ tab, variant }: NavItemProps) {
       to={PATHS[tab.id]}
       className={({ isActive }) =>
         `${NAV_ITEM_CLASS} block w-full px-1 py-1.5 text-xs font-medium ${
-          isActive ? 'text-green-800' : 'text-green-600'
+          isActive ? 'text-theme-800' : 'text-theme-600'
         }`
       }
     >
       {({ isActive }) => (
         <span
-          className={`flex flex-col items-center gap-1 rounded-xl py-1.5 ${isActive ? 'animate-pill-select bg-green-100' : ''}`}
+          className={`flex flex-col items-center gap-1 rounded-xl py-1.5 ${isActive ? 'animate-pill-select bg-theme-100' : ''}`}
         >
           <Icon className="h-5 w-5 shrink-0" />
           {tab.shortLabel ?? tab.label}
@@ -83,7 +83,7 @@ function NavItem({ tab, variant }: NavItemProps) {
 export function Nav() {
   return (
     <>
-      <header className="sticky top-0 z-10 h-header border-b border-green-200 bg-white/75 backdrop-blur-md pointer-coarse:hidden">
+      <header className="sticky top-0 z-10 h-header border-b border-theme-200 bg-surface/75 backdrop-blur-md pointer-coarse:hidden">
         <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-6">
           <div className="flex">
             <Brand />
@@ -100,7 +100,7 @@ export function Nav() {
         </div>
       </header>
 
-      <footer className="fixed right-0 bottom-0 left-0 z-10 hidden border-t border-green-200 bg-white pr-[max(0.5rem,env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] pl-[max(0.5rem,env(safe-area-inset-left))] pointer-coarse:block">
+      <footer className="fixed right-0 bottom-0 left-0 z-10 hidden border-t border-theme-200 bg-surface pr-[max(0.5rem,env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] pl-[max(0.5rem,env(safe-area-inset-left))] pointer-coarse:block">
         <nav>
           <ul className="flex h-bottom-nav">
             {TABS.map((tab) => (

@@ -5,10 +5,10 @@ import { QuantityStepper } from '../ui/QuantityStepper';
 import type { MealItemDraft } from './draft';
 
 const ROW_CLASS =
-  'flex animate-fade-in-up items-center gap-2 rounded-xl border border-green-200 px-3 py-1.5';
+  'flex animate-fade-in-up items-center gap-2 rounded-xl border border-theme-200 px-3 py-1.5';
 
 const REMOVE_CLASS =
-  'shrink-0 cursor-pointer text-green-400 transition-colors hover:text-red-500';
+  'shrink-0 cursor-pointer text-theme-400 transition-colors hover:text-red-500';
 
 interface DraftItemListProps {
   items: MealItemDraft[];
@@ -33,7 +33,7 @@ export function DraftItemList({
         if (item.kind === 'quick') {
           return (
             <li key={item.id} className={ROW_CLASS}>
-              <span className="min-w-0 flex-1 truncate text-sm font-medium text-green-800">
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-theme-800">
                 {Math.round(item.kcal)} kcal
               </span>
               <button
@@ -50,7 +50,7 @@ export function DraftItemList({
         const { foodItem, quantity } = item;
         return (
           <li key={item.id} className={ROW_CLASS}>
-            <span className="min-w-0 flex-1 truncate text-sm font-medium text-green-800">
+            <span className="min-w-0 flex-1 truncate text-sm font-medium text-theme-800">
               {foodItem.name}
             </span>
             <QuantityStepper

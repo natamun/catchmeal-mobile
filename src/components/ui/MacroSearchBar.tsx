@@ -187,7 +187,7 @@ export function MacroSearchBar({
 
   return (
     <div className="relative flex-1">
-      <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-green-400" />
+      <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-theme-400" />
       <Input
         type="text"
         placeholder={placeholder}
@@ -198,10 +198,10 @@ export function MacroSearchBar({
       <button
         type="button"
         onClick={openFilterDialog}
-        className="tap-area absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-green-400 transition-colors hover:text-green-600"
+        className="tap-area absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-theme-400 transition-colors hover:text-theme-600"
       >
         <Filter
-          className={`h-4 w-4 ${hasActiveFilters ? 'fill-green-400' : ''}`}
+          className={`h-4 w-4 ${hasActiveFilters ? 'fill-theme-400' : ''}`}
         />
       </button>
 
@@ -216,11 +216,11 @@ export function MacroSearchBar({
           <Popover.Trigger asChild>
             <button
               type="button"
-              className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-green-200 bg-white px-4 py-2.5 text-sm text-green-800 transition-colors hover:bg-green-50 data-[state=open]:bg-green-50"
+              className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-theme-200 bg-surface px-4 py-2.5 text-sm text-theme-800 transition-colors hover:bg-theme-50 data-[state=open]:bg-theme-50"
             >
               {SORT_OPTIONS.find((o) => o.value === currentSortValue)?.label}
               <ChevronRight
-                className={`h-4 w-4 text-green-400 transition-transform ${isSortOpen ? 'rotate-90' : ''}`}
+                className={`h-4 w-4 text-theme-400 transition-transform ${isSortOpen ? 'rotate-90' : ''}`}
               />
             </button>
           </Popover.Trigger>
@@ -233,10 +233,10 @@ export function MacroSearchBar({
                   setDraftSort(option);
                   setIsSortOpen(false);
                 }}
-                className={`cursor-pointer border-t border-green-100 px-4 py-2 text-left text-sm transition-colors first:border-t-0 hover:bg-green-50 ${
+                className={`cursor-pointer border-t border-theme-100 px-4 py-2 text-left text-sm transition-colors first:border-t-0 hover:bg-theme-50 ${
                   value === currentSortValue
-                    ? 'font-semibold text-green-800'
-                    : 'text-green-600'
+                    ? 'font-semibold text-theme-800'
+                    : 'text-theme-600'
                 }`}
               >
                 {label}
@@ -245,7 +245,7 @@ export function MacroSearchBar({
           </DropdownPanel>
         </Popover.Root>
 
-        <div className="flex flex-col gap-3 border-t border-green-100 pt-5">
+        <div className="flex flex-col gap-3 border-t border-theme-100 pt-5">
           <div className="flex flex-col gap-5">
             {MACRO_FIELDS.map(({ key, label, unit, step }) => {
               const { min, max } = macroBounds[key];
@@ -253,17 +253,17 @@ export function MacroSearchBar({
               return (
                 <div key={key} className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-green-700">
+                    <span className="text-xs font-medium text-theme-700">
                       {label}
                     </span>
-                    <span className="text-xs text-green-500">
+                    <span className="text-xs text-theme-500">
                       {draftMacros[key].min} – {draftMacros[key].max} {unit}
                     </span>
                   </div>
                   <div className="relative h-4">
-                    <div className="absolute top-1/2 right-2 left-2 h-1.5 -translate-y-1/2 rounded-full bg-green-100" />
+                    <div className="absolute top-1/2 right-2 left-2 h-1.5 -translate-y-1/2 rounded-full bg-theme-100" />
                     <div
-                      className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-green-400"
+                      className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-theme-400"
                       style={{
                         left: `calc(8px + ${(draftMacros[key].min - min) / (max - min || 1)} * (100% - 16px))`,
                         right: `calc(8px + ${1 - (draftMacros[key].max - min) / (max - min || 1)} * (100% - 16px))`,
@@ -312,7 +312,7 @@ export function MacroSearchBar({
           <button
             type="button"
             onClick={resetMacros}
-            className="cursor-pointer self-start text-xs font-medium text-green-500 underline-offset-2 hover:underline"
+            className="cursor-pointer self-start text-xs font-medium text-theme-500 underline-offset-2 hover:underline"
           >
             Réinitialiser
           </button>
@@ -321,7 +321,7 @@ export function MacroSearchBar({
         <button
           type="button"
           onClick={applyFilters}
-          className="w-full cursor-pointer rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-600"
+          className="w-full cursor-pointer rounded-xl bg-theme-500 px-6 py-3 font-semibold text-on-accent transition-colors hover:bg-theme-600"
         >
           Appliquer
         </button>

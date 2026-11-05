@@ -129,23 +129,23 @@ export function WeightCard({ height, onLatestEntry }: Props) {
           />
         )}
         {history !== null && !latest && (
-          <p className="text-sm text-green-600">Aucune pesée enregistrée.</p>
+          <p className="text-sm text-theme-600">Aucune pesée enregistrée.</p>
         )}
         {history && latest && (
           <>
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-8">
               <div className="shrink-0">
                 <div className="flex items-end gap-2">
-                  <span className="text-4xl font-bold text-green-800">
+                  <span className="text-4xl font-bold text-theme-800">
                     {formatKg(latest.weight)}
                   </span>
-                  <span className="mb-1 text-green-500">kg</span>
+                  <span className="mb-1 text-theme-500">kg</span>
                 </div>
-                <p className="mt-1 text-sm text-green-600">
+                <p className="mt-1 text-sm text-theme-600">
                   Dernière pesée le {formatDate(latest.loggedAt)}
                 </p>
                 {height ? (
-                  <p className="text-sm text-green-600">
+                  <p className="text-sm text-theme-600">
                     {describeBmi(latest.weight, height)}
                   </p>
                 ) : null}
@@ -163,10 +163,10 @@ export function WeightCard({ height, onLatestEntry }: Props) {
               </dl>
             </div>
 
-            <div className="mt-5 border-t border-green-100 pt-3">
+            <div className="mt-5 border-t border-theme-100 pt-3">
               <div className="relative max-h-72 overflow-x-hidden overflow-y-auto md:pr-1">
                 <div
-                  className={`sticky top-0 hidden gap-x-3 bg-white pb-2 text-xs text-green-600 md:grid ${ROW_COLUMNS}`}
+                  className={`sticky top-0 hidden gap-x-3 bg-surface pb-2 text-xs text-theme-600 md:grid ${ROW_COLUMNS}`}
                 >
                   <span>Date</span>
                   <span>Poids</span>
@@ -174,16 +174,16 @@ export function WeightCard({ height, onLatestEntry }: Props) {
                     <span key={key}>{label}</span>
                   ))}
                 </div>
-                <ul className="divide-y divide-green-100">
+                <ul className="divide-y divide-theme-100">
                   {history.map((entry) => (
                     <li
                       key={entry.id}
                       className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-1.5 py-2.5 text-sm ${ROW_COLUMNS}`}
                     >
-                      <span className="text-green-600">
+                      <span className="text-theme-600">
                         {formatDate(entry.loggedAt)}
                       </span>
-                      <span className="font-semibold whitespace-nowrap text-green-800 tabular-nums">
+                      <span className="font-semibold whitespace-nowrap text-theme-800 tabular-nums">
                         {formatMeasure(entry.weight, 'kg')}
                       </span>
                       <dl
@@ -198,10 +198,10 @@ export function WeightCard({ height, onLatestEntry }: Props) {
                             key={key}
                             className="flex min-w-0 justify-between gap-1 md:block"
                           >
-                            <dt className="truncate text-green-600 md:hidden">
+                            <dt className="truncate text-theme-600 md:hidden">
                               {label}
                             </dt>
-                            <dd className="whitespace-nowrap text-green-800 tabular-nums">
+                            <dd className="whitespace-nowrap text-theme-800 tabular-nums">
                               {formatMeasure(entry[key], unit)}
                             </dd>
                           </div>

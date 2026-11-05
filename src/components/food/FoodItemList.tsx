@@ -115,7 +115,7 @@ export function FoodItemList({
           </ListCardEmpty>
         )}
 
-      <ul className="divide-y divide-green-200">
+      <ul className="divide-y divide-theme-200">
         {visibleItems.map((item) => {
           const isExpanded = expandedIds.has(item.id);
           const macros = macrosOf(item);
@@ -125,20 +125,20 @@ export function FoodItemList({
                 <button
                   type="button"
                   onClick={() => toggleExpanded(item.id)}
-                  className="tap-area relative shrink-0 cursor-pointer text-green-400 transition-colors hover:text-green-600 @lg:hidden"
+                  className="tap-area relative shrink-0 cursor-pointer text-theme-400 transition-colors hover:text-theme-600 @lg:hidden"
                 >
                   <ChevronRight
                     className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
                   />
                 </button>
-                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-green-800">
+                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-theme-800">
                   {item.name}
                   {item.brand && (
-                    <span className="ml-1.5 text-xs font-normal text-green-500 @max-[400px]:hidden">
+                    <span className="ml-1.5 text-xs font-normal text-theme-500 @max-[400px]:hidden">
                       {item.brand}
                     </span>
                   )}
-                  <span className="ml-1.5 text-xs font-normal text-green-500 @max-[400px]:hidden">
+                  <span className="ml-1.5 text-xs font-normal text-theme-500 @max-[400px]:hidden">
                     ({formatBaseQuantity(item)})
                   </span>
                 </p>
@@ -147,7 +147,7 @@ export function FoodItemList({
                     <MacroBadge key={m.label} {...m} />
                   ))}
                 </div>
-                <span className="min-w-20 shrink-0 rounded-full bg-green-50 px-2.5 py-0.5 text-center text-sm font-semibold text-green-800">
+                <span className="min-w-20 shrink-0 rounded-full bg-theme-50 px-2.5 py-0.5 text-center text-sm font-semibold text-theme-800">
                   {Math.round(item.kcal)} kcal
                 </span>
                 {renderAction?.(item)}
@@ -161,8 +161,8 @@ export function FoodItemList({
                   {macros.map((m) => (
                     <MacroBadge key={m.label} {...m} />
                   ))}
-                  <span className="hidden shrink-0 items-center gap-1.5 text-xs font-normal text-green-500 @max-[400px]:flex">
-                    <span className="text-green-300">|</span>
+                  <span className="hidden shrink-0 items-center gap-1.5 text-xs font-normal text-theme-500 @max-[400px]:flex">
+                    <span className="text-theme-300">|</span>
                     {formatBaseQuantity(item)}
                   </span>
                 </div>

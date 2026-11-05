@@ -19,12 +19,12 @@ export function PillTabs<T extends string>({
 }: PillTabsProps<T>) {
   return (
     <div
-      className={`flex gap-1.5 rounded-xl border border-green-200 bg-white p-1.5 ${className}`}
+      className={`flex gap-1.5 rounded-xl border border-theme-200 bg-surface p-1.5 ${className}`}
     >
       {options.map((option) => (
         <label
           key={option.value}
-          className="tap-area relative flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium text-green-500 transition-colors has-checked:animate-pill-select has-checked:bg-green-500 has-checked:text-white"
+          className="tap-area relative flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium text-theme-500 transition-colors has-checked:animate-pill-select has-checked:bg-theme-500 has-checked:text-on-accent"
         >
           <input
             type="radio"

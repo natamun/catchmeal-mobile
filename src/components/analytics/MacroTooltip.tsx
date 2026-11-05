@@ -30,11 +30,11 @@ export function MacroTooltip({ active, payload, label, averaged }: Props) {
           </TooltipRow>
         ))}
       </ul>
-      <p className="mt-1.5 flex justify-between gap-4 border-t border-green-200 pt-1.5 text-sm">
-        <span className="text-green-600">
+      <p className="mt-1.5 flex justify-between gap-4 border-t border-theme-200 pt-1.5 text-sm">
+        <span className="text-theme-600">
           {averaged ? 'Moyenne par jour' : 'Total'}
         </span>
-        <span className="font-semibold text-green-800 tabular-nums">
+        <span className="font-semibold text-theme-800 tabular-nums">
           {point.kcal} kcal
         </span>
       </p>

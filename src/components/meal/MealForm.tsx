@@ -239,7 +239,7 @@ export function MealForm({
             <button
               type="button"
               onClick={() => confirmDialogRef.current?.showModal()}
-              className="cursor-pointer text-green-400 transition-colors hover:text-red-500"
+              className="cursor-pointer text-theme-400 transition-colors hover:text-red-500"
             >
               <Trash2 className="h-5 w-5" />
             </button>
@@ -284,7 +284,7 @@ export function MealForm({
                   <Popover.Trigger asChild>
                     <button
                       type="button"
-                      className="cursor-pointer text-xs font-medium text-green-500 underline-offset-2 hover:underline"
+                      className="cursor-pointer text-xs font-medium text-theme-500 underline-offset-2 hover:underline"
                     >
                       {quickAddOpen ? 'Annuler' : 'Ajout rapide'}
                     </button>
@@ -295,7 +295,7 @@ export function MealForm({
                     <Popover.Content
                       align="end"
                       sideOffset={3}
-                      className="z-10 w-(--radix-popover-trigger-width) rounded-xl border border-green-200 bg-white p-3 shadow-md data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in-up"
+                      className="z-10 w-(--radix-popover-trigger-width) rounded-xl border border-theme-200 bg-surface p-3 shadow-md data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in-up"
                     >
                       <div className="flex flex-col gap-3">
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -306,7 +306,7 @@ export function MealForm({
                             >
                               <label
                                 htmlFor={`quick-${field}`}
-                                className="text-xs text-green-500"
+                                className="text-xs text-theme-500"
                               >
                                 {label}
                               </label>
@@ -333,7 +333,7 @@ export function MealForm({
                         <button
                           type="button"
                           onClick={addQuickItem}
-                          className="w-full cursor-pointer rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-600"
+                          className="w-full cursor-pointer rounded-xl bg-theme-500 px-4 py-2 text-sm font-semibold text-on-accent transition-colors hover:bg-theme-600"
                         >
                           Ajouter
                         </button>
@@ -362,12 +362,12 @@ export function MealForm({
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => addItem(foodItem)}
-                  className="flex w-full cursor-pointer items-center justify-between border-t border-green-100 px-4 py-2 text-left text-sm text-green-800 transition-colors first:border-t-0 hover:bg-green-50"
+                  className="flex w-full cursor-pointer items-center justify-between border-t border-theme-100 px-4 py-2 text-left text-sm text-theme-800 transition-colors first:border-t-0 hover:bg-theme-50"
                 >
                   <span className="min-w-0 flex-1 truncate">
                     {foodItem.name}
                   </span>
-                  <span className="shrink-0 text-xs text-green-500">
+                  <span className="shrink-0 text-xs text-theme-500">
                     {foodItem.kcal} kcal
                   </span>
                 </button>
@@ -380,11 +380,11 @@ export function MealForm({
               items={items}
               onAdjust={adjustQuantity}
               onRemove={removeItem}
-              className="border-t border-green-100 pt-5"
+              className="border-t border-theme-100 pt-5"
             />
           )}
 
-          <div className="flex flex-col gap-3 border-t border-green-100 pt-5">
+          <div className="flex flex-col gap-3 border-t border-theme-100 pt-5">
             {items.length > 0 && <MacroSummary totals={rawTotals} />}
 
             {error && <p className="text-sm text-red-500">{error}</p>}
@@ -392,7 +392,7 @@ export function MealForm({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full cursor-pointer rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full cursor-pointer rounded-xl bg-theme-500 px-6 py-3 font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
             </button>

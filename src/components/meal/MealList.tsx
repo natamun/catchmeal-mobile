@@ -109,7 +109,7 @@ export function MealList({
           </ListCardEmpty>
         )}
 
-      <ul className="divide-y divide-green-200">
+      <ul className="divide-y divide-theme-200">
         {visibleMeals.map((meal) => {
           const isExpanded = expandedIds.has(meal.id);
           const { kcal, macros } = macrosOf(meal);
@@ -119,13 +119,13 @@ export function MealList({
                 <button
                   type="button"
                   onClick={() => toggleExpanded(meal.id)}
-                  className="shrink-0 cursor-pointer text-green-400 transition-colors hover:text-green-600 @lg:hidden"
+                  className="shrink-0 cursor-pointer text-theme-400 transition-colors hover:text-theme-600 @lg:hidden"
                 >
                   <ChevronRight
                     className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
                   />
                 </button>
-                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-green-800">
+                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-theme-800">
                   {meal.name ?? 'Repas sans nom'}
                 </p>
                 <div className="hidden shrink-0 items-center gap-2.5 @lg:flex">
@@ -133,7 +133,7 @@ export function MealList({
                     <MacroBadge key={m.label} {...m} />
                   ))}
                 </div>
-                <span className="min-w-20 shrink-0 rounded-full bg-green-50 px-2.5 py-0.5 text-center text-sm font-semibold text-green-800">
+                <span className="min-w-20 shrink-0 rounded-full bg-theme-50 px-2.5 py-0.5 text-center text-sm font-semibold text-theme-800">
                   {kcal} kcal
                 </span>
                 {renderAction?.(meal)}

@@ -10,7 +10,7 @@ import { Nav } from './Nav';
 export function AppLayout() {
   return (
     <ToastProvider>
-      <div className="min-h-screen bg-green-50">
+      <div className="min-h-screen bg-theme-50">
         <Nav />
         <main
           id="main-content"
@@ -18,7 +18,7 @@ export function AppLayout() {
         >
           <Suspense
             fallback={
-              <div className="flex h-40 items-center justify-center text-sm text-green-500">
+              <div className="flex h-40 items-center justify-center text-sm text-theme-500">
                 Chargement...
               </div>
             }

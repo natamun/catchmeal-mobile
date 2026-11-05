@@ -28,9 +28,9 @@ export function Toast({ message, icon: Icon }: ToastProps) {
     >
       {displayedMessage && (
         <div
-          className={`flex items-center gap-2 rounded-xl border border-green-200 bg-white px-4 py-2.5 text-sm font-medium text-green-800 shadow-lg ${message ? 'animate-toast-in' : 'animate-toast-out'}`}
+          className={`flex items-center gap-2 rounded-xl border border-theme-200 bg-surface px-4 py-2.5 text-sm font-medium text-theme-800 shadow-lg ${message ? 'animate-toast-in' : 'animate-toast-out'}`}
         >
-          <Icon className="h-4 w-4 shrink-0 text-green-500" />
+          <Icon className="h-4 w-4 shrink-0 text-theme-500" />
           {displayedMessage}
         </div>
       )}

@@ -14,7 +14,7 @@ import type { OffProduct } from './types';
 const BarcodeScannerDialog = lazy(() => import('./BarcodeScannerDialog'));
 
 const ICON_BUTTON_CLASS =
-  'flex w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-green-200 text-green-600 transition-colors hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60';
+  'flex w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-theme-200 text-theme-600 transition-colors hover:bg-theme-50 disabled:cursor-not-allowed disabled:opacity-60';
 
 const OFF_URL = 'https://world.openfoodfacts.org';
 
@@ -151,7 +151,7 @@ export function BarcodeField({
             target="_blank"
             rel="noreferrer"
             title="Données fournies par Open Food Facts"
-            className="flex shrink-0 items-center gap-1 text-xs text-green-500 transition-colors hover:text-green-700"
+            className="flex shrink-0 items-center gap-1 text-xs text-theme-500 transition-colors hover:text-theme-700"
           >
             <span>
               via <span className="max-[400px]:hidden">Open Food Facts</span>

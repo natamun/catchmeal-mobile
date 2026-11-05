@@ -154,7 +154,7 @@ function WeightForm({
             <div key={measure.key} className="relative flex flex-col gap-1">
               <label
                 htmlFor={`${formId}-${measure.key}`}
-                className="text-xs text-green-500"
+                className="text-xs text-theme-500"
               >
                 {measure.label} ({measure.unit})
               </label>
@@ -178,7 +178,7 @@ function WeightForm({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full cursor-pointer rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full cursor-pointer rounded-xl bg-theme-500 px-6 py-3 font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
       </button>
@@ -236,7 +236,7 @@ export function WeightDialog({
             <button
               type="button"
               onClick={() => confirmDialogRef.current?.showModal()}
-              className="cursor-pointer text-green-400 transition-colors hover:text-red-500"
+              className="cursor-pointer text-theme-400 transition-colors hover:text-red-500"
             >
               <Trash2 className="h-5 w-5" />
             </button>

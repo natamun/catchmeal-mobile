@@ -93,7 +93,7 @@ export function DailyMealList({
     <ListCard>
       {loadError && <LoadError message={loadError} onRetry={onRetry} />}
 
-      <div className={`divide-y divide-green-200 ${loadError ? 'hidden' : ''}`}>
+      <div className={`divide-y divide-theme-200 ${loadError ? 'hidden' : ''}`}>
         {MEAL_TYPES.map((mealType) => {
           const rows = rowsOf(
             meals
@@ -109,10 +109,10 @@ export function DailyMealList({
           return (
             <div key={mealType}>
               <div
-                className={`flex items-center justify-between gap-3 px-5 py-4 ${rows.length > 0 ? 'border-b border-green-100' : ''}`}
+                className={`flex items-center justify-between gap-3 px-5 py-4 ${rows.length > 0 ? 'border-b border-theme-100' : ''}`}
               >
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base font-semibold text-green-500">
+                  <h3 className="text-base font-semibold text-theme-500">
                     {MEAL_TYPE_LABELS[mealType]}
                   </h3>
                   {canEdit && (
@@ -129,7 +129,7 @@ export function DailyMealList({
                 </div>
                 <div className="flex items-center gap-3">
                   {rows.length > 0 && (
-                    <span className="animate-fade-in-up text-sm font-semibold text-green-800 max-2xs:hidden">
+                    <span className="animate-fade-in-up text-sm font-semibold text-theme-800 max-2xs:hidden">
                       {Math.round(total)} kcal
                     </span>
                   )}
@@ -138,22 +138,22 @@ export function DailyMealList({
               </div>
 
               {isLoading && (
-                <div className="flex h-12 animate-delayed-reveal items-center justify-center overflow-hidden border-t border-green-100">
-                  <LoaderCircle className="h-5 w-5 animate-spin text-green-400" />
+                <div className="flex h-12 animate-delayed-reveal items-center justify-center overflow-hidden border-t border-theme-100">
+                  <LoaderCircle className="h-5 w-5 animate-spin text-theme-400" />
                 </div>
               )}
 
               {rows.length > 0 && (
-                <ul className="animate-fade-in-up divide-y divide-green-100 px-5 py-2">
+                <ul className="animate-fade-in-up divide-y divide-theme-100 px-5 py-2">
                   {rows.map((row) => (
                     <li
                       key={row.key}
                       className="flex items-center gap-3 py-1.5"
                     >
-                      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-green-800">
+                      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-theme-800">
                         {row.label}
                       </span>
-                      <span className="shrink-0 text-sm text-green-600">
+                      <span className="shrink-0 text-sm text-theme-600">
                         {Math.round(row.kcal)} kcal
                       </span>
                     </li>

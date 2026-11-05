@@ -53,15 +53,15 @@ export function PeriodSelector({ period, onChange }: PeriodSelectorProps) {
         min={subDays(today, DAYS_AROUND_TODAY)}
         max={addDays(today, DAYS_AROUND_TODAY)}
         placement="bottom-start"
-        className="group flex rounded-xl border border-green-200 bg-white p-1.5 max-xs:w-full"
+        className="group flex rounded-xl border border-theme-200 bg-surface p-1.5 max-xs:w-full"
         wrapperClassName="max-xs:w-full"
       >
-        <span className="flex items-center gap-2 rounded-lg bg-green-500 px-3 py-1.5 text-sm font-medium whitespace-nowrap text-white tabular-nums transition-colors group-hover:bg-green-600 group-data-[open=true]:bg-green-600 max-xs:flex-1 max-xs:justify-center">
+        <span className="flex items-center gap-2 rounded-lg bg-theme-500 px-3 py-1.5 text-sm font-medium whitespace-nowrap text-on-accent tabular-nums transition-colors group-hover:bg-theme-600 group-data-[open=true]:bg-theme-600 max-xs:flex-1 max-xs:justify-center">
           <CalendarDays className="h-4 w-4 shrink-0" />
           {!isSameDay(period.from, period.to) && (
             <>
               {formatDay(period.from)}
-              <ArrowRight className="h-3.5 w-3.5 shrink-0 text-green-100" />
+              <ArrowRight className="h-3.5 w-3.5 shrink-0 text-theme-100" />
             </>
           )}
           {formatDay(period.to)}

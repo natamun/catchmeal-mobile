@@ -114,10 +114,10 @@ export default function BarcodeScannerDialog({
 
   const renderCamera = () => {
     if (error) {
-      return <p className="px-6 text-center text-sm text-green-600">{error}</p>;
+      return <p className="px-6 text-center text-sm text-theme-600">{error}</p>;
     }
     if (isSearching) {
-      return <LoaderCircle className="h-6 w-6 animate-spin text-green-400" />;
+      return <LoaderCircle className="h-6 w-6 animate-spin text-theme-400" />;
     }
     return (
       <Scanner
@@ -134,7 +134,7 @@ export default function BarcodeScannerDialog({
         onError={(scannerError) => setError(errorMessage(scannerError))}
       >
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-2/5 w-4/5 rounded-xl border-2 border-green-400 shadow-[0_0_0_100vmax_rgba(0,0,0,0.35)]" />
+          <div className="h-2/5 w-4/5 rounded-xl border-2 border-theme-400 shadow-[0_0_0_100vmax_rgba(0,0,0,0.35)]" />
         </div>
       </Scanner>
     );
@@ -147,10 +147,10 @@ export default function BarcodeScannerDialog({
       maxWidth="sm"
       onClose={onClose}
     >
-      <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-green-50">
+      <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-theme-50">
         {renderCamera()}
       </div>
-      <p className="text-center text-sm text-green-500">
+      <p className="text-center text-sm text-theme-500">
         Placez le code-barres dans le cadre
       </p>
     </BaseDialog>

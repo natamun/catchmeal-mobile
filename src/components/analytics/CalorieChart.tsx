@@ -183,7 +183,7 @@ export function CalorieChart({ days, isLoading = false }: Props) {
     <SummaryCard
       title="Calories et macronutriments"
       aside={
-        <span className="text-sm text-green-600">{GRAIN_CAPTION[grain]}</span>
+        <span className="text-sm text-theme-600">{GRAIN_CAPTION[grain]}</span>
       }
     >
       <ResponsiveContainer

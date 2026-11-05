@@ -10,8 +10,8 @@ export function TooltipFrame({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-green-200 bg-white px-3 py-2 shadow-sm">
-      <p className="mb-1 text-xs font-semibold text-green-600">{title}</p>
+    <div className="rounded-xl border border-theme-200 bg-surface px-3 py-2 shadow-sm">
+      <p className="mb-1 text-xs font-semibold text-theme-600">{title}</p>
       {children}
     </div>
   );
@@ -33,8 +33,8 @@ export function TooltipRow({
         className="h-2 w-2 shrink-0 rounded-full"
         style={{ backgroundColor: color }}
       />
-      <span className="text-green-600">{name}</span>
-      <span className="ml-auto pl-4 font-semibold text-green-800 tabular-nums">
+      <span className="text-theme-600">{name}</span>
+      <span className="ml-auto pl-4 font-semibold text-theme-800 tabular-nums">
         {children}
       </span>
     </li>
