@@ -23,9 +23,11 @@ build:
 	npm run build --prefix backend
 
 test:
+	npm run test --prefix frontend
 	npm run test --prefix backend
 
 testVerbose:
+	npm run test --prefix frontend -- --reporter=verbose
 	npm run test --prefix backend -- --verbose
 
 check: formatCheck lintCheck build test
