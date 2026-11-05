@@ -1,4 +1,4 @@
-/** Decimals allowed on every number: the backend refuses more. */
+/** Decimals allowed on every number: saving refuses more. */
 export const MAX_DECIMALS = 2;
 
 export const TOO_MANY_DECIMALS = `${MAX_DECIMALS} décimales maximum`;
@@ -22,7 +22,7 @@ export function roundDecimals(value: number, decimals: number) {
 
 /**
  * Checks the typed text rather than the number, so "1,234" is refused before
- * anything is sent.
+ * anything is saved.
  */
 export function hasTooManyDecimals(text: string) {
   const decimals = text.trim().split(/[.,]/)[1] ?? '';

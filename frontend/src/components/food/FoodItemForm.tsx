@@ -100,7 +100,7 @@ function productToForm(product: OffProduct): FoodItemFormState {
 }
 
 /**
- * Name required, name and brand within the backend limits, base quantity above
+ * Name required, name and brand within the saved limits, base quantity above
  * 0, macros 0 or more, 2 decimals at most. The barcode is optional.
  */
 function validateForm(

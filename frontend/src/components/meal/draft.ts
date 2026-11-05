@@ -141,9 +141,9 @@ export function draftTotals(items: MealItemDraft[]) {
 }
 
 /**
- * Converts drafts to the API format, rounded to the decimals the backend
- * accepts. A food only sends its id and quantity: the backend computes its
- * macros.
+ * Converts drafts to the lines to save, rounded to the decimals the app
+ * accepts. A food only gives its id and quantity: its macros are computed when
+ * the meal is saved.
  */
 export function draftsToInput(items: MealItemDraft[]): MealItemInput[] {
   return items.map((item) =>
