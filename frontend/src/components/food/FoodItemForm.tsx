@@ -7,7 +7,7 @@ import {
   parseDecimal,
   TOO_MANY_DECIMALS,
 } from '../../utils/decimals';
-import { requestErrorMessage } from '../../utils/requestErrorMessage';
+import { failureMessage } from '../../utils/failureMessage';
 import { MAX_LENGTH, maxLengthMessage } from '../../utils/validation';
 import { BaseDialog } from '../ui/BaseDialog';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
@@ -267,7 +267,7 @@ export function FoodItemForm({
           : 'Produit enregistré avec succès',
       );
     } catch (err: unknown) {
-      setError(requestErrorMessage(err, 'Une erreur est survenue, réessayez.'));
+      setError(failureMessage(err, 'Une erreur est survenue, réessayez.'));
     } finally {
       setIsSubmitting(false);
       duplicateDialogRef.current?.close();

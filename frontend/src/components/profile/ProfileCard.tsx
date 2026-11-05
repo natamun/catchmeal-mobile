@@ -7,7 +7,7 @@ import {
   TOO_MANY_DECIMALS,
   WHOLE_NUMBER_ONLY,
 } from '../../utils/decimals';
-import { requestErrorMessage } from '../../utils/requestErrorMessage';
+import { failureMessage } from '../../utils/failureMessage';
 import { BaseDialog } from '../ui/BaseDialog';
 import { EditIconButton } from '../ui/EditIconButton';
 import { FieldError } from '../ui/FieldError';
@@ -198,7 +198,7 @@ export function ProfileCard({ profile, onUpdate }: Props) {
       onUpdate(await updateProfile(input));
       dialogRef.current?.close();
     } catch (err) {
-      setSaveError(requestErrorMessage(err, 'Erreur lors de la sauvegarde'));
+      setSaveError(failureMessage(err, 'Erreur lors de la sauvegarde'));
     } finally {
       setSaving(false);
     }

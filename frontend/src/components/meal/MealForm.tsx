@@ -5,7 +5,7 @@ import { Trash2 } from 'lucide-react';
 import { useFormValidation } from '../../hooks/useFormValidation';
 import { useTimeout } from '../../hooks/useTimeout';
 import { parseDecimal } from '../../utils/decimals';
-import { requestErrorMessage } from '../../utils/requestErrorMessage';
+import { failureMessage } from '../../utils/failureMessage';
 import { MAX_LENGTH, maxLengthMessage } from '../../utils/validation';
 import type { FoodItem } from '../food/types';
 import { BaseDialog } from '../ui/BaseDialog';
@@ -203,7 +203,7 @@ export function MealForm({
           : 'Repas enregistré avec succès',
       );
     } catch (err: unknown) {
-      setError(requestErrorMessage(err, 'Une erreur est survenue, réessayez.'));
+      setError(failureMessage(err, 'Une erreur est survenue, réessayez.'));
     } finally {
       setIsSubmitting(false);
     }

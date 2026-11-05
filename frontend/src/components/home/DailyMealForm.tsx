@@ -1,6 +1,6 @@
 import { useState, type RefObject } from 'react';
 
-import { requestErrorMessage } from '../../utils/requestErrorMessage';
+import { failureMessage } from '../../utils/failureMessage';
 import { createMeal, deleteMeal, toApiDate, updateMeal } from '../meal/api';
 import { draftsToInput, draftTotals, type MealItemDraft } from '../meal/draft';
 import { DraftItemList } from '../meal/DraftItemList';
@@ -85,7 +85,7 @@ export function DailyMealForm({
       dialogRef.current?.close();
       onSaved();
     } catch (err: unknown) {
-      setError(requestErrorMessage(err, 'Une erreur est survenue, réessayez.'));
+      setError(failureMessage(err, 'Une erreur est survenue, réessayez.'));
     } finally {
       setIsSubmitting(false);
     }

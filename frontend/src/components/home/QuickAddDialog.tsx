@@ -4,7 +4,7 @@ import { ChevronRight } from 'lucide-react';
 
 import { useFormValidation } from '../../hooks/useFormValidation';
 import { parseDecimal } from '../../utils/decimals';
-import { requestErrorMessage } from '../../utils/requestErrorMessage';
+import { failureMessage } from '../../utils/failureMessage';
 import { createMeal, toApiDate } from '../meal/api';
 import {
   EMPTY_QUICK_ADD_FORM,
@@ -104,7 +104,7 @@ export function QuickAddDialog({
       dialogRef.current?.close();
       onSaved();
     } catch (err: unknown) {
-      setError(requestErrorMessage(err, 'Une erreur est survenue, réessayez.'));
+      setError(failureMessage(err, 'Une erreur est survenue, réessayez.'));
     } finally {
       setIsSubmitting(false);
     }

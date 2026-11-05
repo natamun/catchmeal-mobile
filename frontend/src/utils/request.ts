@@ -4,7 +4,7 @@ export const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 /**
  * Error thrown for any answer that is not 2xx. It keeps the HTTP status so the
- * caller can pick the right message (see requestErrorMessage).
+ * caller can pick the right message.
  */
 export class ApiError extends Error {
   readonly status: number;
