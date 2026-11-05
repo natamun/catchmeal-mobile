@@ -19,6 +19,7 @@ import { SummaryCard } from '../ui/SummaryCard';
 import { buildDataGraph } from './buildDataGraph';
 import { ChartSkeleton } from './ChartSkeleton';
 import {
+  AXIS_LINE,
   AXIS_WIDTH,
   CHART_HEIGHT,
   GRID_STROKE,
@@ -193,8 +194,14 @@ export function CalorieChart({ days, isLoading = false }: Props) {
       >
         <BarChart data={kcalData} margin={KCAL_MARGIN}>
           <CartesianGrid stroke={GRID_STROKE} vertical={false} />
-          <XAxis dataKey="from" tick={X_TICK} minTickGap={MIN_TICK_GAP} />
+          <XAxis
+            stroke={AXIS_LINE}
+            dataKey="from"
+            tick={X_TICK}
+            minTickGap={MIN_TICK_GAP}
+          />
           <YAxis
+            stroke={AXIS_LINE}
             width={AXIS_WIDTH}
             interval={0}
             ticks={kcalScale.ticks}

@@ -17,6 +17,7 @@ import { SelectDropdown } from '../ui/SelectDropdown';
 import { SummaryCard } from '../ui/SummaryCard';
 import { ChartSkeleton } from './ChartSkeleton';
 import {
+  AXIS_LINE,
   AXIS_WIDTH,
   CHART_HEIGHT,
   GRID_STROKE,
@@ -159,6 +160,7 @@ export function MeasureChart({
         >
           <CartesianGrid stroke={GRID_STROKE} vertical={false} />
           <XAxis
+            stroke={AXIS_LINE}
             dataKey="time"
             type="number"
             scale="time"
@@ -168,6 +170,7 @@ export function MeasureChart({
             minTickGap={MIN_TICK_GAP}
           />
           <YAxis
+            stroke={AXIS_LINE}
             width={AXIS_WIDTH}
             interval={0}
             ticks={scale.ticks}
