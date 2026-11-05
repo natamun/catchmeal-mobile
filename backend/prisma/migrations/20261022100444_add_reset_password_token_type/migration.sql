@@ -1,2 +1,0 @@
--- AlterEnum
-ALTER TYPE "EmailTokenType" ADD VALUE 'RESET_PASSWORD';
