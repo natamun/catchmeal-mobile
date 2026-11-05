@@ -1,9 +1,9 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, LoaderCircle, ScanBarcode, Search } from 'lucide-react';
 
+import { OffLookupError, type OffErrorKind } from '../../data/openFoodFacts';
 import { useHasCamera } from '../../hooks/useHasCamera';
 import { useTimeout } from '../../hooks/useTimeout';
-import { ApiError } from '../../utils/request';
 import { FieldError } from '../ui/FieldError';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
@@ -20,10 +20,10 @@ const OFF_URL = 'https://world.openfoodfacts.org';
 
 const INVALID_BARCODE = 'Code-barres invalide';
 
-const LOOKUP_ERRORS: Partial<Record<number, string>> = {
-  400: INVALID_BARCODE,
-  429: 'Trop de recherches, patientez 1 min',
-  503: 'Open Food Facts ne répond pas',
+const LOOKUP_ERRORS: Record<OffErrorKind, string> = {
+  'invalid-barcode': INVALID_BARCODE,
+  'too-many-lookups': 'Trop de recherches, patientez 1 min',
+  unavailable: 'Open Food Facts ne répond pas',
 };
 
 interface BarcodeFieldProps {
@@ -36,8 +36,8 @@ interface BarcodeFieldProps {
 
 /**
  * Barcode field of the food form, typed or scanned with the camera, then looked
- * up on Open Food Facts to fill the form. The number is checked in the browser
- * first (isValidBarcode), so a typo never reaches the backend.
+ * up on Open Food Facts to fill the form. The number is checked first
+ * (isValidBarcode), so a typo never sends a request.
  */
 export function BarcodeField({
   value,
@@ -100,10 +100,10 @@ export function BarcodeField({
       if (lookupId !== lookupIdRef.current) {
         return;
       }
-      const status = err instanceof ApiError ? err.status : 0;
+      const kind = err instanceof OffLookupError ? err.kind : null;
       setLookupError({
-        message: LOOKUP_ERRORS[status] ?? 'Une erreur est survenue',
-        onField: status === 400,
+        message: kind ? LOOKUP_ERRORS[kind] : 'Une erreur est survenue',
+        onField: kind === 'invalid-barcode',
       });
     } finally {
       if (lookupId === lookupIdRef.current) {

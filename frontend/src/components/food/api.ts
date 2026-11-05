@@ -1,10 +1,9 @@
 import { throwIfAborted } from '../../data/errors';
 import * as foodItems from '../../data/foodItems';
+import { createOffLookup } from '../../data/openFoodFacts';
 import { getDatabase } from '../../db/appDatabase';
-import { request } from '../../utils/request';
-import type { FoodItemInput, OffProduct } from './types';
-
-const BASE_URL: string = import.meta.env.VITE_API_URL;
+import { nativeGet } from '../../native/nativeHttp';
+import type { FoodItemInput } from './types';
 
 /**
  * The whole food library, sorted by name, archived foods included (the screens
@@ -36,10 +35,6 @@ export async function deleteFoodItem(id: number) {
 
 /**
  * Asks Open Food Facts for the product. Resolves to null when the barcode is
- * unknown.
+ * unknown; throws an OffLookupError.
  */
-export function lookupOffProduct(barcode: string) {
-  return request<{ product: OffProduct | null }>(
-    `${BASE_URL}/off-products/${encodeURIComponent(barcode)}`,
-  ).then(({ product }) => product);
-}
+export const lookupOffProduct = createOffLookup(nativeGet);
