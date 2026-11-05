@@ -66,7 +66,7 @@ function NavItem({ tab, variant }: NavItemProps) {
     >
       {({ isActive }) => (
         <span
-          className={`flex flex-col items-center gap-1 rounded-xl py-1.5 ${isActive ? 'animate-pill-select bg-theme-100' : ''}`}
+          className={`flex flex-col items-center gap-1 rounded-xl py-1.5 ${isActive ? 'animate-pill-select bg-theme-200' : ''}`}
         >
           <Icon className="h-5 w-5 shrink-0" />
           {tab.shortLabel ?? tab.label}
@@ -100,7 +100,7 @@ export function Nav() {
         </div>
       </header>
 
-      <footer className="fixed right-0 bottom-0 left-0 z-10 hidden border-t border-theme-200 bg-surface pr-[max(0.5rem,env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] pl-[max(0.5rem,env(safe-area-inset-left))] pointer-coarse:block list-search:hidden!">
+      <footer className="fixed right-0 bottom-0 left-0 z-10 hidden border-t border-theme-200 bg-theme-100 pr-[max(0.5rem,env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] pl-[max(0.5rem,env(safe-area-inset-left))] pointer-coarse:block list-search:hidden!">
         <nav>
           <ul className="flex h-bottom-nav">
             {TABS.map((tab) => (
