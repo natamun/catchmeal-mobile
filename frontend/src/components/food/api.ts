@@ -1,44 +1,37 @@
-import { JSON_HEADERS, request } from '../../utils/request';
-import type { FoodItem, FoodItemInput, OffProduct } from './types';
+import { throwIfAborted } from '../../data/errors';
+import * as foodItems from '../../data/foodItems';
+import { getDatabase } from '../../db/appDatabase';
+import { request } from '../../utils/request';
+import type { FoodItemInput, OffProduct } from './types';
 
 const BASE_URL: string = import.meta.env.VITE_API_URL;
-
-const FOOD_ITEMS_URL = `${BASE_URL}/food-items`;
 
 /**
  * The whole food library, sorted by name, archived foods included (the screens
  * hide them).
  */
-export function listFoodItems(signal?: AbortSignal) {
-  return request<FoodItem[]>(FOOD_ITEMS_URL, { signal });
+export async function listFoodItems(signal?: AbortSignal) {
+  const items = await foodItems.listFoodItems(await getDatabase());
+  throwIfAborted(signal);
+  return items;
 }
 
 /** Adds a food to the library. */
-export function createFoodItem(input: FoodItemInput) {
-  return request<FoodItem>(FOOD_ITEMS_URL, {
-    method: 'POST',
-    headers: JSON_HEADERS,
-    body: JSON.stringify(input),
-  });
+export async function createFoodItem(input: FoodItemInput) {
+  return foodItems.createFoodItem(await getDatabase(), input);
 }
 
 /** Saves the edited food. */
-export function updateFoodItem(id: number, input: FoodItemInput) {
-  return request<FoodItem>(`${FOOD_ITEMS_URL}/${id}`, {
-    method: 'PATCH',
-    headers: JSON_HEADERS,
-    body: JSON.stringify(input),
-  });
+export async function updateFoodItem(id: number, input: FoodItemInput) {
+  return foodItems.updateFoodItem(await getDatabase(), id, input);
 }
 
 /**
  * Archives the food instead of deleting it, so the meals that use it keep their
  * data.
  */
-export function deleteFoodItem(id: number) {
-  return request<FoodItem>(`${FOOD_ITEMS_URL}/${id}`, {
-    method: 'DELETE',
-  });
+export async function deleteFoodItem(id: number) {
+  return foodItems.archiveFoodItem(await getDatabase(), id);
 }
 
 /**
