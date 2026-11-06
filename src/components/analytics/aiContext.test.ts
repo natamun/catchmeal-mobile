@@ -1,0 +1,202 @@
+import { describe, expect, it } from 'vitest';
+
+import type { Profile } from '../profile/api';
+import { getAge } from '../profile/bmr';
+import { buildAiContext, type AiContextInput } from './aiContext';
+import type { DashboardDay } from './types';
+
+const PROFILE: Profile = {
+  height: 180,
+  targetWeight: 72,
+  dailyCalorieGoal: 2100,
+  dailyProteinGoal: 150,
+  dailyCarbsGoal: 220,
+  dailyFatGoal: 65,
+  gender: 'MALE',
+  birthDate: '1995-03-10',
+  activityLevel: 'MODERATELY_ACTIVE',
+  goalType: 'LOSE_FAT',
+  theme: null,
+};
+
+const EMPTY_PROFILE: Profile = {
+  height: null,
+  targetWeight: null,
+  dailyCalorieGoal: null,
+  dailyProteinGoal: null,
+  dailyCarbsGoal: null,
+  dailyFatGoal: null,
+  gender: null,
+  birthDate: null,
+  activityLevel: null,
+  goalType: null,
+  theme: null,
+};
+
+const TODAY = new Date(2026, 10, 6, 12);
+
+const day = (key: string, values: Partial<DashboardDay>): DashboardDay => ({
+  day: key,
+  totalKcal: null,
+  totalProtein: null,
+  totalCarbs: null,
+  totalFat: null,
+  weight: null,
+  bodyFat: null,
+  fatFreeMass: null,
+  bodyWater: null,
+  muscleMass: null,
+  goalKcal: null,
+  objective: null,
+  ...values,
+});
+
+const meal = (kcal: number) => ({
+  totalKcal: kcal,
+  totalProtein: 140,
+  totalCarbs: 200,
+  totalFat: 60,
+});
+
+const build = (input: Partial<AiContextInput> = {}) =>
+  buildAiContext({
+    from: '2026-11-01',
+    to: '2026-11-06',
+    days: [],
+    profile: PROFILE,
+    measured: null,
+    today: TODAY,
+    ...input,
+  });
+
+describe('buildAiContext', () => {
+  it('describes the person by age, never by birth date', () => {
+    const text = build();
+    expect(text).toContain(`- Homme, ${getAge('1995-03-10')} ans, 180 cm`);
+    expect(text).toContain('- Activité : Modérément actif');
+    expect(text).toContain('- Objectif : Perdre du gras, poids cible 72 kg');
+    expect(text).not.toContain('1995');
+  });
+
+  it('gives the goals as the ones set by the person', () => {
+    expect(build()).toContain(
+      '## Objectifs que je me suis fixés (par jour)\n- 2100 kcal, 150 g de protéines, 220 g de glucides, 65 g de lipides',
+    );
+  });
+
+  it('says what is missing from an empty profile', () => {
+    const text = build({ profile: EMPTY_PROFILE });
+    expect(text).toContain('## Profil\n- Non renseigné');
+    expect(text).toContain('- Aucun objectif fixé');
+  });
+
+  it('gives the measured expenditure with what it rests on', () => {
+    const text = build({
+      measured: { kcal: 2450, loggedDays: 24, weighIns: 8 },
+    });
+    expect(text).toContain('- 2450 kcal par jour');
+    expect(text).toContain('(24 jours loggés, 8 pesées)');
+  });
+
+  it('says when the expenditure cannot be measured yet', () => {
+    expect(build()).toContain('- Pas encore mesurable');
+  });
+
+  it('averages the logged days only, leaving today out', () => {
+    const text = build({
+      days: [
+        day('2026-11-01', meal(2000)),
+        day('2026-11-02', meal(1800)),
+        day('2026-11-03', { weight: 75 }),
+        day('2026-11-06', meal(500)),
+      ],
+    });
+    expect(text).toContain('- Jours avec repas loggés : 2 sur 5');
+    expect(text).toContain("aujourd'hui n'est pas compté");
+    expect(text).toContain('- Moyenne par jour loggé : 1900 kcal');
+  });
+
+  it('gives each measure from the first to the last value', () => {
+    const text = build({
+      days: [
+        day('2026-11-01', { weight: 76.6, bodyFat: 22.1 }),
+        day('2026-11-05', { weight: 75.2, bodyFat: 21.4 }),
+      ],
+    });
+    expect(text).toContain('- Poids : 76,6 → 75,2 kg (−1,4 kg)');
+    expect(text).toContain('- Masse grasse : 22,1 → 21,4 % (−0,7 %)');
+    expect(text).toContain('impédancemétrie');
+  });
+
+  it('adds the weekly weight trend with enough weigh-ins', () => {
+    const text = build({
+      from: '2026-10-20',
+      days: [
+        day('2026-10-20', { weight: 77 }),
+        day('2026-10-27', { weight: 76.5 }),
+        day('2026-11-03', { weight: 76 }),
+      ],
+    });
+    expect(text).toContain('tendance −0,5 kg par semaine');
+  });
+
+  it('gives no trend with too few weigh-ins or too short a span', () => {
+    const fewWeighIns = build({
+      days: [
+        day('2026-11-01', { weight: 77 }),
+        day('2026-11-05', { weight: 76 }),
+      ],
+    });
+    const shortSpan = build({
+      days: [
+        day('2026-11-01', { weight: 77 }),
+        day('2026-11-02', { weight: 76.8 }),
+        day('2026-11-03', { weight: 76.6 }),
+      ],
+    });
+    expect(fewWeighIns).not.toContain('tendance');
+    expect(shortSpan).not.toContain('tendance');
+  });
+
+  it('flags a single measure as such', () => {
+    expect(build({ days: [day('2026-11-02', { weight: 75 })] })).toContain(
+      '- Poids : 75 kg (une seule mesure)',
+    );
+  });
+
+  it('leaves out the composition note without composition', () => {
+    expect(build({ days: [day('2026-11-02', { weight: 75 })] })).not.toContain(
+      'impédancemétrie',
+    );
+  });
+
+  it('details a short period day by day, empty days and today shown', () => {
+    const text = build({ days: [day('2026-11-02', meal(1800))] });
+    const rows = text
+      .split('\n')
+      .filter((line) => /^\| \D{3,5}\. \d/.test(line));
+    expect(text).toContain('## Détail par jour');
+    expect(rows).toHaveLength(6);
+    expect(text).toContain('| lun. 02/11 | 1800 | 140 | 200 | 60 | – |');
+    expect(text).toContain('| dim. 01/11 | – | – | – | – | – |');
+    expect(text).toContain('(en cours)');
+  });
+
+  it('details a long period week by week', () => {
+    const text = build({
+      from: '2026-09-01',
+      to: '2026-10-31',
+      days: [day('2026-09-01', meal(2000)), day('2026-09-02', meal(1800))],
+    });
+    const rows = text
+      .split('\n')
+      .filter((line) => /^\| \d{2}\/\d{2} →/.test(line));
+    expect(text).toContain('## Détail par semaine');
+    expect(rows).toHaveLength(9);
+    expect(rows[0]).toBe('| 01/09 → 07/09 | 2/7 | 1900 | 140 | 200 | 60 | – |');
+  });
+
+  it('ends on the question to type', () => {
+    expect(build().endsWith('Ma question : ')).toBe(true);
+  });
+});
