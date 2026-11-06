@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { matchesSearch } from './search';
+import { isSameName, matchesSearch } from './search';
 
 describe('matchesSearch', () => {
   it('finds a name typed without its accents or capitals', () => {
@@ -13,5 +13,15 @@ describe('matchesSearch', () => {
 
   it('refuses a name that does not hold the search', () => {
     expect(matchesSearch('Rameur', 'tapis')).toBe(false);
+  });
+});
+
+describe('isSameName', () => {
+  it('sees the same name whatever the case and accents', () => {
+    expect(isSameName('Développé couché', ' developpe COUCHE ')).toBe(true);
+  });
+
+  it('tells two different names apart', () => {
+    expect(isSameName('Développé couché', 'Développé incliné')).toBe(false);
   });
 });
