@@ -60,12 +60,15 @@ describe('latestItems', () => {
 
 describe('strengthRecord', () => {
   it('keeps the first day the heaviest load and the best 1RM were reached', () => {
-    // 110 kg was lifted on 29/10 first; 10 × 110 = 146.7 beats 10 × 105 = 140.
+    // 110 kg was lifted on 29/10 first; 10 × 110 = 146.7 beats 10 × 105 = 140;
+    // 12 × 100 + 10 × 110 = 2300 kg beats 10 × 105 + 8 × 110 = 1930 kg.
     expect(strengthRecord(HISTORY, 1)).toEqual({
       weightKg: 110,
       day: '2026-10-29',
       oneRepMax: 146.7,
       oneRepMaxDay: '2026-11-05',
+      volumeKg: 2300,
+      volumeDay: '2026-11-05',
     });
   });
 
