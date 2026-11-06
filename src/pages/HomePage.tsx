@@ -122,7 +122,7 @@ export default function HomePage() {
             key={selectedDate.toDateString()}
             className="flex animate-fade-in-up flex-col gap-4 md:gap-6"
           >
-            <div className="grid auto-rows-fr grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
               <CalorieSummary
                 consumed={Math.round(dayTotals.kcal)}
                 goal={profile.dailyCalorieGoal ?? 2000}

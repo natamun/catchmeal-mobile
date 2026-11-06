@@ -80,7 +80,7 @@ export function WeightWidget({ history, hasError = false, goalWeight }: Props) {
           )}
         </div>
       )}
-      <dl className="mt-auto grid grid-cols-2 gap-3 pt-3">
+      <dl className="mt-auto grid grid-cols-2 gap-3 pt-4">
         <StatTile label="Objectif">
           {goalWeight === null ? 'Non défini' : `${formatKg(goalWeight)} kg`}
         </StatTile>
