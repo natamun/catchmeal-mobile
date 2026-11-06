@@ -8,6 +8,7 @@ import {
   WHOLE_NUMBER_ONLY,
 } from '../../utils/decimals';
 import { failureMessage } from '../../utils/failureMessage';
+import { SettingsButton } from '../settings/SettingsButton';
 import { BaseDialog } from '../ui/BaseDialog';
 import { EditIconButton } from '../ui/EditIconButton';
 import { FieldError } from '../ui/FieldError';
@@ -209,6 +210,7 @@ export function ProfileCard({ profile, onUpdate }: Props) {
               {summarize(profile)}
             </p>
           </div>
+          <SettingsButton />
           <EditIconButton onClick={handleEdit} size="lg" />
         </div>
       </div>
