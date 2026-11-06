@@ -5,10 +5,13 @@ import { QuantityStepper } from '../ui/QuantityStepper';
 import type { MealItemDraft } from './draft';
 
 const ROW_CLASS =
-  'flex animate-fade-in-up items-center gap-2 rounded-xl border border-theme-200 px-3 py-1.5';
+  'flex animate-fade-in-up rounded-xl border border-theme-200 px-3 py-2.5';
+
+const NAME_CLASS =
+  'min-w-0 flex-1 truncate text-base font-medium text-theme-800';
 
 const REMOVE_CLASS =
-  'shrink-0 cursor-pointer text-theme-400 transition-colors hover:text-red-500';
+  'tap-area relative shrink-0 cursor-pointer text-theme-400 transition-colors hover:text-red-500';
 
 interface DraftItemListProps {
   items: MealItemDraft[];
@@ -18,8 +21,8 @@ interface DraftItemListProps {
 }
 
 /**
- * Items of a meal being edited: a food with its quantity buttons, or a quick
- * add with its calories. Each one can be removed.
+ * Items of a meal being edited: a food with its quantity buttons on a line
+ * of their own, or a quick add with its calories. Each one can be removed.
  */
 export function DraftItemList({
   items,
@@ -32,16 +35,17 @@ export function DraftItemList({
       {items.map((item) => {
         if (item.kind === 'quick') {
           return (
-            <li key={item.id} className={ROW_CLASS}>
-              <span className="min-w-0 flex-1 truncate text-sm font-medium text-theme-800">
-                {Math.round(item.kcal)} kcal
-              </span>
+            <li
+              key={item.id}
+              className={`${ROW_CLASS} min-h-12 items-center gap-3`}
+            >
+              <span className={NAME_CLASS}>{Math.round(item.kcal)} kcal</span>
               <button
                 type="button"
                 onClick={() => onRemove(item.id)}
                 className={REMOVE_CLASS}
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </li>
           );
@@ -49,22 +53,22 @@ export function DraftItemList({
 
         const { foodItem, quantity } = item;
         return (
-          <li key={item.id} className={ROW_CLASS}>
-            <span className="min-w-0 flex-1 truncate text-sm font-medium text-theme-800">
-              {foodItem.name}
-            </span>
+          <li key={item.id} className={`${ROW_CLASS} flex-col gap-2`}>
+            <div className="flex items-center gap-3">
+              <span className={NAME_CLASS}>{foodItem.name}</span>
+              <button
+                type="button"
+                onClick={() => onRemove(item.id)}
+                className={REMOVE_CLASS}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
             <QuantityStepper
               quantity={quantity}
               unitLabel={UNIT_LABELS[foodItem.baseUnit]}
               onAdjust={(delta) => onAdjust(item.id, delta)}
             />
-            <button
-              type="button"
-              onClick={() => onRemove(item.id)}
-              className={REMOVE_CLASS}
-            >
-              <X className="h-4 w-4" />
-            </button>
           </li>
         );
       })}
