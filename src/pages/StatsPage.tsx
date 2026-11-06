@@ -11,6 +11,7 @@ import { lastDays } from '../components/analytics/period';
 import { PeriodSelector } from '../components/analytics/PeriodSelector';
 import { StrengthProgressChart } from '../components/analytics/StrengthProgressChart';
 import { TrainingCard } from '../components/analytics/TrainingCard';
+import { WeeklySessionsChart } from '../components/analytics/WeeklySessionsChart';
 import { WeightVariation } from '../components/analytics/WeightVariation';
 import { LoadError } from '../components/ui/LoadError';
 import { useDashboard } from '../hooks/useDashboard';
@@ -65,6 +66,12 @@ export default function StatsPage() {
             days={days}
             period={period}
             isLoading={isLoading}
+          />
+          <WeeklySessionsChart
+            workouts={training.workouts}
+            from={from}
+            to={to}
+            isLoading={training.isLoading}
           />
           <StrengthProgressChart
             workouts={training.workouts}

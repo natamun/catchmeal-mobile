@@ -1,10 +1,16 @@
 import { Dumbbell } from 'lucide-react';
 
-import { formatMinutes } from '../../utils/format';
+import { formatKg, formatMinutes } from '../../utils/format';
 import { summarizeWorkouts } from '../fitness/progress';
 import type { Workout } from '../fitness/types';
 import { Skeleton } from '../ui/Skeleton';
+import { StatTile } from '../ui/StatTile';
 import { SummaryCard } from '../ui/SummaryCard';
+
+/** "850 kg", or "12,4 t" from a ton. */
+function formatVolume(kg: number) {
+  return kg >= 1000 ? `${formatKg(kg / 1000)} t` : `${Math.round(kg)} kg`;
+}
 
 interface Props {
   workouts: Workout[];
@@ -12,12 +18,33 @@ interface Props {
 }
 
 /**
- * Training over the period: the number of sessions, with their time beside
- * it.
+ * Training over the period: the number of sessions and their time, then the
+ * volume lifted, the cardio time, and the distance and climb on the
+ * treadmill.
  */
 export function TrainingCard({ workouts, isLoading = false }: Props) {
-  const { sessions, minutes } = summarizeWorkouts(workouts);
-  const details = [minutes > 0 && formatMinutes(minutes)].filter(Boolean);
+  const summary = summarizeWorkouts(workouts);
+  const tiles = [
+    {
+      label: 'Volume',
+      value: summary.volumeKg > 0 ? formatVolume(summary.volumeKg) : '–',
+    },
+    {
+      label: 'Cardio',
+      value:
+        summary.cardioMinutes > 0 ? formatMinutes(summary.cardioMinutes) : '–',
+    },
+    {
+      label: 'Distance',
+      value:
+        summary.distanceKm > 0 ? `${formatKg(summary.distanceKm)} km` : '–',
+    },
+    {
+      label: 'Dénivelé',
+      value:
+        summary.climbMeters > 0 ? `${Math.round(summary.climbMeters)} m` : '–',
+    },
+  ];
 
   return (
     <SummaryCard title="Sport">
@@ -26,26 +53,35 @@ export function TrainingCard({ workouts, isLoading = false }: Props) {
           <Skeleton className="h-10 w-24" />
           <Skeleton className="h-4 w-36" />
         </div>
-      ) : sessions === 0 ? (
+      ) : summary.sessions === 0 ? (
         <p className="text-sm text-theme-600">
           Aucune séance sur cette période.
         </p>
       ) : (
-        <div className="flex items-end justify-between gap-3">
-          <div className="flex items-end gap-2">
-            <span className="text-4xl font-bold text-theme-800">
-              {sessions}
-            </span>
-            <span className="mb-1 text-theme-500">
-              {sessions > 1 ? 'séances' : 'séance'}
-            </span>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-end justify-between gap-3">
+            <div className="flex items-end gap-2">
+              <span className="text-4xl font-bold text-theme-800">
+                {summary.sessions}
+              </span>
+              <span className="mb-1 text-theme-500">
+                {summary.sessions > 1 ? 'séances' : 'séance'}
+              </span>
+            </div>
+            {summary.minutes > 0 && (
+              <p className="mb-1 flex items-center gap-1 text-right text-sm text-theme-600">
+                <Dumbbell className="h-4 w-4 shrink-0" />
+                {formatMinutes(summary.minutes)}
+              </p>
+            )}
           </div>
-          {details.length > 0 && (
-            <p className="mb-1 flex items-center gap-1 text-right text-sm text-theme-600">
-              <Dumbbell className="h-4 w-4 shrink-0" />
-              {details.join(' · ')}
-            </p>
-          )}
+          <dl className="grid grid-cols-2 gap-3">
+            {tiles.map(({ label, value }) => (
+              <StatTile key={label} label={label}>
+                {value}
+              </StatTile>
+            ))}
+          </dl>
         </div>
       )}
     </SummaryCard>

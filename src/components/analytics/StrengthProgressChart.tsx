@@ -1,15 +1,26 @@
 import { useState } from 'react';
 
 import { middayOf } from '../../utils/dateKey';
-import { strengthExercisesOf, strengthProgress } from '../fitness/progress';
+import {
+  strengthExercisesOf,
+  strengthProgress,
+  type ProgressMetric,
+} from '../fitness/progress';
 import type { Workout } from '../fitness/types';
 import type { DateRange } from '../ui/CalendarButton';
+import { PillTabs } from '../ui/PillTabs';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { SummaryCard } from '../ui/SummaryCard';
 import { ChartSkeleton } from './ChartSkeleton';
 import { TimeLineChart } from './TimeLineChart';
 
 const TITLE = 'Progression';
+
+const METRICS: { value: ProgressMetric; label: string; name: string }[] = [
+  { value: 'max', label: 'Charge max', name: 'Charge max' },
+  { value: 'oneRepMax', label: '1RM', name: '1RM estimé' },
+  { value: 'volume', label: 'Volume', name: 'Volume' },
+];
 
 interface Props {
   workouts: Workout[];
@@ -18,8 +29,8 @@ interface Props {
 }
 
 /**
- * The heaviest load of each session on a strength exercise, over the
- * period, the exercise chosen among those done.
+ * How a strength exercise progresses over the period: its heaviest load, its
+ * estimated one-rep max or its volume, the exercise chosen among those done.
  */
 export function StrengthProgressChart({
   workouts,
@@ -28,6 +39,7 @@ export function StrengthProgressChart({
 }: Props) {
   const exercises = strengthExercisesOf(workouts);
   const [choice, setChoice] = useState<number | null>(null);
+  const [metric, setMetric] = useState<ProgressMetric>('max');
   const selected =
     exercises.find(({ id }) => id === choice) ?? exercises[0] ?? null;
 
@@ -49,9 +61,10 @@ export function StrengthProgressChart({
     );
   }
 
-  const points = strengthProgress(workouts, selected.id).map(
-    ({ day, maxWeightKg }) => ({ value: maxWeightKg, time: middayOf(day) }),
+  const points = strengthProgress(workouts, selected.id, metric).map(
+    ({ day, value }) => ({ value, time: middayOf(day) }),
   );
+  const { name } = METRICS.find(({ value }) => value === metric)!;
 
   return (
     <SummaryCard
@@ -63,9 +76,9 @@ export function StrengthProgressChart({
             size="sm"
             className="min-w-0 flex-1 whitespace-nowrap"
             value={String(selected.id)}
-            options={exercises.map(({ id, name }) => ({
+            options={exercises.map(({ id, name: label }) => ({
               value: String(id),
-              label: name,
+              label,
             }))}
             onChange={(value) => setChoice(Number(value))}
             container={document.body}
@@ -73,12 +86,14 @@ export function StrengthProgressChart({
         </span>
       }
     >
-      <TimeLineChart
-        points={points}
-        name="Charge max"
-        unit="kg"
-        period={period}
+      <PillTabs
+        name="progressMetric"
+        options={METRICS}
+        value={metric}
+        onChange={setMetric}
+        className="mb-4 self-start"
       />
+      <TimeLineChart points={points} name={name} unit="kg" period={period} />
     </SummaryCard>
   );
 }
