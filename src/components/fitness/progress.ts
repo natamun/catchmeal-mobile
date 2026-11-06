@@ -3,8 +3,6 @@ import type { Workout, WorkoutItem, WorkoutSet } from './types';
 
 export interface TrainingSummary {
   sessions: number;
-  /** Minutes of the sessions whose duration is known. */
-  minutes: number;
   /** Repetitions times load, over every strength set (kg). */
   volumeKg: number;
   /** Minutes of cardio. */
@@ -37,10 +35,6 @@ export function summarizeWorkouts(
   const items = workouts.flatMap((workout) => workout.items);
   return {
     sessions: workouts.length,
-    minutes: workouts.reduce(
-      (sum, { durationMinutes }) => sum + (durationMinutes ?? 0),
-      0,
-    ),
     volumeKg: items.reduce((sum, item) => sum + volumeOf(item.sets), 0),
     cardioMinutes: items.reduce(
       (sum, item) =>

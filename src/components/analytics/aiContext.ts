@@ -248,9 +248,10 @@ function describeItem(item: WorkoutItem) {
 }
 
 /**
- * The sessions of the period: how many and their time, then one row per
- * session up to 31 days, or per week beyond. Their calories are not given: a
- * measured expenditure already holds the training, the AI is told so.
+ * The training of the period: how many days of sessions, the volume lifted
+ * and the cardio, then one row per session up to 31 days, or per week beyond.
+ * Their calories are not given: a measured expenditure already holds the
+ * training, the AI is told so.
  */
 function sportLines(
   calendar: string[],
@@ -261,21 +262,18 @@ function sportLines(
   const [first, last] = [calendar[0], calendar.at(-1)!];
   const workouts = allWorkouts
     .filter(({ performedOn }) => performedOn >= first && performedOn <= last)
-    .sort((a, b) => a.performedOn.localeCompare(b.performedOn) || a.id - b.id);
+    .sort((a, b) => a.performedOn.localeCompare(b.performedOn));
   if (workouts.length === 0) return ['- Aucune séance sur la période'];
 
-  const minutesOf = (list: Workout[]) =>
-    list.reduce((sum, { durationMinutes }) => sum + (durationMinutes ?? 0), 0);
-
-  const minutes = minutesOf(workouts);
   const totals = summarizeWorkouts(workouts);
-  const lines = [
-    `- Séances : ${workouts.length}${minutes > 0 ? `, ${formatMinutes(minutes)} au total` : ''}`,
-  ];
+  const lines = [`- Séances : ${workouts.length}`];
   if (totals.volumeKg > 0) {
     lines.push(
       `- Volume soulevé (répétitions × charge) : ${formatKg(totals.volumeKg / 1000)} t`,
     );
+  }
+  if (totals.cardioMinutes > 0) {
+    lines.push(`- Cardio : ${formatMinutes(totals.cardioMinutes)}`);
   }
   if (totals.distanceKm > 0) {
     lines.push(
@@ -291,28 +289,25 @@ function sportLines(
   if (isDaily) {
     lines.push(
       '',
-      '| Jour | Séance | Durée | Exercices |',
-      '|---|---|---|---|',
-      ...workouts.map((workout) => {
-        const duration = workout.durationMinutes
-          ? formatMinutes(workout.durationMinutes)
-          : NONE;
-        return `| ${weekdayDate(workout.performedOn)} | ${inCell(workout.name ?? NONE)} | ${duration} | ${inCell(workout.items.map(describeItem).join(' ; '))} |`;
-      }),
+      '| Jour | Exercices |',
+      '|---|---|',
+      ...workouts.map(
+        (workout) =>
+          `| ${weekdayDate(workout.performedOn)} | ${inCell(workout.items.map(describeItem).join(' ; '))} |`,
+      ),
     );
     return lines;
   }
 
-  lines.push('', '| Semaine | Séances | Durée |', '|---|---|---|');
+  lines.push('', '| Semaine | Séances |', '|---|---|');
   for (let index = 0; index < calendar.length; index += 7) {
     const week = calendar.slice(index, index + 7);
     const inWeek = workouts.filter(
       ({ performedOn }) =>
         performedOn >= week[0] && performedOn <= week.at(-1)!,
     );
-    const weekMinutes = minutesOf(inWeek);
     lines.push(
-      `| ${shortDate(week[0])} → ${shortDate(week.at(-1)!)} | ${inWeek.length} | ${weekMinutes > 0 ? formatMinutes(weekMinutes) : NONE} |`,
+      `| ${shortDate(week[0])} → ${shortDate(week.at(-1)!)} | ${inWeek.length} |`,
     );
   }
   return lines;

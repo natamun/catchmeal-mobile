@@ -1,5 +1,3 @@
-import { Dumbbell } from 'lucide-react';
-
 import { formatKg, formatMinutes } from '../../utils/format';
 import { summarizeWorkouts } from '../fitness/progress';
 import type { Workout } from '../fitness/types';
@@ -18,9 +16,8 @@ interface Props {
 }
 
 /**
- * Training over the period: the number of sessions and their time, then the
- * volume lifted, the cardio time, and the distance and climb on the
- * treadmill.
+ * Training over the period: the number of sessions, then the volume lifted,
+ * the cardio time, and the distance and climb on the treadmill.
  */
 export function TrainingCard({ workouts, isLoading = false }: Props) {
   const summary = summarizeWorkouts(workouts);
@@ -59,7 +56,7 @@ export function TrainingCard({ workouts, isLoading = false }: Props) {
         </p>
       ) : (
         <div className="flex flex-col gap-4">
-          <div className="flex items-end justify-between gap-3">
+          <div className="flex items-end gap-3">
             <div className="flex items-end gap-2">
               <span className="text-4xl font-bold text-theme-800">
                 {summary.sessions}
@@ -68,12 +65,6 @@ export function TrainingCard({ workouts, isLoading = false }: Props) {
                 {summary.sessions > 1 ? 'séances' : 'séance'}
               </span>
             </div>
-            {summary.minutes > 0 && (
-              <p className="mb-1 flex items-center gap-1 text-right text-sm text-theme-600">
-                <Dumbbell className="h-4 w-4 shrink-0" />
-                {formatMinutes(summary.minutes)}
-              </p>
-            )}
           </div>
           <dl className="grid grid-cols-2 gap-3">
             {tiles.map(({ label, value }) => (
