@@ -47,11 +47,11 @@ const CURL: WorkoutItem = {
   exerciseName: 'Curl biceps machine',
 };
 
-const session = (
-  performedOn: string,
-  durationMinutes: number | null,
-  ...items: WorkoutItem[]
-): Workout => ({ id: 1, performedOn, name: null, durationMinutes, items });
+const session = (performedOn: string, ...items: WorkoutItem[]): Workout => ({
+  id: 1,
+  performedOn,
+  items,
+});
 
 describe('treadmill', () => {
   it('walks 3 km and climbs 300 m in 45 min at 4 km/h and 10 %', () => {
@@ -68,12 +68,11 @@ describe('summarizeWorkouts', () => {
   it('sums up the sessions, their volume and their cardio', () => {
     expect(
       summarizeWorkouts([
-        session('2026-11-03', 55, press([12, 100], [10, 110])),
-        session('2026-11-05', null, WALK, ROWER),
+        session('2026-11-03', press([12, 100], [10, 110])),
+        session('2026-11-05', WALK, ROWER),
       ]),
     ).toEqual({
       sessions: 2,
-      minutes: 55,
       volumeKg: 2300,
       cardioMinutes: 55,
       distanceKm: 3,
@@ -86,8 +85,8 @@ describe('strengthExercisesOf', () => {
   it('lists each strength exercise once, sorted by name', () => {
     expect(
       strengthExercisesOf([
-        session('2026-11-03', 45, press([10, 80]), ROWER),
-        session('2026-11-05', 45, CURL, press([10, 85])),
+        session('2026-11-03', press([10, 80]), ROWER),
+        session('2026-11-05', CURL, press([10, 85])),
       ]),
     ).toEqual([
       { id: 4, name: 'Curl biceps machine' },
@@ -105,10 +104,10 @@ describe('oneRepMax', () => {
 
 describe('strengthProgress', () => {
   const WORKOUTS = [
-    session('2026-11-05', 45, press([12, 80], [10, 90], [8, 85])),
-    session('2026-11-01', 45, press([10, 70], [8, 75])),
-    session('2026-11-05', 30, press([1, 95])),
-    session('2026-11-03', 45, CURL),
+    session('2026-11-05', press([12, 80], [10, 90], [8, 85])),
+    session('2026-11-01', press([10, 70], [8, 75])),
+    session('2026-11-05', press([1, 95])),
+    session('2026-11-03', CURL),
   ];
 
   it('gives the heaviest load of each day, oldest first', () => {
@@ -134,7 +133,7 @@ describe('strengthProgress', () => {
   });
 
   it('gives nothing for an exercise not done', () => {
-    expect(strengthProgress([session('2026-11-03', 45, CURL)], 1)).toEqual([]);
+    expect(strengthProgress([session('2026-11-03', CURL)], 1)).toEqual([]);
   });
 });
 
@@ -143,10 +142,10 @@ describe('weeklySessions', () => {
     expect(
       weeklySessions(
         [
-          session('2026-11-02', 55, press([10, 80])),
-          session('2026-11-04', 45, WALK),
-          session('2026-11-08', 45, WALK, press([10, 80])),
-          session('2026-10-20', 45, ROWER),
+          session('2026-11-02', press([10, 80])),
+          session('2026-11-04', WALK),
+          session('2026-11-08', WALK, press([10, 80])),
+          session('2026-10-20', ROWER),
         ],
         '2026-10-21',
         '2026-11-08',
@@ -160,11 +159,7 @@ describe('weeklySessions', () => {
 
   it('leaves out the sessions outside the weeks', () => {
     expect(
-      weeklySessions(
-        [session('2026-11-20', 45, WALK)],
-        '2026-11-02',
-        '2026-11-08',
-      ),
+      weeklySessions([session('2026-11-20', WALK)], '2026-11-02', '2026-11-08'),
     ).toEqual([{ weekStart: '2026-11-02', strength: 0, cardio: 0 }]);
   });
 });
