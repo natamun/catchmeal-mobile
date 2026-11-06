@@ -2,8 +2,13 @@ import { changing } from '../../data/changes';
 import { throwIfAborted } from '../../data/errors';
 import * as exercises from '../../data/exercises';
 import * as workouts from '../../data/workouts';
+import * as templates from '../../data/workoutTemplates';
 import { getDatabase } from '../../db/appDatabase';
-import type { ExerciseInput, WorkoutInput } from './types';
+import type {
+  ExerciseInput,
+  WorkoutInput,
+  WorkoutTemplateInput,
+} from './types';
 
 /**
  * The whole exercise library, sorted by name, archived exercises included
@@ -76,4 +81,26 @@ export async function getLastPerformance(
     exerciseId,
     exceptWorkoutId,
   );
+}
+
+/** Every favorite session with its exercises, sorted by name. */
+export async function listTemplates(signal?: AbortSignal) {
+  const list = await templates.listTemplates(await getDatabase());
+  throwIfAborted(signal);
+  return list;
+}
+
+/** Saves a new favorite session. */
+export async function createTemplate(input: WorkoutTemplateInput) {
+  return changing(templates.createTemplate(await getDatabase(), input));
+}
+
+/** Saves an edited favorite session, its exercises replaced. */
+export async function updateTemplate(id: number, input: WorkoutTemplateInput) {
+  return changing(templates.updateTemplate(await getDatabase(), id, input));
+}
+
+/** Deletes a favorite session; the sessions started from it stay. */
+export async function deleteTemplate(id: number) {
+  return changing(templates.deleteTemplate(await getDatabase(), id));
 }

@@ -1,19 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { listExercises, listWorkouts } from '../components/fitness/api';
+import { listExercises, listTemplates } from '../components/fitness/api';
 import { ExerciseDialog } from '../components/fitness/ExerciseDialog';
 import { ExerciseList } from '../components/fitness/ExerciseList';
-import type { Exercise, Workout } from '../components/fitness/types';
-import { WorkoutDialog } from '../components/fitness/WorkoutDialog';
-import { WorkoutList } from '../components/fitness/WorkoutList';
+import { TemplateDialog } from '../components/fitness/TemplateDialog';
+import { TemplateList } from '../components/fitness/TemplateList';
+import type { Exercise, WorkoutTemplate } from '../components/fitness/types';
 import { AddCircleButton } from '../components/ui/AddCircleButton';
 import { PillTabs } from '../components/ui/PillTabs';
 import { useDataVersion } from '../hooks/useDataVersion';
 
-type Tab = 'sessions' | 'exercises';
+type Tab = 'favorites' | 'exercises';
 
 const TAB_OPTIONS: { value: Tab; label: string }[] = [
-  { value: 'sessions', label: 'Séances' },
+  { value: 'favorites', label: 'Séances' },
   { value: 'exercises', label: 'Exercices' },
 ];
 
@@ -51,31 +51,32 @@ function useList<T>(read: (signal: AbortSignal) => Promise<T[]>) {
 }
 
 /**
- * Fitness page with two tabs: the training sessions, and the exercise
- * library they are made of, each with its create and edit dialog.
+ * Fitness page, the training library, like the food one: the favorite
+ * sessions and the exercises, each with its create and edit dialog. The
+ * sessions done are logged from the journal.
  */
 export default function FitnessPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('sessions');
-  const workouts = useList(listWorkouts);
+  const [activeTab, setActiveTab] = useState<Tab>('favorites');
+  const templates = useList(listTemplates);
   const exercises = useList(listExercises);
 
-  const workoutDialogRef = useRef<HTMLDialogElement>(null);
-  const [workoutDialog, setWorkoutDialog] = useState<{
-    workout: Workout | null;
+  const templateDialogRef = useRef<HTMLDialogElement>(null);
+  const [templateDialog, setTemplateDialog] = useState<{
+    template: WorkoutTemplate | null;
     openCount: number;
-  }>({ workout: null, openCount: 0 });
+  }>({ template: null, openCount: 0 });
   const exerciseDialogRef = useRef<HTMLDialogElement>(null);
   const [exerciseDialog, setExerciseDialog] = useState<{
     exercise: Exercise | null;
     openCount: number;
   }>({ exercise: null, openCount: 0 });
 
-  const openWorkout = (workout: Workout | null) => {
-    setWorkoutDialog(({ openCount }) => ({
-      workout,
+  const openTemplate = (template: WorkoutTemplate | null) => {
+    setTemplateDialog(({ openCount }) => ({
+      template,
       openCount: openCount + 1,
     }));
-    workoutDialogRef.current?.showModal();
+    templateDialogRef.current?.showModal();
   };
 
   const openExercise = (exercise: Exercise | null) => {
@@ -97,16 +98,18 @@ export default function FitnessPage() {
       />
 
       <div key={activeTab} className="animate-fade-in-up">
-        {activeTab === 'sessions' ? (
-          <WorkoutList
-            workouts={workouts.items}
-            isLoading={workouts.isLoading}
+        {activeTab === 'favorites' ? (
+          <TemplateList
+            templates={templates.items}
+            isLoading={templates.isLoading}
             loadError={
-              workouts.hasError ? 'Impossible de charger les séances.' : null
+              templates.hasError ? 'Impossible de charger les séances.' : null
             }
-            onRetry={workouts.retry}
-            headerAction={<AddCircleButton onClick={() => openWorkout(null)} />}
-            onEdit={openWorkout}
+            onRetry={templates.retry}
+            headerAction={
+              <AddCircleButton onClick={() => openTemplate(null)} />
+            }
+            onEdit={openTemplate}
           />
         ) : (
           <ExerciseList
@@ -124,10 +127,10 @@ export default function FitnessPage() {
         )}
       </div>
 
-      <WorkoutDialog
-        dialogRef={workoutDialogRef}
-        openCount={workoutDialog.openCount}
-        workout={workoutDialog.workout}
+      <TemplateDialog
+        dialogRef={templateDialogRef}
+        openCount={templateDialog.openCount}
+        template={templateDialog.template}
         exercises={exercises.items}
       />
       <ExerciseDialog
