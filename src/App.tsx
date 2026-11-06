@@ -5,7 +5,6 @@ import { AppLayout } from './components/layout/AppLayout';
 import { ProfileProvider } from './components/profile/ProfileProvider';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { PATHS } from './routing/paths';
-import { ScrollMemory } from './routing/ScrollMemory';
 
 const JournalAddPage = lazy(() => import('./pages/JournalAddPage'));
 
@@ -30,11 +29,10 @@ function AppRoutes() {
   );
 }
 
-/** Root component: the router, the scroll handling and the profile. */
+/** Root component: the router and the profile. */
 export function App() {
   return (
     <BrowserRouter>
-      <ScrollMemory />
       <ProfileProvider>
         <AppRoutes />
       </ProfileProvider>

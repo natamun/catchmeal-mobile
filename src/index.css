@@ -81,33 +81,9 @@
   }
 }
 
-@keyframes slide-from-right {
-  from {
-    opacity: 0;
-    transform: translateX(40%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slide-from-left {
-  from {
-    opacity: 0;
-    transform: translateX(-40%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 @theme {
   /* Animations */
   --animate-fade-in-up: fade-in-up 0.15s ease-out;
-  --animate-slide-from-right: slide-from-right 0.2s ease-out;
-  --animate-slide-from-left: slide-from-left 0.2s ease-out;
   --animate-fade-out: fade-out 0.1s ease-in;
   --animate-delayed-reveal: delayed-reveal 0.15s ease-out 0.25s backwards;
   --animate-pill-select: pill-select 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -567,4 +543,3 @@ body {
 .recharts-wrapper :focus {
   outline: none;
 }
-

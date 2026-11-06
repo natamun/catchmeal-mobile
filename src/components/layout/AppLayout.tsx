@@ -1,11 +1,4 @@
-import {
-  lazy,
-  Suspense,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router';
 
 import { useSwipeTabs } from '../../hooks/useSwipeTabs';
@@ -20,14 +13,15 @@ const TABS = [
   { path: PATHS.stats, Page: lazy(() => import('../../pages/StatsPage')) },
   { path: PATHS.profile, Page: lazy(() => import('../../pages/ProfilePage')) },
 ];
+const TAB_PATHS: readonly string[] = TABS.map((tab) => tab.path);
 
 /** The other tabs are prepared this long after the first one is shown. */
 const PREPARE_DELAY_MS = 300;
 
-const ENTER_ANIMATION = {
-  left: 'animate-slide-from-left',
-  right: 'animate-slide-from-right',
-} as const;
+/** A page's own scroll, so each tab keeps where it was. */
+const SCROLLER = 'h-full overflow-y-auto';
+const PAGE =
+  'mx-auto max-w-6xl px-6 pt-6 pb-8 pointer-coarse:pb-[calc(var(--spacing-bottom-nav)+2rem+env(safe-area-inset-bottom))]';
 
 const LOADING = (
   <div className="flex h-40 items-center justify-center text-sm text-theme-500">
@@ -37,19 +31,18 @@ const LOADING = (
 
 /**
  * Frame of every page: navigation, the pages and the toasts. The four tabs
- * stay mounted and only the current one is shown: switching tab keeps each
- * one's data and state, and the app prepares them all right after it opens.
- * Other pages (adding to the journal) come through the Outlet. Swiping
- * sideways changes tab; the new tab then slides in from that side.
+ * sit side by side as a carousel and stay mounted: switching tab keeps each
+ * one's data, state and scroll, and the app prepares them all right after it
+ * opens. The tabs off screen cannot be focused or touched. Other pages
+ * (adding to the journal) come through the Outlet, over the hidden carousel.
  */
 export function AppLayout() {
   const { pathname } = useLocation();
   const mainRef = useRef<HTMLElement>(null);
-  const [enterFrom, setEnterFrom] = useState<'left' | 'right' | null>(null);
-  useSwipeTabs(mainRef, setEnterFrom);
-  const clearEnter = useCallback(() => setEnterFrom(null), []);
+  const trackRef = useRef<HTMLDivElement>(null);
+  useSwipeTabs(mainRef, trackRef, TAB_PATHS);
 
-  const activeTab = TABS.find((tab) => tab.path === pathname)?.path ?? null;
+  const activeIndex = TAB_PATHS.indexOf(pathname);
   const [areAllPrepared, setAreAllPrepared] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setAreAllPrepared(true), PREPARE_DELAY_MS);
@@ -58,35 +51,42 @@ export function AppLayout() {
 
   return (
     <ToastProvider>
-      <div className="min-h-screen overflow-x-clip bg-theme-50">
+      <div className="flex h-[calc(100dvh-env(safe-area-inset-top))] flex-col bg-theme-50">
         <Nav />
         <main
           ref={mainRef}
           id="main-content"
-          className="mx-auto max-w-6xl touch-pan-y px-6 pt-6 pb-8 pointer-coarse:pb-[calc(var(--spacing-bottom-nav)+2rem+env(safe-area-inset-bottom))]"
+          className="min-h-0 flex-1 touch-pan-y overflow-x-clip"
         >
-          {TABS.map(({ path, Page }) =>
-            areAllPrepared || path === activeTab ? (
+          <div
+            ref={trackRef}
+            hidden={activeIndex === -1}
+            className="flex h-full will-change-transform"
+          >
+            {TABS.map(({ path, Page }, index) => (
               <div
                 key={path}
-                hidden={path !== activeTab}
-                className={
-                  path === activeTab && enterFrom
-                    ? ENTER_ANIMATION[enterFrom]
-                    : ''
-                }
-                onAnimationEnd={clearEnter}
+                inert={index !== activeIndex}
+                className={`${SCROLLER} w-full shrink-0`}
               >
+                <div className={PAGE}>
+                  {(areAllPrepared || index === activeIndex) && (
+                    <Suspense fallback={LOADING}>
+                      <Page />
+                    </Suspense>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          {activeIndex === -1 && (
+            <div className={SCROLLER}>
+              <div className={PAGE}>
                 <Suspense fallback={LOADING}>
-                  <Page />
+                  <Outlet />
                 </Suspense>
               </div>
-            ) : null,
-          )}
-          {activeTab === null && (
-            <Suspense fallback={LOADING}>
-              <Outlet />
-            </Suspense>
+            </div>
           )}
         </main>
       </div>

@@ -1,54 +1,68 @@
-import { useEffect, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 
-import { PATHS } from '../routing/paths';
 import { isHorizontal, swipeDirection } from './swipe';
-
-/** The tabs in the order of the tab bar. */
-const TAB_PATHS: readonly string[] = [
-  PATHS.home,
-  PATHS.food,
-  PATHS.stats,
-  PATHS.profile,
-];
 
 /** Android's back gesture starts at the screen edges: leave them to it. */
 const EDGE_PX = 32;
 /** Travel before deciding whether the finger scrolls or swipes. */
 const LOCK_PX = 10;
-/** How much the page follows the finger when there is no tab that way. */
+/** How much the pages follow the finger when there is no tab that way. */
 const RUBBER_BAND = 0.25;
 /** Where a swipe must not change tab: typing, reading a chart. */
 const IGNORED = 'input, textarea, select, .recharts-wrapper, [data-no-swipe]';
+const SLIDE = 'transform 0.3s ease-out';
+
+/** Shows the page at `index`, shifted by `dx` px, sliding there or not. */
+function placeTrack(
+  track: HTMLElement,
+  index: number,
+  dx: number,
+  isAnimated: boolean,
+) {
+  track.style.transition = isAnimated ? SLIDE : '';
+  track.style.transform = `translateX(calc(${-index * 100}% + ${dx}px))`;
+}
 
 /**
- * Swiping sideways on a tab moves to the next or previous tab. The page
- * follows the finger, then either `onChange` is told where the new page comes
- * from and the app navigates, or the page springs back.
+ * The tabs as a carousel: their pages sit side by side on `track`, in the
+ * order of `paths`, and the one of the current URL fills the screen.
+ * Swiping sideways on `area` drags the pages with the finger, so the next
+ * one shows up, then either changes tab or springs back. Changing tab from
+ * the tab bar slides the pages too.
  */
 export function useSwipeTabs(
   area: RefObject<HTMLElement | null>,
-  onChange: (enterFrom: 'left' | 'right') => void,
+  track: RefObject<HTMLElement | null>,
+  paths: readonly string[],
 ) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const index = paths.indexOf(pathname);
+  /** The page shown before, or null when the carousel was hidden. */
+  const shown = useRef<number | null>(null);
+
+  useLayoutEffect(() => {
+    const element = track.current;
+    if (!element || index === -1) {
+      shown.current = null;
+      return;
+    }
+    placeTrack(element, index, 0, shown.current !== null);
+    shown.current = index;
+  }, [track, index]);
 
   useEffect(() => {
     const element = area.current;
-    const index = TAB_PATHS.indexOf(pathname);
-    if (!element || index === -1) return;
+    const pages = track.current;
+    if (!element || !pages || index === -1) return;
 
     let start: { x: number; y: number; time: number } | null = null;
     let horizontal: boolean | null = null;
     let dx = 0;
     let dy = 0;
 
-    const neighbour = (step: number) => TAB_PATHS[index + step];
-
-    const setOffset = (x: number, animated: boolean) => {
-      element.style.transition = animated ? 'transform 0.2s ease-out' : '';
-      element.style.transform = x === 0 ? '' : `translateX(${x}px)`;
-    };
+    const neighbour = (step: number) => paths[index + step];
 
     const handleStart = (event: TouchEvent) => {
       const touch = event.touches[0];
@@ -77,10 +91,10 @@ export function useSwipeTabs(
       }
       if (!horizontal) return;
 
-      // Sideways: the page follows the finger and does not scroll.
+      // Sideways: the pages follow the finger and do not scroll.
       event.preventDefault();
       const hasNeighbour = neighbour(dx < 0 ? 1 : -1) !== undefined;
-      setOffset(hasNeighbour ? dx : dx * RUBBER_BAND, false);
+      placeTrack(pages, index, hasNeighbour ? dx : dx * RUBBER_BAND, false);
     };
 
     const handleEnd = (event: TouchEvent) => {
@@ -94,21 +108,22 @@ export function useSwipeTabs(
         durationMs: event.timeStamp - start.time,
         width: element.clientWidth,
       });
-      const target = direction && neighbour(direction === 'next' ? 1 : -1);
+      const step = direction === 'next' ? 1 : -1;
+      const target = direction && neighbour(step);
       start = null;
 
       if (target) {
-        setOffset(0, false);
-        onChange(direction === 'next' ? 'right' : 'left');
+        // Slide on from where the finger left the pages.
+        placeTrack(pages, index + step, 0, true);
         void navigate(target);
       } else {
-        setOffset(0, true);
+        placeTrack(pages, index, 0, true);
       }
     };
 
     const handleCancel = () => {
       start = null;
-      setOffset(0, true);
+      placeTrack(pages, index, 0, true);
     };
 
     element.addEventListener('touchstart', handleStart, { passive: true });
@@ -120,7 +135,6 @@ export function useSwipeTabs(
       element.removeEventListener('touchmove', handleMove);
       element.removeEventListener('touchend', handleEnd);
       element.removeEventListener('touchcancel', handleCancel);
-      setOffset(0, false);
     };
-  }, [area, pathname, navigate, onChange]);
+  }, [area, track, index, paths, navigate]);
 }
