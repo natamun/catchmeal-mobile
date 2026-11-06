@@ -1,4 +1,4 @@
-import type { RefObject } from 'react';
+import { useState, type RefObject } from 'react';
 import { Pencil } from 'lucide-react';
 
 import { middayOf, startOfDay } from '../../utils/dateKey';
@@ -6,9 +6,14 @@ import { formatKg, formatMinutes } from '../../utils/format';
 import { TimeLineChart } from '../analytics/TimeLineChart';
 import { BaseDialog } from '../ui/BaseDialog';
 import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
-import { StatTile } from '../ui/StatTile';
+import { InfoBubble } from '../ui/InfoBubble';
 import { describeValues } from './format';
-import { strengthProgress, treadmillClimb, treadmillKm } from './progress';
+import {
+  strengthProgress,
+  treadmillClimb,
+  treadmillKm,
+  type ProgressMetric,
+} from './progress';
 import { exerciseHistory, strengthRecord } from './records';
 import type { Exercise, Workout } from './types';
 
@@ -26,6 +31,51 @@ function shortDay(day: string) {
   });
 }
 
+const TILE = 'rounded-xl px-3 py-1.5 text-left';
+
+/** One value of the grid, with the day it was reached under it. */
+function Tile({
+  label,
+  value,
+  note,
+  isSelected,
+  onSelect,
+}: {
+  label: string;
+  value: string;
+  note?: string;
+  isSelected?: boolean;
+  onSelect?: () => void;
+}) {
+  const content = (
+    <>
+      <span className="block text-xs text-theme-600">{label}</span>
+      <span className="block font-semibold text-theme-800">{value}</span>
+      {note && <span className="block text-xs text-theme-500">{note}</span>}
+    </>
+  );
+  if (!onSelect) return <div className={`${TILE} bg-theme-50`}>{content}</div>;
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`${TILE} cursor-pointer transition-colors ${
+        isSelected
+          ? 'bg-theme-100 ring-2 ring-theme-400'
+          : 'bg-theme-50 hover:bg-theme-100'
+      }`}
+    >
+      {content}
+    </button>
+  );
+}
+
+const METRIC_NAMES: Record<ProgressMetric, string> = {
+  max: 'Charge max',
+  oneRepMax: '1RM estimé',
+  volume: 'Volume',
+};
+
 interface Props {
   dialogRef: RefObject<HTMLDialogElement | null>;
   exercise: Exercise | null;
@@ -34,8 +84,8 @@ interface Props {
 }
 
 /**
- * The logbook of one exercise: its records or totals, its progress and its
- * last sessions, with a way to rename or retype it.
+ * The logbook of one exercise: its records or totals, the curve of the one
+ * picked in the grid, its last sessions, and a way to rename or retype it.
  */
 export function ExerciseSheet({
   dialogRef,
@@ -53,47 +103,32 @@ export function ExerciseSheet({
   const distance = items.reduce((sum, i) => sum + treadmillKm(i), 0);
   const climb = items.reduce((sum, i) => sum + treadmillClimb(i), 0);
 
-  const tiles = !exercise
-    ? []
-    : exercise.kind === 'STRENGTH'
-      ? [
-          {
-            label: 'Record',
-            value: record ? `${formatKg(record.weightKg)} kg` : '–',
-            note: record && `le ${shortDay(record.day)}`,
-          },
-          {
-            label: '1RM estimé',
-            value: record
-              ? `${formatKg(Math.round(record.oneRepMax))} kg`
-              : '–',
-            note: record && `le ${shortDay(record.oneRepMaxDay)}`,
-          },
-        ]
-      : [
-          {
-            label: 'Temps total',
-            value: minutes > 0 ? formatMinutes(minutes) : '–',
-          },
-          ...(exercise.kind === 'TREADMILL'
-            ? [
-                { label: 'Distance', value: `${formatKg(distance)} km` },
-                { label: 'Dénivelé', value: `${Math.round(climb)} m` },
-              ]
-            : []),
-        ];
-
+  const [metric, setMetric] = useState<ProgressMetric>('max');
   const points =
     exercise?.kind === 'STRENGTH'
-      ? strengthProgress(workouts, exercise.id).map(({ day, value }) => ({
-          value,
-          time: middayOf(day),
-        }))
+      ? strengthProgress(workouts, exercise.id, metric).map(
+          ({ day, value }) => ({ value, time: middayOf(day) }),
+        )
       : [];
   const days = history.map(({ day }) => day).sort();
   const period = days.length
     ? { from: startOfDay(days[0]), to: startOfDay(days.at(-1)!) }
     : null;
+
+  const metricTile = (
+    which: ProgressMetric,
+    label: string,
+    value: number | undefined,
+    day: string | undefined,
+  ) => (
+    <Tile
+      label={label}
+      value={value === undefined ? '–' : `${formatKg(Math.round(value))} kg`}
+      note={day && `le ${shortDay(day)}`}
+      isSelected={metric === which}
+      onSelect={() => setMetric(which)}
+    />
+  );
 
   return (
     <BaseDialog dialogRef={dialogRef} title={exercise?.name ?? ''}>
@@ -105,24 +140,70 @@ export function ExerciseSheet({
             </p>
           ) : (
             <>
-              <dl className="grid grid-cols-2 gap-3">
-                <StatTile label="Séances">{history.length}</StatTile>
-                {tiles.map(({ label, value, ...rest }) => (
-                  <StatTile key={label} label={label}>
-                    {value}
-                    {'note' in rest && rest.note && (
-                      <span className="ml-1.5 text-xs font-normal text-theme-500">
-                        {rest.note}
-                      </span>
+              {exercise.kind === 'STRENGTH' ? (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <h4 className="text-xs font-semibold tracking-wide text-theme-500 uppercase">
+                      Repères
+                    </h4>
+                    <InfoBubble>
+                      <p>
+                        <strong>Record</strong> : la charge la plus lourde que
+                        tu aies soulevée.
+                      </p>
+                      <p>
+                        <strong>1RM</strong> : la charge que tu pourrais
+                        soulever une seule fois, estimée depuis tes séries.
+                      </p>
+                      <p>
+                        <strong>Volume</strong> : répétitions × charge,
+                        additionnées sur une séance. Ici ta meilleure séance.
+                      </p>
+                      <p className="text-theme-500">
+                        Touche une case pour voir sa courbe.
+                      </p>
+                    </InfoBubble>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Tile label="Séances" value={String(history.length)} />
+                    {metricTile('max', 'Record', record?.weightKg, record?.day)}
+                    {metricTile(
+                      'oneRepMax',
+                      '1RM estimé',
+                      record?.oneRepMax,
+                      record?.oneRepMaxDay,
                     )}
-                  </StatTile>
-                ))}
-              </dl>
+                    {metricTile(
+                      'volume',
+                      'Volume',
+                      record?.volumeKg,
+                      record?.volumeDay,
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <Tile label="Séances" value={String(history.length)} />
+                  <Tile
+                    label="Temps total"
+                    value={minutes > 0 ? formatMinutes(minutes) : '–'}
+                  />
+                  {exercise.kind === 'TREADMILL' && (
+                    <>
+                      <Tile
+                        label="Distance"
+                        value={`${formatKg(distance)} km`}
+                      />
+                      <Tile label="Dénivelé" value={`${Math.round(climb)} m`} />
+                    </>
+                  )}
+                </div>
+              )}
 
               {points.length > 1 && period && (
                 <TimeLineChart
                   points={points}
-                  name="Charge max"
+                  name={METRIC_NAMES[metric]}
                   unit="kg"
                   period={period}
                 />

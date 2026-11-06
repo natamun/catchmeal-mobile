@@ -8,6 +8,9 @@ export interface StrengthRecord {
   /** The best estimated one-rep max, and the day. */
   oneRepMax: number;
   oneRepMaxDay: string;
+  /** The biggest volume of a session (repetitions × load), and the day. */
+  volumeKg: number;
+  volumeDay: string;
 }
 
 /** One time an exercise was done: the day, and what was done. */
@@ -53,17 +56,24 @@ export function latestItems(workouts: readonly Workout[]) {
 }
 
 /**
- * The best of a strength exercise: its heaviest load and its best estimated
- * one-rep max, each with the first day it was reached. Null when it was
- * never done.
+ * The best of a strength exercise: its heaviest load, its best estimated
+ * one-rep max and its biggest session volume, each with the first day it
+ * was reached. Null when it was never done.
  */
 export function strengthRecord(
   workouts: readonly Workout[],
   exerciseId: number,
 ): StrengthRecord | null {
-  let record: StrengthRecord | null = null;
+  let record = null as StrengthRecord | null;
   const entries = exerciseHistory(workouts, exerciseId).reverse();
   for (const { day, item } of entries) {
+    const volume = item.sets.reduce(
+      (sum, { reps, weightKg }) => sum + reps * weightKg,
+      0,
+    );
+    if (record && volume > record.volumeKg) {
+      record = { ...record, volumeKg: volume, volumeDay: day };
+    }
     for (const set of item.sets) {
       const estimate = Math.round(oneRepMax(set) * 10) / 10;
       if (!record) {
@@ -72,6 +82,8 @@ export function strengthRecord(
           day,
           oneRepMax: estimate,
           oneRepMaxDay: day,
+          volumeKg: volume,
+          volumeDay: day,
         };
         continue;
       }
