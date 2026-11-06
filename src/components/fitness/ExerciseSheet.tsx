@@ -2,7 +2,7 @@ import { useState, type RefObject } from 'react';
 import { Pencil } from 'lucide-react';
 
 import { middayOf, startOfDay } from '../../utils/dateKey';
-import { formatKg, formatMinutes } from '../../utils/format';
+import { formatKg, formatMinutes, formatShortDate } from '../../utils/format';
 import { TimeLineChart } from '../analytics/TimeLineChart';
 import { BaseDialog } from '../ui/BaseDialog';
 import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
@@ -20,16 +20,7 @@ import type { Exercise, Workout } from './types';
 /** How many past sessions the sheet lists. */
 const RECENT = 5;
 
-/** "5 nov.", or "5 nov. 2025" for another year. */
-function shortDay(day: string) {
-  const date = startOfDay(day);
-  return date.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year:
-      date.getFullYear() === new Date().getFullYear() ? undefined : 'numeric',
-  });
-}
+const shortDay = (day: string) => formatShortDate(startOfDay(day));
 
 const TILE = 'rounded-xl px-3 py-1.5 text-left';
 

@@ -21,6 +21,15 @@ export function formatDayMonth(date: Date) {
   return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
 }
 
+/** A date such as "30 oct.", with the year when it is not this year's. */
+export function formatShortDate(date: Date, today = new Date()) {
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: date.getFullYear() === today.getFullYear() ? undefined : 'numeric',
+  });
+}
+
 /**
  * How long ago a moment was, by calendar day: "Aujourd'hui", "Hier",
  * "Il y a 3 jours", then the date, "Le 30 oct." (with the year when it is
@@ -37,12 +46,7 @@ export function formatSince(isoDate: string, today = new Date()) {
   if (days === 1) return 'Hier';
   if (days < 7) return `Il y a ${days} jours`;
 
-  const day = date.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year: date.getFullYear() === today.getFullYear() ? undefined : 'numeric',
-  });
-  return `Le ${day}`;
+  return `Le ${formatShortDate(date, today)}`;
 }
 
 /** "1 h 30" or "45 min". */
