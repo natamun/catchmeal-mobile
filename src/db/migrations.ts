@@ -1,4 +1,5 @@
 import type { Database } from './database';
+import { STARTER_EXERCISES } from './starterExercises';
 
 /** One step of the schema: applied once, in version order. */
 export interface Migration {
@@ -130,12 +131,68 @@ DROP TABLE profile;
 ALTER TABLE profile_v4 RENAME TO profile;
 `;
 
+const sqlText = (text: string) => `'${text.replaceAll("'", "''")}'`;
+
+/**
+ * The fitness tab: a library of exercises (archived rather than deleted, like
+ * foods, so past sessions keep them) and the sessions. A session lists its
+ * exercises in order; a strength exercise holds sets, a cardio one its
+ * duration (and the speed and incline of a treadmill). Which fields an
+ * exercise fills depends on its kind: the app checks it before saving.
+ */
+const FITNESS_V5 = `
+CREATE TABLE exercise (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+  kind TEXT NOT NULL CHECK (kind IN ('STRENGTH', 'TREADMILL', 'CARDIO')),
+  met REAL CHECK (met > 0),
+  archived INTEGER NOT NULL DEFAULT 0 CHECK (archived IN (0, 1))
+) STRICT;
+
+CREATE TABLE workout (
+  id INTEGER PRIMARY KEY,
+  performed_on TEXT NOT NULL CHECK (performed_on GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+  duration_minutes INTEGER CHECK (duration_minutes > 0)
+) STRICT;
+
+CREATE INDEX workout_performed_on ON workout (performed_on);
+
+CREATE TABLE workout_exercise (
+  id INTEGER PRIMARY KEY,
+  workout_id INTEGER NOT NULL REFERENCES workout (id) ON DELETE CASCADE,
+  exercise_id INTEGER NOT NULL REFERENCES exercise (id),
+  position INTEGER NOT NULL CHECK (position >= 0),
+  duration_minutes REAL CHECK (duration_minutes > 0),
+  speed_kmh REAL CHECK (speed_kmh > 0),
+  incline_percent REAL CHECK (incline_percent >= 0)
+) STRICT;
+
+CREATE INDEX workout_exercise_workout ON workout_exercise (workout_id);
+CREATE INDEX workout_exercise_exercise ON workout_exercise (exercise_id);
+
+CREATE TABLE workout_set (
+  id INTEGER PRIMARY KEY,
+  workout_exercise_id INTEGER NOT NULL REFERENCES workout_exercise (id) ON DELETE CASCADE,
+  position INTEGER NOT NULL CHECK (position >= 0),
+  reps INTEGER NOT NULL CHECK (reps > 0),
+  weight_kg REAL NOT NULL CHECK (weight_kg >= 0)
+) STRICT;
+
+CREATE INDEX workout_set_workout_exercise ON workout_set (workout_exercise_id);
+
+INSERT INTO exercise (name, kind, met) VALUES
+${STARTER_EXERCISES.map(
+  ({ name, kind, met }) => `(${sqlText(name)}, '${kind}', ${met ?? 'NULL'})`,
+).join(',\n')};
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: SCHEMA_V1 },
   { version: 2, sql: GOAL_TYPE_V2 },
   { version: 3, sql: THEME_V3 },
   { version: 4, sql: THEME_FREE_V4 },
+  { version: 5, sql: FITNESS_V5 },
 ];
 
 /**
