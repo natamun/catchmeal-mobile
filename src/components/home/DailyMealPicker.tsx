@@ -1,17 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import { useToggleSet } from '../../hooks/useToggleSet';
+import { formatWeekday } from '../../utils/format';
 import { listFoodItems } from '../food/api';
 import { FoodItemList } from '../food/FoodItemList';
 import type { FoodItem } from '../food/types';
+import { FlowHeader } from '../layout/FlowHeader';
 import { listMeals } from '../meal/api';
 import { buildDrafts, type MealItemDraft } from '../meal/draft';
 import { MealList } from '../meal/MealList';
-import { type Meal, type MealType } from '../meal/types';
+import { MEAL_TYPE_LABELS, type Meal, type MealType } from '../meal/types';
 import { PillTabs } from '../ui/PillTabs';
 import { SelectToggle } from '../ui/SelectToggle';
-import { DailyMealForm } from './DailyMealForm';
+import { DailyMealReview } from './DailyMealReview';
 
 type PickerTab = 'food' | 'meal';
 
@@ -28,9 +29,9 @@ interface DailyMealPickerProps {
 }
 
 /**
- * Page content that adds foods and library meals to one section of the journal:
- * select them in two tabs, then check the quantities in DailyMealForm before
- * saving.
+ * Page content that adds foods and library meals to one section of the
+ * journal, in two steps: select them in two tabs, then check the quantities
+ * before saving.
  */
 export function DailyMealPicker({
   mealType,
@@ -48,8 +49,7 @@ export function DailyMealPicker({
   const [review, setReview] = useState<{
     key: number;
     items: MealItemDraft[];
-  }>({ key: 0, items: [] });
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  } | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -83,82 +83,88 @@ export function DailyMealPicker({
       templates.filter((meal) => selectedMealIds.has(meal.id)),
       foodItems,
     );
-    setReview((prev) => ({ key: prev.key + 1, items }));
-    dialogRef.current?.showModal();
+    setReview((prev) => ({ key: (prev?.key ?? 0) + 1, items }));
   };
 
-  return (
-    <>
-      <div className="flex animate-fade-in-up flex-col gap-4 md:gap-6">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-theme-500 text-on-accent transition-colors hover:bg-theme-600"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <PillTabs
-            name="mealPickerTab"
-            options={TAB_OPTIONS}
-            value={tab}
-            onChange={setTab}
+  const header = (
+    <FlowHeader
+      title={MEAL_TYPE_LABELS[mealType]}
+      subtitle={formatWeekday(date)}
+      onClose={onClose}
+      onBack={review ? () => setReview(null) : undefined}
+    />
+  );
+
+  if (review) {
+    return (
+      <div className="flex flex-col gap-4">
+        {header}
+        <div key={review.key} className="animate-step-in">
+          <DailyMealReview
+            mealType={mealType}
+            date={date}
+            initialItems={review.items}
+            onSaved={onAdded}
           />
         </div>
+      </div>
+    );
+  }
 
-        <div key={tab} className="animate-fade-in-up">
-          {tab === 'food' ? (
-            <FoodItemList
-              items={foodItems}
-              isLoading={isLoading}
-              loadError={loadError}
-              renderAction={(food) => (
-                <SelectToggle
-                  selected={selectedFoodIds.has(food.id)}
-                  onToggle={() => toggleFood(food.id)}
-                />
-              )}
-            />
-          ) : (
-            <MealList
-              meals={templates}
-              isLoading={isLoading}
-              loadError={loadError}
-              renderAction={(meal) => (
-                <SelectToggle
-                  selected={selectedMealIds.has(meal.id)}
-                  onToggle={() => toggleMeal(meal.id)}
-                />
-              )}
-            />
-          )}
-        </div>
+  return (
+    <div className="flex flex-col gap-4">
+      {header}
+      <PillTabs
+        name="mealPickerTab"
+        options={TAB_OPTIONS}
+        value={tab}
+        onChange={setTab}
+        className="self-start"
+      />
 
-        <div className="sticky bottom-[calc(var(--spacing-bottom-nav)+1rem+env(safe-area-inset-bottom))] z-20 mx-3 flex items-center justify-between gap-3 rounded-2xl border border-theme-200 bg-surface p-3 shadow-lg md:mx-auto md:w-full md:max-w-md md:pointer-fine:bottom-4">
-          <span className="text-sm text-theme-600">
-            {selectedCount === 0
-              ? 'Aucune sélection'
-              : `${selectedCount} sélectionné${selectedCount > 1 ? 's' : ''}`}
-          </span>
-          <button
-            type="button"
-            onClick={openReview}
-            disabled={selectedCount === 0}
-            className="cursor-pointer rounded-xl bg-theme-500 px-5 py-2 text-sm font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Ajouter
-          </button>
-        </div>
+      <div key={tab} className="animate-fade-in-up">
+        {tab === 'food' ? (
+          <FoodItemList
+            items={foodItems}
+            isLoading={isLoading}
+            loadError={loadError}
+            renderAction={(food) => (
+              <SelectToggle
+                selected={selectedFoodIds.has(food.id)}
+                onToggle={() => toggleFood(food.id)}
+              />
+            )}
+          />
+        ) : (
+          <MealList
+            meals={templates}
+            isLoading={isLoading}
+            loadError={loadError}
+            renderAction={(meal) => (
+              <SelectToggle
+                selected={selectedMealIds.has(meal.id)}
+                onToggle={() => toggleMeal(meal.id)}
+              />
+            )}
+          />
+        )}
       </div>
 
-      <DailyMealForm
-        dialogRef={dialogRef}
-        mealType={mealType}
-        date={date}
-        initialItems={review.items}
-        sessionKey={review.key}
-        onSaved={onAdded}
-      />
-    </>
+      <div className="sticky bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 mx-3 flex items-center justify-between gap-3 rounded-2xl border border-theme-200 bg-surface p-3 shadow-lg md:mx-auto md:w-full md:max-w-md">
+        <span className="text-sm text-theme-600">
+          {selectedCount === 0
+            ? 'Aucune sélection'
+            : `${selectedCount} sélectionné${selectedCount > 1 ? 's' : ''}`}
+        </span>
+        <button
+          type="button"
+          onClick={openReview}
+          disabled={selectedCount === 0}
+          className="cursor-pointer rounded-xl bg-theme-500 px-5 py-2 text-sm font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Suivant
+        </button>
+      </div>
+    </div>
   );
 }

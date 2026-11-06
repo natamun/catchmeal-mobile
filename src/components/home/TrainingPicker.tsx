@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronLeft } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useDataVersion } from '../../hooks/useDataVersion';
 import { useToggleSet } from '../../hooks/useToggleSet';
+import { startOfDay } from '../../utils/dateKey';
 import { failureMessage } from '../../utils/failureMessage';
+import { formatWeekday } from '../../utils/format';
 import {
   createExercise,
   getLastPerformance,
@@ -14,7 +15,7 @@ import {
 import { ExerciseList } from '../fitness/ExerciseList';
 import { latestItems } from '../fitness/records';
 import { TemplateList } from '../fitness/TemplateList';
-import { TrainingDayDialog } from '../fitness/TrainingDayDialog';
+import { TrainingDayReview } from '../fitness/TrainingDayDialog';
 import type {
   Exercise,
   ExerciseKind,
@@ -27,6 +28,7 @@ import {
   draftFromTemplate,
   type ItemDraft,
 } from '../fitness/workoutDraft';
+import { FlowHeader } from '../layout/FlowHeader';
 import { PillTabs } from '../ui/PillTabs';
 import { SelectToggle } from '../ui/SelectToggle';
 import { useToast } from '../ui/toastContext';
@@ -59,9 +61,9 @@ interface Props {
 
 /**
  * Page content that adds exercises to the day's session, like the journal's
- * food picker: select exercises and favorites in two tabs, then check the
- * values, started from the last time, before adding them. An exercise
- * already in the day's session is left out.
+ * food picker, in two steps: select exercises and favorites in two tabs, then
+ * check the values, started from the last time, before adding them. An
+ * exercise already in the day's session is left out.
  */
 export function TrainingPicker({ day, onClose, onAdded }: Props) {
   const version = useDataVersion();
@@ -71,11 +73,10 @@ export function TrainingPicker({ day, onClose, onAdded }: Props) {
   const [tab, setTab] = useState<PickerTab>('exercises');
   const [selectedExerciseIds, toggleExercise] = useToggleSet<number>();
   const [selectedTemplateIds, toggleTemplate] = useToggleSet<number>();
-  const [review, setReview] = useState<{ key: number; items: ItemDraft[] }>({
-    key: 0,
-    items: [],
-  });
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [review, setReview] = useState<{
+    key: number;
+    items: ItemDraft[];
+  } | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -153,86 +154,92 @@ export function TrainingPicker({ day, onClose, onAdded }: Props) {
           : draftFor(exercise, last);
       }),
     );
-    setReview((prev) => ({ key: prev.key + 1, items }));
-    dialogRef.current?.showModal();
+    setReview((prev) => ({ key: (prev?.key ?? 0) + 1, items }));
   };
 
-  return (
-    <>
-      <div className="flex animate-fade-in-up flex-col gap-4 md:gap-6">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-theme-500 text-on-accent transition-colors hover:bg-theme-600"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <PillTabs
-            name="trainingPickerTab"
-            options={TAB_OPTIONS}
-            value={tab}
-            onChange={setTab}
+  const header = (
+    <FlowHeader
+      title="Séance"
+      subtitle={formatWeekday(startOfDay(day))}
+      onClose={onClose}
+      onBack={review ? () => setReview(null) : undefined}
+    />
+  );
+
+  if (review) {
+    return (
+      <div className="flex flex-col gap-4">
+        {header}
+        <div key={review.key} className="animate-step-in">
+          <TrainingDayReview
+            day={day}
+            isEdit={false}
+            initialItems={review.items}
+            history={library?.workouts ?? []}
+            onSaved={onAdded}
           />
         </div>
+      </div>
+    );
+  }
 
-        <div key={tab} className="animate-fade-in-up">
-          {tab === 'exercises' ? (
-            <ExerciseList
-              exercises={library?.exercises ?? []}
-              isLoading={library === null && !loadError}
-              loadError={loadError}
-              latest={latest}
-              onCreate={(name, kind) => void create(name, kind)}
-              renderAction={(exercise) => (
-                <SelectToggle
-                  selected={selectedExerciseIds.has(exercise.id)}
-                  onToggle={() => toggleExercise(exercise.id)}
-                />
-              )}
-            />
-          ) : (
-            <TemplateList
-              templates={library?.templates ?? []}
-              isLoading={library === null && !loadError}
-              loadError={loadError}
-              latest={latest}
-              renderAction={(template) => (
-                <SelectToggle
-                  selected={selectedTemplateIds.has(template.id)}
-                  onToggle={() => toggleTemplate(template.id)}
-                />
-              )}
-            />
-          )}
-        </div>
+  return (
+    <div className="flex flex-col gap-4">
+      {header}
+      <PillTabs
+        name="trainingPickerTab"
+        options={TAB_OPTIONS}
+        value={tab}
+        onChange={setTab}
+        className="self-start"
+      />
 
-        <div className="sticky bottom-[calc(var(--spacing-bottom-nav)+1rem+env(safe-area-inset-bottom))] z-20 mx-3 flex items-center justify-between gap-3 rounded-2xl border border-theme-200 bg-surface p-3 shadow-lg md:mx-auto md:w-full md:max-w-md md:pointer-fine:bottom-4">
-          <span className="text-sm text-theme-600">
-            {selectedCount === 0
-              ? 'Aucune sélection'
-              : `${selectedCount} sélectionné${selectedCount > 1 ? 's' : ''}`}
-          </span>
-          <button
-            type="button"
-            onClick={() => void openReview()}
-            disabled={selectedCount === 0}
-            className="cursor-pointer rounded-xl bg-theme-500 px-5 py-2 text-sm font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Ajouter
-          </button>
-        </div>
+      <div key={tab} className="animate-fade-in-up">
+        {tab === 'exercises' ? (
+          <ExerciseList
+            exercises={library?.exercises ?? []}
+            isLoading={library === null && !loadError}
+            loadError={loadError}
+            latest={latest}
+            onCreate={(name, kind) => void create(name, kind)}
+            renderAction={(exercise) => (
+              <SelectToggle
+                selected={selectedExerciseIds.has(exercise.id)}
+                onToggle={() => toggleExercise(exercise.id)}
+              />
+            )}
+          />
+        ) : (
+          <TemplateList
+            templates={library?.templates ?? []}
+            isLoading={library === null && !loadError}
+            loadError={loadError}
+            latest={latest}
+            renderAction={(template) => (
+              <SelectToggle
+                selected={selectedTemplateIds.has(template.id)}
+                onToggle={() => toggleTemplate(template.id)}
+              />
+            )}
+          />
+        )}
       </div>
 
-      <TrainingDayDialog
-        dialogRef={dialogRef}
-        sessionKey={review.key}
-        day={day}
-        isEdit={false}
-        initialItems={review.items}
-        history={library?.workouts ?? []}
-        onSaved={onAdded}
-      />
-    </>
+      <div className="sticky bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 mx-3 flex items-center justify-between gap-3 rounded-2xl border border-theme-200 bg-surface p-3 shadow-lg md:mx-auto md:w-full md:max-w-md">
+        <span className="text-sm text-theme-600">
+          {selectedCount === 0
+            ? 'Aucune sélection'
+            : `${selectedCount} sélectionné${selectedCount > 1 ? 's' : ''}`}
+        </span>
+        <button
+          type="button"
+          onClick={() => void openReview()}
+          disabled={selectedCount === 0}
+          className="cursor-pointer rounded-xl bg-theme-500 px-5 py-2 text-sm font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Suivant
+        </button>
+      </div>
+    </div>
   );
 }

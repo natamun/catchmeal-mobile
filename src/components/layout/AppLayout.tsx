@@ -1,9 +1,10 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { Outlet, useLocation } from 'react-router';
+import { matchPath, Outlet, useLocation } from 'react-router';
 
 import { useSwipeTabs } from '../../hooks/useSwipeTabs';
 import { PATHS } from '../../routing/paths';
 import { ToastProvider } from '../ui/ToastProvider';
+import { FlowLayer } from './FlowLayer';
 import { Nav } from './Nav';
 
 /** The tabs, kept mounted once opened so going back to one is instant. */
@@ -37,8 +38,8 @@ const LOADING = (
  * Frame of every page: navigation, the pages and the toasts. The tabs
  * sit side by side as a carousel and stay mounted: switching tab keeps each
  * one's data, state and scroll, and the app prepares them all right after it
- * opens. The tabs off screen cannot be focused or touched. Other pages
- * (adding to the journal) come through the Outlet, over the hidden carousel.
+ * opens. The tabs off screen cannot be focused or touched. Adding to the
+ * journal comes through the Outlet, in a FlowLayer over the journal.
  */
 export function AppLayout() {
   const { pathname } = useLocation();
@@ -47,6 +48,10 @@ export function AppLayout() {
   useSwipeTabs(mainRef, trackRef, TAB_PATHS);
 
   const activeIndex = TAB_PATHS.indexOf(pathname);
+  // Adding to the journal slides in over it, the journal staying behind.
+  const isFlow =
+    pathname === PATHS.trainingAdd ||
+    matchPath(PATHS.journalAdd, pathname) !== null;
   const [areAllPrepared, setAreAllPrepared] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setAreAllPrepared(true), PREPARE_DELAY_MS);
@@ -64,7 +69,7 @@ export function AppLayout() {
         >
           <div
             ref={trackRef}
-            hidden={activeIndex === -1}
+            hidden={activeIndex === -1 && !isFlow}
             className="flex h-full will-change-transform"
           >
             {TABS.map(({ path, Page }, index) => (
@@ -83,7 +88,7 @@ export function AppLayout() {
               </div>
             ))}
           </div>
-          {activeIndex === -1 && (
+          {activeIndex === -1 && !isFlow && (
             <div className={SCROLLER}>
               <div className={PAGE}>
                 <Suspense fallback={LOADING}>
@@ -94,6 +99,13 @@ export function AppLayout() {
           )}
         </main>
       </div>
+      {isFlow && (
+        <FlowLayer key={pathname}>
+          <Suspense fallback={LOADING}>
+            <Outlet />
+          </Suspense>
+        </FlowLayer>
+      )}
     </ToastProvider>
   );
 }

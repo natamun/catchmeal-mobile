@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Navigate, useParams, useSearchParams } from 'react-router';
 
 import { DailyMealPicker } from '../components/home/DailyMealPicker';
+import { useFlow } from '../components/layout/flowContext';
 import { useToast } from '../components/ui/toastContext';
 import {
   journalPath,
@@ -23,6 +24,7 @@ export default function JournalAddPage() {
   const date = useMemo(() => parseDateParam(dateParam), [dateParam]);
   const mealType = mealTypeFromSlug(slug);
   const backToJournal = useGoBack(journalPath(date));
+  const flow = useFlow();
 
   if (!mealType) {
     return <Navigate to={PATHS.home} replace />;
@@ -32,10 +34,10 @@ export default function JournalAddPage() {
     <DailyMealPicker
       mealType={mealType}
       date={date}
-      onClose={backToJournal}
+      onClose={() => flow.close(backToJournal)}
       onAdded={() => {
         showToast('Ajouté au journal');
-        backToJournal();
+        flow.close(backToJournal);
       }}
     />
   );

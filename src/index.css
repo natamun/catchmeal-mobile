@@ -81,8 +81,40 @@
   }
 }
 
+@keyframes page-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes page-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateX(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @theme {
   /* Animations */
+  --animate-page-in: page-in 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+  --animate-page-out: page-out 0.22s ease-in forwards;
+  --animate-step-in: step-in 0.2s ease-out;
   --animate-fade-in-up: fade-in-up 0.15s ease-out;
   --animate-fade-out: fade-out 0.1s ease-in;
   --animate-delayed-reveal: delayed-reveal 0.15s ease-out 0.25s backwards;
