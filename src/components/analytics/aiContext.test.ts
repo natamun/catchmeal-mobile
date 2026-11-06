@@ -260,15 +260,18 @@ describe('buildAiContext', () => {
       );
     });
 
-    it('sums up the sessions of the period with their calories', () => {
+    it('sums up the sessions of the period, without calories', () => {
       const text = build({ workouts: [LEG_DAY], weighIns: WEIGH_INS });
 
       expect(text).toContain('- Séances : 1, 1 h au total');
-      // Treadmill 211 + strength 40 min at 3.5 METs and 80 kg = 133.
-      expect(text).toContain('- Dépense estimée des séances : 344 kcal');
       expect(text).toContain(
-        '| mar. 03/11 | 1 h | Presse à cuisses : 8×100, 10×92,5 kg ; Tapis de course : 20 min à 5 km/h, pente 12 % | ≈ 344 kcal |',
+        '| mar. 03/11 | 1 h | Presse à cuisses : 8×100, 10×92,5 kg ; Tapis de course : 20 min à 5 km/h, pente 12 % |',
       );
+      const sport = text.slice(
+        text.indexOf('## Sport'),
+        text.indexOf('## Détail'),
+      );
+      expect(sport).not.toContain('kcal');
     });
 
     it('leaves out the sessions outside the period', () => {
@@ -279,34 +282,17 @@ describe('buildAiContext', () => {
       expect(text).toContain('- Aucune séance sur la période');
     });
 
-    it('warns not to count the sessions twice with a measured expenditure', () => {
+    it('warns not to add calories to a measured expenditure', () => {
       const text = build({
         workouts: [LEG_DAY],
         measured: { kcal: 2450, loggedDays: 24, weighIns: 8 },
       });
 
-      expect(text).toContain('ne les ajoute pas une deuxième fois');
+      expect(text).toContain('ne leur ajoute pas de calories');
     });
 
     it('gives no warning without a measured expenditure', () => {
-      expect(build({ workouts: [LEG_DAY] })).not.toContain('deuxième fois');
-    });
-
-    it('gives no calories without any weigh-in', () => {
-      const text = build({ workouts: [LEG_DAY] });
-
-      expect(text).not.toContain('Dépense estimée des séances');
-      expect(text).toContain('| mar. 03/11 | 1 h |');
-      expect(text).toMatch(/12 % \| – \|/);
-    });
-
-    it('flags a session that only counted its cardio', () => {
-      const text = build({
-        workouts: [{ ...LEG_DAY, durationMinutes: null }],
-        weighIns: WEIGH_INS,
-      });
-
-      expect(text).toContain('≈ 211 kcal (cardio seul)');
+      expect(build({ workouts: [LEG_DAY] })).not.toContain('ne leur ajoute');
     });
 
     it('sums up a long period week by week', () => {
@@ -320,8 +306,8 @@ describe('buildAiContext', () => {
         weighIns: WEIGH_INS,
       });
 
-      expect(text).toContain('| 01/09 → 07/09 | 2 | 2 h | ≈ 688 kcal |');
-      expect(text).toContain('| 08/09 → 14/09 | 0 | – | – |');
+      expect(text).toContain('| 01/09 → 07/09 | 2 | 2 h |');
+      expect(text).toContain('| 08/09 → 14/09 | 0 | – |');
     });
   });
 });

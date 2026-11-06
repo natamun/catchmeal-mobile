@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { listExercises, listWorkouts } from '../components/fitness/api';
 import { ExerciseDialog } from '../components/fitness/ExerciseDialog';
@@ -6,10 +6,8 @@ import { ExerciseList } from '../components/fitness/ExerciseList';
 import type { Exercise, Workout } from '../components/fitness/types';
 import { WorkoutDialog } from '../components/fitness/WorkoutDialog';
 import { WorkoutList } from '../components/fitness/WorkoutList';
-import { getWeightHistory, type WeightEntry } from '../components/profile/api';
 import { AddCircleButton } from '../components/ui/AddCircleButton';
 import { PillTabs } from '../components/ui/PillTabs';
-import { weightOn } from '../data/workoutEnergy';
 import { useDataVersion } from '../hooks/useDataVersion';
 
 type Tab = 'sessions' | 'exercises';
@@ -60,7 +58,6 @@ export default function FitnessPage() {
   const [activeTab, setActiveTab] = useState<Tab>('sessions');
   const workouts = useList(listWorkouts);
   const exercises = useList(listExercises);
-  const weighIns = useList<WeightEntry>(getWeightHistory);
 
   const workoutDialogRef = useRef<HTMLDialogElement>(null);
   const [workoutDialog, setWorkoutDialog] = useState<{
@@ -72,11 +69,6 @@ export default function FitnessPage() {
     exercise: Exercise | null;
     openCount: number;
   }>({ exercise: null, openCount: 0 });
-
-  const weightOnDay = useCallback(
-    (day: string) => weightOn(weighIns.items, day),
-    [weighIns.items],
-  );
 
   const openWorkout = (workout: Workout | null) => {
     setWorkoutDialog(({ openCount }) => ({
@@ -115,7 +107,6 @@ export default function FitnessPage() {
             onRetry={workouts.retry}
             headerAction={<AddCircleButton onClick={() => openWorkout(null)} />}
             onEdit={openWorkout}
-            weightOn={weightOnDay}
           />
         ) : (
           <ExerciseList
@@ -138,7 +129,6 @@ export default function FitnessPage() {
         openCount={workoutDialog.openCount}
         workout={workoutDialog.workout}
         exercises={exercises.items}
-        weightOn={weightOnDay}
       />
       <ExerciseDialog
         dialogRef={exerciseDialogRef}

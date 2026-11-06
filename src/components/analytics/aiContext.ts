@@ -1,5 +1,4 @@
 import { weightTrend, type MeasuredExpenditure } from '../../data/energy';
-import { estimateWorkoutKcal, weightOn } from '../../data/workoutEnergy';
 import { startOfDay, toDateKey } from '../../utils/dateKey';
 import { formatKg, formatMinutes } from '../../utils/format';
 import type { Workout, WorkoutItem } from '../fitness/types';
@@ -41,7 +40,7 @@ export interface AiContextInput {
   measured: MeasuredExpenditure | null;
   /**
    * Every weigh-in: the latest gives the weight even without one in the
-   * period, and each session's calories use the weight of its day.
+   * period.
    */
   weighIns: readonly WeighIn[];
   /** The training sessions; those of the period are summed up. */
@@ -248,14 +247,13 @@ function describeItem(item: WorkoutItem) {
 }
 
 /**
- * The sessions of the period: how many, their time and estimated calories,
- * then one row per session up to 31 days, or per week beyond. A measured
- * expenditure already holds them: the AI is told not to add them again.
+ * The sessions of the period: how many and their time, then one row per
+ * session up to 31 days, or per week beyond. Their calories are not given: a
+ * measured expenditure already holds the training, the AI is told so.
  */
 function sportLines(
   calendar: string[],
   allWorkouts: readonly Workout[],
-  weighIns: readonly WeighIn[],
   measured: MeasuredExpenditure | null,
   isDaily: boolean,
 ) {
@@ -265,59 +263,35 @@ function sportLines(
     .sort((a, b) => a.performedOn.localeCompare(b.performedOn) || a.id - b.id);
   if (workouts.length === 0) return ['- Aucune séance sur la période'];
 
-  const energyOf = (workout: Workout) => {
-    const weight = weightOn(weighIns, workout.performedOn);
-    return weight === null ? null : estimateWorkoutKcal(workout, weight);
-  };
   const minutesOf = (list: Workout[]) =>
     list.reduce((sum, { durationMinutes }) => sum + (durationMinutes ?? 0), 0);
-  const kcalOf = (list: Workout[]) => {
-    const energies = list.map(energyOf);
-    return energies.every((energy) => energy === null)
-      ? null
-      : energies.reduce((sum, energy) => sum + (energy?.kcal ?? 0), 0);
-  };
 
   const minutes = minutesOf(workouts);
-  const kcal = kcalOf(workouts);
   const lines = [
     `- Séances : ${workouts.length}${minutes > 0 ? `, ${formatMinutes(minutes)} au total` : ''}`,
   ];
-  if (kcal !== null) {
-    lines.push(
-      `- Dépense estimée des séances : ${kcal} kcal au-dessus du repos (équations de l'ACSM pour le tapis, METs du Compendium pour le reste)`,
-    );
-  }
   if (measured) {
     lines.push(
-      '- Ma dépense mesurée plus haut inclut déjà ces séances : ne les ajoute pas une deuxième fois',
+      '- Ma dépense mesurée plus haut inclut déjà ces séances : ne leur ajoute pas de calories',
     );
   }
 
   if (isDaily) {
     lines.push(
       '',
-      '| Jour | Durée | Exercices | Dépense estimée |',
-      '|---|---|---|---|',
+      '| Jour | Durée | Exercices |',
+      '|---|---|---|',
       ...workouts.map((workout) => {
-        const energy = energyOf(workout);
-        const spent = energy
-          ? `≈ ${energy.kcal} kcal${energy.isPartial ? ' (cardio seul)' : ''}`
-          : NONE;
         const duration = workout.durationMinutes
           ? formatMinutes(workout.durationMinutes)
           : NONE;
-        return `| ${weekdayDate(workout.performedOn)} | ${duration} | ${inCell(workout.items.map(describeItem).join(' ; '))} | ${spent} |`;
+        return `| ${weekdayDate(workout.performedOn)} | ${duration} | ${inCell(workout.items.map(describeItem).join(' ; '))} |`;
       }),
     );
     return lines;
   }
 
-  lines.push(
-    '',
-    '| Semaine | Séances | Durée | Dépense estimée |',
-    '|---|---|---|---|',
-  );
+  lines.push('', '| Semaine | Séances | Durée |', '|---|---|---|');
   for (let index = 0; index < calendar.length; index += 7) {
     const week = calendar.slice(index, index + 7);
     const inWeek = workouts.filter(
@@ -325,9 +299,8 @@ function sportLines(
         performedOn >= week[0] && performedOn <= week.at(-1)!,
     );
     const weekMinutes = minutesOf(inWeek);
-    const weekKcal = kcalOf(inWeek);
     lines.push(
-      `| ${shortDate(week[0])} → ${shortDate(week.at(-1)!)} | ${inWeek.length} | ${weekMinutes > 0 ? formatMinutes(weekMinutes) : NONE} | ${weekKcal === null || inWeek.length === 0 ? NONE : `≈ ${weekKcal} kcal`} |`,
+      `| ${shortDate(week[0])} → ${shortDate(week.at(-1)!)} | ${inWeek.length} | ${weekMinutes > 0 ? formatMinutes(weekMinutes) : NONE} |`,
     );
   }
   return lines;
@@ -402,7 +375,7 @@ export function buildAiContext({
     ...period,
     '',
     '## Sport sur la période',
-    ...sportLines(calendar, workouts, allWeighIns, measured, isDaily),
+    ...sportLines(calendar, workouts, measured, isDaily),
     '',
     isDaily
       ? '## Détail par jour'

@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 
-import { estimateWorkoutKcal } from '../../data/workoutEnergy';
 import { startOfDay } from '../../utils/dateKey';
 import { formatWeekday } from '../../utils/format';
 import { EditIconButton } from '../ui/EditIconButton';
@@ -15,7 +14,6 @@ interface Props {
   onRetry: () => void;
   headerAction: ReactNode;
   onEdit: (workout: Workout) => void;
-  weightOn: (day: string) => number | null;
 }
 
 /** "50 min · Presse à cuisses, Tapis de course" */
@@ -30,8 +28,7 @@ function describe(workout: Workout) {
 }
 
 /**
- * The sessions, the newest first: the day, the duration and exercises, and
- * the calories they burnt, estimated from the weight of that day.
+ * The sessions, the newest first: the day, the duration and the exercises.
  */
 export function WorkoutList({
   workouts,
@@ -40,7 +37,6 @@ export function WorkoutList({
   onRetry,
   headerAction,
   onEdit,
-  weightOn,
 }: Props) {
   return (
     <ListCard
@@ -61,9 +57,6 @@ export function WorkoutList({
 
       <ul className="divide-y divide-theme-200">
         {workouts.map((workout) => {
-          const weight = weightOn(workout.performedOn);
-          const energy =
-            weight === null ? null : estimateWorkoutKcal(workout, weight);
           return (
             <li
               key={workout.id}
@@ -77,11 +70,6 @@ export function WorkoutList({
                   {describe(workout)}
                 </p>
               </div>
-              {energy && energy.kcal > 0 && (
-                <span className="shrink-0 rounded-full bg-theme-50 px-2.5 py-0.5 text-sm font-semibold text-theme-800">
-                  ≈ {energy.kcal} kcal
-                </span>
-              )}
               <EditIconButton onClick={() => onEdit(workout)} />
             </li>
           );

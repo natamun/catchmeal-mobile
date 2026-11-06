@@ -3,26 +3,21 @@ import { Dumbbell } from 'lucide-react';
 import { formatMinutes } from '../../utils/format';
 import { summarizeWorkouts } from '../fitness/progress';
 import type { Workout } from '../fitness/types';
-import type { WeightEntry } from '../profile/api';
 import { Skeleton } from '../ui/Skeleton';
 import { SummaryCard } from '../ui/SummaryCard';
 
 interface Props {
   workouts: Workout[];
-  weighIns: WeightEntry[];
   isLoading?: boolean;
 }
 
 /**
- * Training over the period: the number of sessions, with their time and the
- * calories they burnt beside it.
+ * Training over the period: the number of sessions, with their time beside
+ * it.
  */
-export function TrainingCard({ workouts, weighIns, isLoading = false }: Props) {
-  const { sessions, minutes, kcal } = summarizeWorkouts(workouts, weighIns);
-  const details = [
-    minutes > 0 && formatMinutes(minutes),
-    kcal !== null && kcal > 0 && `≈ ${kcal} kcal`,
-  ].filter(Boolean);
+export function TrainingCard({ workouts, isLoading = false }: Props) {
+  const { sessions, minutes } = summarizeWorkouts(workouts);
+  const details = [minutes > 0 && formatMinutes(minutes)].filter(Boolean);
 
   return (
     <SummaryCard title="Sport">

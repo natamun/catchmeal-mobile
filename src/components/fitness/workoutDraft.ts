@@ -186,34 +186,3 @@ export function draftToInput(
     throw error;
   }
 }
-
-/**
- * The session as typed so far, to estimate its calories while it is being
- * written: the fields not filled in yet count as nothing.
- */
-export function previewWorkout(
-  performedOn: string,
-  duration: string,
-  items: ItemDraft[],
-): Workout {
-  const valueOf = (text: string) => {
-    const value = parseDecimal(text);
-    return value === null || Number.isNaN(value) || value <= 0 ? null : value;
-  };
-  return {
-    id: 0,
-    performedOn,
-    durationMinutes: valueOf(duration),
-    items: items.map((item, index) => ({
-      id: index,
-      exerciseId: item.exerciseId,
-      exerciseName: item.name,
-      kind: item.kind,
-      met: item.met,
-      sets: [],
-      durationMinutes: valueOf(item.duration),
-      speedKmh: valueOf(item.speed),
-      inclinePercent: valueOf(item.incline) ?? 0,
-    })),
-  };
-}

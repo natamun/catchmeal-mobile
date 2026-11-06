@@ -54,7 +54,6 @@ export default function StatsPage() {
             <WeightVariation days={days} isLoading={isLoading} />
             <TrainingCard
               workouts={training.workouts}
-              weighIns={training.weighIns}
               isLoading={training.isLoading}
             />
           </div>

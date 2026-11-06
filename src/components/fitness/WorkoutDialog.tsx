@@ -2,7 +2,6 @@ import { useId, useRef, useState, type RefObject } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { Plus, X } from 'lucide-react';
 
-import { estimateWorkoutKcal } from '../../data/workoutEnergy';
 import { startOfDay, toDateKey } from '../../utils/dateKey';
 import { failureMessage } from '../../utils/failureMessage';
 import { formatDayMonth } from '../../utils/format';
@@ -24,7 +23,6 @@ import {
   draftFor,
   draftsOf,
   draftToInput,
-  previewWorkout,
   type ItemDraft,
   type SetDraft,
 } from './workoutDraft';
@@ -193,7 +191,6 @@ function ItemEditor({ item, onChange, onRemove }: ItemEditorProps) {
 interface FormProps {
   workout: Workout | null;
   exercises: Exercise[];
-  weightOn: (day: string) => number | null;
   dialogNode: HTMLDialogElement | null;
   onSaved: () => void;
   hasDeleteFailed: boolean;
@@ -206,7 +203,6 @@ interface FormProps {
 function WorkoutForm({
   workout,
   exercises,
-  weightOn,
   dialogNode,
   onSaved,
   hasDeleteFailed,
@@ -232,15 +228,6 @@ function WorkoutForm({
     (exercise) => !exercise.archived && matchesSearch(exercise.name, search),
   );
   const isSearchOpen = isSearchFocused && results.length > 0;
-
-  const weight = weightOn(performedOn);
-  const energy =
-    weight === null
-      ? null
-      : estimateWorkoutKcal(
-          previewWorkout(performedOn, duration, items),
-          weight,
-        );
 
   const addExercise = async (exercise: Exercise) => {
     setSearch('');
@@ -373,23 +360,6 @@ function WorkoutForm({
       )}
 
       <div className="flex flex-col gap-3 border-t border-theme-100 pt-5">
-        <div className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-theme-200 px-3 py-1.5">
-          <span className="text-sm text-theme-600">Dépense estimée</span>
-          <span className="shrink-0 rounded-full bg-theme-50 px-3 py-1 text-base font-semibold text-theme-800">
-            {energy ? `≈ ${energy.kcal} kcal` : '–'}
-          </span>
-        </div>
-        {weight === null && (
-          <p className="text-xs text-theme-500">
-            Ajoute une pesée pour estimer la dépense.
-          </p>
-        )}
-        {energy?.isPartial && (
-          <p className="text-xs text-theme-500">
-            Indique la durée de la séance pour compter la musculation.
-          </p>
-        )}
-
         {error && <p className="text-sm text-red-500">{error}</p>}
         {hasDeleteFailed && (
           <p className="text-sm text-red-500">
@@ -414,7 +384,6 @@ interface Props {
   openCount: number;
   workout: Workout | null;
   exercises: Exercise[];
-  weightOn: (day: string) => number | null;
 }
 
 /** Dialog to log a training session, or to edit or delete one. */
@@ -423,7 +392,6 @@ export function WorkoutDialog({
   openCount,
   workout,
   exercises,
-  weightOn,
 }: Props) {
   const confirmDialogRef = useRef<HTMLDialogElement>(null);
   const showToast = useToast();
@@ -463,7 +431,6 @@ export function WorkoutDialog({
           key={openCount}
           workout={workout}
           exercises={exercises}
-          weightOn={weightOn}
           dialogNode={dialogNode}
           hasDeleteFailed={hasDeleteFailed}
           onSaved={() => dialogRef.current?.close()}

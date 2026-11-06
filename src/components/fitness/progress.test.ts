@@ -41,23 +41,13 @@ const session = (
 ): Workout => ({ id: 1, performedOn, durationMinutes, items });
 
 describe('summarizeWorkouts', () => {
-  it('counts the sessions, their minutes and calories', () => {
-    const summary = summarizeWorkouts(
-      [
+  it('counts the sessions and the minutes of those with a duration', () => {
+    expect(
+      summarizeWorkouts([
         session('2026-11-03', 45, press(80)),
         session('2026-11-05', null, ROWER),
-      ],
-      [{ weight: 80, loggedAt: new Date(2026, 10, 1).toISOString() }],
-    );
-
-    // 45 min of strength: 2.5 x 80 x 0.75 = 150; rower: 6 x 80 / 6 = 80.
-    expect(summary).toEqual({ sessions: 2, minutes: 45, kcal: 230 });
-  });
-
-  it('gives no calories without any weigh-in', () => {
-    expect(
-      summarizeWorkouts([session('2026-11-03', 45, press(80))], []),
-    ).toEqual({ sessions: 1, minutes: 45, kcal: null });
+      ]),
+    ).toEqual({ sessions: 2, minutes: 45 });
   });
 });
 

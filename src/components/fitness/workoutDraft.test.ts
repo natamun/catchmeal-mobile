@@ -5,7 +5,6 @@ import {
   draftFor,
   draftsOf,
   draftToInput,
-  previewWorkout,
   type ItemDraft,
 } from './workoutDraft';
 
@@ -255,21 +254,5 @@ describe('draftToInput', () => {
     ],
   ])('refuses %s', (_, day, duration, items, message) => {
     expect(draftToInput(day, duration, items)).toEqual({ error: message });
-  });
-});
-
-describe('previewWorkout', () => {
-  it('counts the fields not filled in yet as nothing', () => {
-    const preview = previewWorkout('2026-11-05', '', [
-      walkDraft('20', '', ''),
-      strengthDraft(['8', '80']),
-    ]);
-
-    expect(preview.durationMinutes).toBeNull();
-    expect(preview.items[0]).toMatchObject({
-      durationMinutes: 20,
-      speedKmh: null,
-      inclinePercent: 0,
-    });
   });
 });

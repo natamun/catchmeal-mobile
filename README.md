@@ -129,7 +129,7 @@ erDiagram
 
 A meal line stores the calories and macros computed when the meal is saved, so editing or archiving a food later leaves past meals unchanged.
 
-The calories of a session are not stored: they are estimated when shown, above rest, from the weight of that day (the ACSM equations for the treadmill, METs from the Compendium of Physical Activities for the rest). They are never added to the goals, because the measured expenditure already holds the training.
+Training sessions are a logbook: their calories are neither estimated nor added to the goals, because the measured expenditure already holds the training.
 
 ## Building and installing
 
