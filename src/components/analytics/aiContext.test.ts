@@ -65,6 +65,7 @@ const build = (input: Partial<AiContextInput> = {}) =>
     days: [],
     profile: PROFILE,
     measured: null,
+    latestWeighIn: null,
     today: TODAY,
     ...input,
   });
@@ -76,6 +77,20 @@ describe('buildAiContext', () => {
     expect(text).toContain('- Activité : Modérément actif');
     expect(text).toContain('- Objectif : Perdre du gras, poids cible 72 kg');
     expect(text).not.toContain('1995');
+  });
+
+  it('gives the latest weigh-in, even from before the period', () => {
+    const text = build({
+      latestWeighIn: {
+        weight: 75.2,
+        loggedAt: new Date(2026, 9, 30, 8).toISOString(),
+      },
+    });
+    expect(text).toContain('- Dernière pesée : 75,2 kg, le 30 oct. 2026');
+  });
+
+  it('gives no latest weigh-in without any', () => {
+    expect(build()).not.toContain('Dernière pesée');
   });
 
   it('gives the goals as the ones set by the person', () => {
