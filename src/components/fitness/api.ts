@@ -37,6 +37,17 @@ export async function listWorkouts(signal?: AbortSignal) {
   return list;
 }
 
+/** The sessions between two days (YYYY-MM-DD, included), the newest first. */
+export async function listWorkoutsBetween(
+  from: string,
+  to: string,
+  signal?: AbortSignal,
+) {
+  const list = await workouts.listWorkouts(await getDatabase(), { from, to });
+  throwIfAborted(signal);
+  return list;
+}
+
 /** Saves a new session. */
 export async function createWorkout(input: WorkoutInput) {
   return changing(workouts.createWorkout(await getDatabase(), input));
