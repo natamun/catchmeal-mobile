@@ -141,7 +141,7 @@ export function BirthDatePicker({ id, label, value, onChange }: Props) {
             <CalendarTrigger
               isOpen={isOpen}
               onClose={() => pickerRef.current?.setOpen(false)}
-              className="w-full rounded-xl border border-theme-200 bg-surface px-4 py-2.5 text-left text-sm text-theme-800 transition-colors hover:bg-theme-50 data-[open=true]:bg-theme-50"
+              className="w-full rounded-xl border border-theme-200 bg-surface px-4 py-2.75 text-left text-base text-theme-800 transition-colors hover:bg-theme-50 data-[open=true]:bg-theme-50"
             >
               {selected ? (
                 selected.toLocaleDateString('fr-FR')

@@ -14,7 +14,7 @@ import type { OffProduct } from './types';
 const BarcodeScannerDialog = lazy(() => import('./BarcodeScannerDialog'));
 
 const ICON_BUTTON_CLASS =
-  'flex w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-theme-200 text-theme-600 transition-colors hover:bg-theme-50 disabled:cursor-not-allowed disabled:opacity-60';
+  'flex w-12 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-theme-200 text-theme-600 transition-colors hover:bg-theme-50 disabled:cursor-not-allowed disabled:opacity-60';
 
 const OFF_URL = 'https://world.openfoodfacts.org';
 

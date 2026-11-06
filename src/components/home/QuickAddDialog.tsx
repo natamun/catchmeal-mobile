@@ -136,7 +136,7 @@ export function QuickAddDialog({
               <button
                 id="quick-add-meal-type"
                 type="button"
-                className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-theme-200 bg-surface px-4 py-2.5 text-sm text-theme-800 transition-colors hover:bg-theme-50 data-[state=open]:bg-theme-50"
+                className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-theme-200 bg-surface px-4 py-2.75 text-base text-theme-800 transition-colors hover:bg-theme-50 data-[state=open]:bg-theme-50"
               >
                 {MEAL_TYPE_LABELS[mealType]}
                 <ChevronRight

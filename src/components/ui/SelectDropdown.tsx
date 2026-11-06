@@ -11,7 +11,7 @@ interface Option {
 
 const SIZE = {
   md: {
-    trigger: 'rounded-xl px-4 py-2.5 text-sm',
+    trigger: 'rounded-xl px-4 py-2.75 text-base',
     width: 'w-full',
     icon: 'h-4 w-4',
     option: 'px-4 py-2 text-sm',
