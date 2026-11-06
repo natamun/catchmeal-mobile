@@ -8,6 +8,7 @@ import {
   suggestGoalType,
   type GoalType,
 } from '../../data/goals';
+import { useDataVersion } from '../../hooks/useDataVersion';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { Skeleton } from '../ui/Skeleton';
 import { StatTile } from '../ui/StatTile';
@@ -40,6 +41,7 @@ export function GoalsCard({ profile, latestEntry, onReady }: Props) {
   // undefined while it is read, null when there is not enough journal.
   const [measured, setMeasured] = useState<MeasuredExpenditure | null>();
   const isLoading = latestEntry === undefined || measured === undefined;
+  const version = useDataVersion();
   const latestWeight = latestEntry?.weight;
 
   // A new weigh-in can change the measure: read it again with each one.
@@ -55,7 +57,7 @@ export function GoalsCard({ profile, latestEntry, onReady }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [latestEntry]);
+  }, [latestEntry, version]);
 
   const isMeasureRead = measured !== undefined;
   useEffect(() => {

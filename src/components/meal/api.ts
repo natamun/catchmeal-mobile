@@ -1,3 +1,4 @@
+import { changing } from '../../data/changes';
 import { throwIfAborted } from '../../data/errors';
 import * as meals from '../../data/meals';
 import { getDatabase } from '../../db/appDatabase';
@@ -25,15 +26,15 @@ export async function listMealsOnDate(dateKey: string, signal?: AbortSignal) {
  * (without them).
  */
 export async function createMeal(input: MealInput) {
-  return meals.createMeal(await getDatabase(), input);
+  return changing(meals.createMeal(await getDatabase(), input));
 }
 
 /** Saves a meal; sending `items` replaces all the meal's items. */
 export async function updateMeal(id: number, input: Partial<MealInput>) {
-  return meals.updateMeal(await getDatabase(), id, input);
+  return changing(meals.updateMeal(await getDatabase(), id, input));
 }
 
 /** Meals are really deleted, they are not archived like foods. */
 export async function deleteMeal(id: number) {
-  return meals.deleteMeal(await getDatabase(), id);
+  return changing(meals.deleteMeal(await getDatabase(), id));
 }

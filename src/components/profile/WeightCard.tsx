@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { useDataVersion } from '../../hooks/useDataVersion';
 import { formatKg } from '../../utils/format';
 import { AddCircleButton } from '../ui/AddCircleButton';
 import { EditIconButton } from '../ui/EditIconButton';
@@ -50,6 +51,7 @@ interface Props {
 export function WeightCard({ height, onLatestEntry }: Props) {
   const [history, setHistory] = useState<WeightEntry[] | null>(null);
   const [hasError, setHasError] = useState(false);
+  const version = useDataVersion();
   const [attempt, setAttempt] = useState(0);
   const [dialog, setDialog] = useState<{
     entry: WeightEntry | null;
@@ -73,7 +75,7 @@ export function WeightCard({ height, onLatestEntry }: Props) {
       });
 
     return () => controller.abort();
-  }, [onLatestEntry, attempt]);
+  }, [onLatestEntry, attempt, version]);
 
   const retry = () => {
     setHasError(false);

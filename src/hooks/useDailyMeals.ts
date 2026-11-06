@@ -5,6 +5,7 @@ import type { FoodItem } from '../components/food/types';
 import { listMealsOnDate } from '../components/meal/api';
 import type { Meal } from '../components/meal/types';
 import { toDateKey } from '../utils/dateKey';
+import { useDataVersion } from './useDataVersion';
 
 const PREFETCH_DELAY_MS = 200;
 const NO_MEALS: Meal[] = [];
@@ -36,6 +37,7 @@ export function useDailyMeals(date: Date) {
   // One controller for the whole life of the hook: a day still loading when the
   // user moves on is kept, it is only cancelled when the page closes.
   const lifetime = useRef<AbortController | null>(null);
+  const version = useDataVersion();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -46,7 +48,7 @@ export function useDailyMeals(date: Date) {
         setFoodsError('Impossible de charger les aliments.');
       });
     return () => controller.abort();
-  }, [foodsAttempt]);
+  }, [foodsAttempt, version]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -85,6 +87,16 @@ export function useDailyMeals(date: Date) {
         if (!signal?.aborted) pending.current.delete(dayKey);
       });
   }, []);
+
+  // After a change elsewhere, the cached days are out of date: read the shown
+  // one again (its old meals stay on screen meanwhile) and forget the others.
+  const seenVersion = useRef(version);
+  useEffect(() => {
+    if (seenVersion.current === version) return;
+    seenVersion.current = version;
+    loaded.current.clear();
+    loadDay(dateKey);
+  }, [version, dateKey, loadDay]);
 
   useEffect(() => {
     if (!loaded.current.has(dateKey)) loadDay(dateKey);

@@ -4,6 +4,7 @@ import {
   restoreBackup,
   type Backup,
 } from '../../data/backup';
+import { changing } from '../../data/changes';
 import { getDatabase } from '../../db/appDatabase';
 import { shareBackupFile } from '../../native/backupFile';
 import { toDateKey } from '../../utils/dateKey';
@@ -24,5 +25,5 @@ export async function readBackupFile(file: File) {
 
 /** Replaces all the data with the backup, all or nothing. */
 export async function restoreData(backup: Backup) {
-  return restoreBackup(await getDatabase(), backup);
+  return changing(restoreBackup(await getDatabase(), backup));
 }

@@ -15,6 +15,7 @@ import { useProfile } from '../components/profile/profileContext';
 import { DateNavigator } from '../components/ui/DateNavigator';
 import { useToast } from '../components/ui/toastContext';
 import { useDailyMeals } from '../hooks/useDailyMeals';
+import { useDataVersion } from '../hooks/useDataVersion';
 import {
   journalAddPath,
   journalPath,
@@ -36,6 +37,7 @@ interface SectionEdit {
  */
 export default function HomePage() {
   const { profile } = useProfile();
+  const version = useDataVersion();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const dateParam = searchParams.get('date');
@@ -57,7 +59,7 @@ export default function HomePage() {
         if (!controller.signal.aborted) setWeightError(true);
       });
     return () => controller.abort();
-  }, []);
+  }, [version]);
 
   const dayTotals = meals.reduce(
     (acc, meal) => {

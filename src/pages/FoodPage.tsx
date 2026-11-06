@@ -12,6 +12,7 @@ import { AddCircleButton } from '../components/ui/AddCircleButton';
 import { EditIconButton } from '../components/ui/EditIconButton';
 import { PillTabs } from '../components/ui/PillTabs';
 import { MACROS } from '../constants/macros';
+import { useDataVersion } from '../hooks/useDataVersion';
 import { useDelayedUnmount } from '../hooks/useDelayedUnmount';
 import { useSupportsHover } from '../hooks/useSupportsHover';
 
@@ -64,6 +65,7 @@ export default function FoodPage() {
   const [editingItem, setEditingItem] = useState<FoodItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const version = useDataVersion();
   const [foodsAttempt, setFoodsAttempt] = useState(0);
   const [meals, setMeals] = useState<Meal[]>([]);
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
@@ -105,7 +107,7 @@ export default function FoodPage() {
         }
       });
     return () => controller.abort();
-  }, [foodsAttempt]);
+  }, [foodsAttempt, version]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -121,7 +123,7 @@ export default function FoodPage() {
         }
       });
     return () => controller.abort();
-  }, [mealsAttempt]);
+  }, [mealsAttempt, version]);
 
   const openDialog = (item: FoodItem | null) => {
     setEditingItem(item);

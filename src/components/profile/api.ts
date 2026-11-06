@@ -1,3 +1,4 @@
+import { changing } from '../../data/changes';
 import { measureExpenditure } from '../../data/energy';
 import { throwIfAborted } from '../../data/errors';
 import * as profileData from '../../data/profile';
@@ -62,22 +63,22 @@ export async function getProfile() {
 
 /** Saves the profile fields that changed. */
 export async function updateProfile(input: UpdateProfileInput) {
-  return profileData.updateProfile(await getDatabase(), input);
+  return changing(profileData.updateProfile(await getDatabase(), input));
 }
 
 /** Corrects a weigh-in. */
 export async function updateWeight(entryId: number, input: LogWeightInput) {
-  return weights.updateWeight(await getDatabase(), entryId, input);
+  return changing(weights.updateWeight(await getDatabase(), entryId, input));
 }
 
 /** Deletes a weigh-in. */
 export async function deleteWeight(entryId: number) {
-  return weights.deleteWeight(await getDatabase(), entryId);
+  return changing(weights.deleteWeight(await getDatabase(), entryId));
 }
 
 /** Records a new weigh-in, dated now. */
 export async function logWeight(input: LogWeightInput) {
-  return weights.logWeight(await getDatabase(), input);
+  return changing(weights.logWeight(await getDatabase(), input));
 }
 
 /** Every weigh-in, the most recent first. */

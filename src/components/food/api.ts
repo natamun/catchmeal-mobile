@@ -1,3 +1,4 @@
+import { changing } from '../../data/changes';
 import { throwIfAborted } from '../../data/errors';
 import * as foodItems from '../../data/foodItems';
 import { createOffLookup } from '../../data/openFoodFacts';
@@ -17,12 +18,12 @@ export async function listFoodItems(signal?: AbortSignal) {
 
 /** Adds a food to the library. */
 export async function createFoodItem(input: FoodItemInput) {
-  return foodItems.createFoodItem(await getDatabase(), input);
+  return changing(foodItems.createFoodItem(await getDatabase(), input));
 }
 
 /** Saves the edited food. */
 export async function updateFoodItem(id: number, input: FoodItemInput) {
-  return foodItems.updateFoodItem(await getDatabase(), id, input);
+  return changing(foodItems.updateFoodItem(await getDatabase(), id, input));
 }
 
 /**
@@ -30,7 +31,7 @@ export async function updateFoodItem(id: number, input: FoodItemInput) {
  * data.
  */
 export async function deleteFoodItem(id: number) {
-  return foodItems.archiveFoodItem(await getDatabase(), id);
+  return changing(foodItems.archiveFoodItem(await getDatabase(), id));
 }
 
 /**
