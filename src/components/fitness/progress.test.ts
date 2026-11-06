@@ -38,7 +38,7 @@ const session = (
   performedOn: string,
   durationMinutes: number | null,
   ...items: WorkoutItem[]
-): Workout => ({ id: 1, performedOn, durationMinutes, items });
+): Workout => ({ id: 1, performedOn, name: null, durationMinutes, items });
 
 describe('summarizeWorkouts', () => {
   it('counts the sessions and the minutes of those with a duration', () => {

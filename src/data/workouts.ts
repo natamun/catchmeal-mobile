@@ -8,7 +8,12 @@ import type {
 } from '../components/fitness/types';
 import type { Database, Executor, SqlValue } from '../db/database';
 import { DataError } from './errors';
-import { checkDateOnly, checkNumber, checkOptionalNumber } from './validation';
+import {
+  checkDateOnly,
+  checkNumber,
+  checkOptionalNumber,
+  checkOptionalText,
+} from './validation';
 
 const GONE = "Cette séance n'existe plus.";
 const MISSING_EXERCISE = "Un des exercices n'existe plus.";
@@ -32,6 +37,7 @@ export interface WorkoutFilter {
 interface WorkoutRow {
   id: number;
   performed_on: string;
+  name: string | null;
   duration_minutes: number | null;
 }
 
@@ -186,7 +192,7 @@ function toItem(row: ItemRow, sets: SetRow[]): WorkoutItem {
 /** Reads sessions with their lines and sets, in three queries in all. */
 async function readWorkouts(db: Executor, where: string, params: SqlValue[]) {
   const workouts = await db.query<WorkoutRow>(
-    `SELECT id, performed_on, duration_minutes FROM workout WHERE ${where}
+    `SELECT id, performed_on, name, duration_minutes FROM workout WHERE ${where}
      ORDER BY performed_on DESC, id DESC`,
     params,
   );
@@ -209,6 +215,7 @@ async function readWorkouts(db: Executor, where: string, params: SqlValue[]) {
   return workouts.map((workout): Workout => ({
     id: workout.id,
     performedOn: workout.performed_on,
+    name: workout.name,
     durationMinutes: workout.duration_minutes,
     items: items
       .filter((item) => item.workout_id === workout.id)
@@ -224,6 +231,7 @@ async function readWorkout(db: Executor, id: number) {
 function checkInput(input: WorkoutInput) {
   return {
     performedOn: checkDateOnly(input.performedOn, 'date'),
+    name: checkOptionalText(input.name, 'nom de la séance', 80),
     durationMinutes: checkOptionalNumber(
       input.durationMinutes,
       'durée de la séance',
@@ -254,8 +262,8 @@ export async function createWorkout(db: Database, input: WorkoutInput) {
   return db.transaction(async (tx) => {
     const values = await buildItems(tx, workout.items);
     const { lastId } = await tx.run(
-      'INSERT INTO workout (performed_on, duration_minutes) VALUES (?, ?)',
-      [workout.performedOn, workout.durationMinutes],
+      'INSERT INTO workout (performed_on, name, duration_minutes) VALUES (?, ?, ?)',
+      [workout.performedOn, workout.name, workout.durationMinutes],
     );
     await insertItems(tx, lastId, values);
     return readWorkout(tx, lastId);
@@ -280,8 +288,8 @@ export async function updateWorkout(
     const values = await buildItems(tx, workout.items);
 
     await tx.run(
-      'UPDATE workout SET performed_on = ?, duration_minutes = ? WHERE id = ?',
-      [workout.performedOn, workout.durationMinutes, id],
+      'UPDATE workout SET performed_on = ?, name = ?, duration_minutes = ? WHERE id = ?',
+      [workout.performedOn, workout.name, workout.durationMinutes, id],
     );
     await tx.run('DELETE FROM workout_exercise WHERE workout_id = ?', [id]);
     await insertItems(tx, id, values);

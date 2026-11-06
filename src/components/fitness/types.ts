@@ -48,10 +48,14 @@ export interface WorkoutItem {
   inclinePercent: number | null;
 }
 
-/** A training session on a day (YYYY-MM-DD), its exercises in order. */
+/**
+ * A training session on a day (YYYY-MM-DD), its exercises in order. Its
+ * name is the favorite it was started from, or none.
+ */
 export interface Workout {
   id: number;
   performedOn: string;
+  name: string | null;
   durationMinutes: number | null;
   items: WorkoutItem[];
 }
@@ -66,6 +70,40 @@ export interface WorkoutItemInput {
 
 export interface WorkoutInput {
   performedOn: string;
+  name?: string | null;
   durationMinutes: number | null;
   items: WorkoutItemInput[];
+}
+
+/**
+ * An exercise of a favorite session: a cardio one may set its duration,
+ * speed and incline; a strength one starts from the last time it was done.
+ */
+export interface TemplateItem {
+  id: number;
+  exerciseId: number;
+  exerciseName: string;
+  kind: ExerciseKind;
+  durationMinutes: number | null;
+  speedKmh: number | null;
+  inclinePercent: number | null;
+}
+
+/** A favorite session ("Full body"), to start a session from in one go. */
+export interface WorkoutTemplate {
+  id: number;
+  name: string;
+  items: TemplateItem[];
+}
+
+export interface TemplateItemInput {
+  exerciseId: number;
+  durationMinutes?: number | null;
+  speedKmh?: number | null;
+  inclinePercent?: number | null;
+}
+
+export interface WorkoutTemplateInput {
+  name: string;
+  items: TemplateItemInput[];
 }

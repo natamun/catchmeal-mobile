@@ -105,6 +105,7 @@ describe('draftsOf', () => {
     const drafts = draftsOf({
       id: 4,
       performedOn: '2026-11-05',
+      name: null,
       durationMinutes: 60,
       items: [lastTime({ id: 12, sets: [{ reps: 8, weightKg: 100 }] })],
     });

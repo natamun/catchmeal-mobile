@@ -221,6 +221,7 @@ describe('buildAiContext', () => {
     const LEG_DAY: Workout = {
       id: 1,
       performedOn: '2026-11-03',
+      name: null,
       durationMinutes: 60,
       items: [
         {
