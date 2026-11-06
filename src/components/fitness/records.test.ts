@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { exerciseHistory, newRecords, strengthRecord } from './records';
+import {
+  exerciseHistory,
+  latestItems,
+  newRecords,
+  strengthRecord,
+} from './records';
 import type { Workout, WorkoutItem } from './types';
 
 const press = (...sets: [number, number][]): WorkoutItem => ({
@@ -21,7 +26,7 @@ const session = (
   id: number,
   performedOn: string,
   ...items: WorkoutItem[]
-): Workout => ({ id, performedOn, name: null, durationMinutes: 50, items });
+): Workout => ({ id, performedOn, items });
 
 const HISTORY = [
   session(3, '2026-11-05', press([12, 100], [10, 110])),
@@ -37,6 +42,19 @@ describe('exerciseHistory', () => {
       ['2026-11-05', 3],
       ['2026-10-29', 1],
     ]);
+  });
+});
+
+describe('latestItems', () => {
+  it('keeps the newest line of each exercise', () => {
+    const latest = latestItems(HISTORY);
+
+    expect(latest.get(1)?.sets).toEqual([
+      { reps: 12, weightKg: 100 },
+      { reps: 10, weightKg: 110 },
+    ]);
+    expect(latest.get(2)?.sets).toEqual([{ reps: 10, weightKg: 30 }]);
+    expect(latest.has(9)).toBe(false);
   });
 });
 
