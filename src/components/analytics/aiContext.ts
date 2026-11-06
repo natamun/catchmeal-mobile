@@ -1,7 +1,7 @@
 import { weightTrend, type MeasuredExpenditure } from '../../data/energy';
 import { estimateWorkoutKcal, weightOn } from '../../data/workoutEnergy';
 import { startOfDay, toDateKey } from '../../utils/dateKey';
-import { formatKg } from '../../utils/format';
+import { formatKg, formatMinutes } from '../../utils/format';
 import type { Workout, WorkoutItem } from '../fitness/types';
 import type { Profile } from '../profile/api';
 import { getAge } from '../profile/bmr';
@@ -226,16 +226,6 @@ function weeklyTable(
     '|---|---|---|---|---|---|---|',
     ...rows,
   ];
-}
-
-/** "1 h 30" or "45 min". */
-function formatMinutes(minutes: number) {
-  const hours = Math.floor(minutes / 60);
-  const rest = Math.round(minutes % 60);
-  if (hours === 0) return `${rest} min`;
-  return rest === 0
-    ? `${hours} h`
-    : `${hours} h ${String(rest).padStart(2, '0')}`;
 }
 
 /** A table cell must not hold the column separator. */

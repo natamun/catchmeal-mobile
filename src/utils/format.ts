@@ -44,3 +44,13 @@ export function formatSince(isoDate: string, today = new Date()) {
   });
   return `Le ${day}`;
 }
+
+/** "1 h 30" or "45 min". */
+export function formatMinutes(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const rest = Math.round(minutes % 60);
+  if (hours === 0) return `${rest} min`;
+  return rest === 0
+    ? `${hours} h`
+    : `${hours} h ${String(rest).padStart(2, '0')}`;
+}
