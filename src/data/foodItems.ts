@@ -12,11 +12,7 @@ import {
   checkText,
 } from './validation';
 
-export const QUANTITY_UNITS: readonly QuantityUnit[] = [
-  'GRAM',
-  'MILLILITER',
-  'PIECE',
-];
+const QUANTITY_UNITS: readonly QuantityUnit[] = ['GRAM', 'MILLILITER', 'PIECE'];
 
 const BARCODE = /^\d{8,14}$/;
 
@@ -59,7 +55,7 @@ function toFoodItem(row: FoodItemRow): FoodItem {
  * Checks a food before saving it and returns it cleaned: name and brand
  * trimmed, an empty brand or barcode stored as null. Throws a DataError.
  */
-export function validateFoodItem(input: FoodItemInput): FoodItemInput {
+function validateFoodItem(input: FoodItemInput): FoodItemInput {
   const barcode = checkOptionalText(input.barcode, 'code-barres', 14);
   if (barcode !== null && !BARCODE.test(barcode)) {
     throw new DataError('Valeur invalide : code-barres.');

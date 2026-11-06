@@ -3,16 +3,16 @@ import { THEME_IDS } from '../components/theme/themeList';
 import type { Database, Executor, SqlValue } from '../db/database';
 import { checkChoice, checkDateOnly, checkOptionalNumber } from './validation';
 
-export const GENDERS = ['MALE', 'FEMALE', 'OTHER'] as const;
+const GENDERS = ['MALE', 'FEMALE', 'OTHER'] as const;
 
-export const GOAL_TYPES = [
+const GOAL_TYPES = [
   'LOSE_FAT',
   'LOSE_WEIGHT',
   'MAINTAIN',
   'GAIN_MUSCLE',
 ] as const;
 
-export const ACTIVITY_LEVELS = [
+const ACTIVITY_LEVELS = [
   'SEDENTARY',
   'LIGHTLY_ACTIVE',
   'MODERATELY_ACTIVE',

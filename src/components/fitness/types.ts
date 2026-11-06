@@ -2,13 +2,6 @@ import type { ExerciseKind } from '../../db/starterExercises';
 
 export type { ExerciseKind };
 
-/** Name of each kind of exercise, as the screens show it. */
-export const KIND_LABELS: Record<ExerciseKind, string> = {
-  STRENGTH: 'Musculation',
-  TREADMILL: 'Tapis de course',
-  CARDIO: 'Cardio',
-};
-
 /**
  * An exercise of the user's library. An archived exercise is hidden but kept
  * for the past sessions.

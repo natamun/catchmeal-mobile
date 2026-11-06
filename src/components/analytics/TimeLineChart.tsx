@@ -31,7 +31,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const [LINE_COLOR] = SERIES_COLORS;
 
 /** One point of the line: a value at a moment (ms). */
-export interface TimePoint {
+interface TimePoint {
   value: number;
   time: number;
 }

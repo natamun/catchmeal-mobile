@@ -2,7 +2,7 @@
 export type SqlValue = string | number | null;
 
 /** What a statement that changes data reports. */
-export interface RunResult {
+interface RunResult {
   /** Number of rows inserted, updated or deleted. */
   changes: number;
   /** Id of the last inserted row. */

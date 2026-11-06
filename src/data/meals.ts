@@ -1,9 +1,10 @@
-import type {
-  Meal,
-  MealFoodItem,
-  MealInput,
-  MealItemInput,
-  MealType,
+import {
+  MEAL_TYPES,
+  type Meal,
+  type MealFoodItem,
+  type MealInput,
+  type MealItemInput,
+  type MealType,
 } from '../components/meal/types';
 import type { Database, Executor, SqlValue } from '../db/database';
 import { DataError } from './errors';
@@ -13,13 +14,6 @@ import {
   checkNumber,
   checkOptionalText,
 } from './validation';
-
-export const MEAL_TYPES: readonly MealType[] = [
-  'BREAKFAST',
-  'LUNCH',
-  'DINNER',
-  'SNACK',
-];
 
 const GONE = "Ce repas n'existe plus.";
 const MISSING_FOOD = "Un des aliments n'existe plus.";

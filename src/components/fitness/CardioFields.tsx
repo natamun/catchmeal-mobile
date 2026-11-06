@@ -34,7 +34,7 @@ function CardioField({
   );
 }
 
-export interface CardioValues {
+interface CardioValues {
   duration: string;
   speed: string;
   incline: string;

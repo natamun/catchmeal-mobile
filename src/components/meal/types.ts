@@ -1,5 +1,13 @@
 export type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
 
+/** The meal types in the order of the day. */
+export const MEAL_TYPES: readonly MealType[] = [
+  'BREAKFAST',
+  'LUNCH',
+  'DINNER',
+  'SNACK',
+];
+
 export const MEAL_TYPE_LABELS: Record<MealType, string> = {
   BREAKFAST: 'Petit-déjeuner',
   LUNCH: 'Déjeuner',

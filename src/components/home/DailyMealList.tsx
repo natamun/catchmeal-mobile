@@ -2,13 +2,16 @@ import { useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
 
 import type { FoodItem } from '../food/types';
-import { MEAL_TYPE_LABELS, type Meal, type MealType } from '../meal/types';
+import {
+  MEAL_TYPE_LABELS,
+  MEAL_TYPES,
+  type Meal,
+  type MealType,
+} from '../meal/types';
 import { AddCircleButton } from '../ui/AddCircleButton';
 import { EditIconButton } from '../ui/EditIconButton';
 import { ListCard } from '../ui/ListCard';
 import { LoadError } from '../ui/LoadError';
-
-const MEAL_TYPES: MealType[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
 
 interface JournalRow {
   key: string;

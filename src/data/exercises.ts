@@ -7,7 +7,7 @@ import type { Database, Executor } from '../db/database';
 import { DataError } from './errors';
 import { checkChoice, checkText } from './validation';
 
-export const EXERCISE_KINDS: readonly ExerciseKind[] = [
+const EXERCISE_KINDS: readonly ExerciseKind[] = [
   'STRENGTH',
   'TREADMILL',
   'CARDIO',
@@ -37,7 +37,7 @@ const byName = (a: { name: string }, b: { name: string }) =>
   a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
 
 /** Checks an exercise before saving it; the name comes back trimmed. */
-export function validateExercise(input: ExerciseInput): ExerciseInput {
+function validateExercise(input: ExerciseInput): ExerciseInput {
   return {
     name: checkText(input.name, 'nom', 80),
     kind: checkChoice(input.kind, 'type', EXERCISE_KINDS),

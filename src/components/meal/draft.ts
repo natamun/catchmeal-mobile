@@ -63,7 +63,7 @@ export function mealToItems(
  * Adds `extra` to `base`: a food present in both becomes one line with the
  * quantities added up.
  */
-export function mergeDrafts(
+function mergeDrafts(
   base: MealItemDraft[],
   extra: MealItemDraft[],
 ): MealItemDraft[] {

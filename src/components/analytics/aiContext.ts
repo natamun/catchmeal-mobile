@@ -14,7 +14,7 @@ import { ACTIVITY_OPTIONS, GENDER_OPTIONS } from '../profile/profileOptions';
 import type { DashboardDay } from './types';
 
 /** Up to this many days the detail is day by day, then week by week. */
-export const DAILY_DETAIL_MAX_DAYS = 31;
+const DAILY_DETAIL_MAX_DAYS = 31;
 /** The weight trend needs a few weigh-ins spread over a week at least. */
 const MIN_TREND_WEIGH_INS = 3;
 const MIN_TREND_SPAN_DAYS = 7;

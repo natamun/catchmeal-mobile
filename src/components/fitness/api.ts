@@ -53,13 +53,6 @@ export async function listWorkoutsBetween(
   return list;
 }
 
-/** The session of a day (YYYY-MM-DD), or null. */
-export async function getDay(day: string, signal?: AbortSignal) {
-  const workout = await workouts.getDay(await getDatabase(), day);
-  throwIfAborted(signal);
-  return workout;
-}
-
 /**
  * Adds exercises to the session of a day; those the day already holds stay
  * as they are.
