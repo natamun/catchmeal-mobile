@@ -23,32 +23,16 @@ function formatDate(isoDate: string) {
   });
 }
 
-/** BMI = weight / height² (in meters), with its WHO category. */
-function describeBmi(weight: number, height: number) {
-  const bmi = weight / (height / 100) ** 2;
-  const category =
-    bmi < 18.5
-      ? 'Insuffisance pondérale'
-      : bmi < 25
-        ? 'Poids normal'
-        : bmi < 30
-          ? 'Surpoids'
-          : 'Obésité';
-
-  return `IMC ${formatKg(bmi)} · ${category}`;
-}
-
 interface Props {
-  height?: number | null;
   onLatestEntry?: (entry: WeightEntry | null) => void;
 }
 
 /**
- * Body composition card: latest weigh-in and BMI, the history, and a dialog to
+ * Body composition card: latest weigh-in, the history, and a dialog to
  * add, correct or delete a weigh-in. It reports the latest weigh-in to the
  * page, which GoalsCard needs.
  */
-export function WeightCard({ height, onLatestEntry }: Props) {
+export function WeightCard({ onLatestEntry }: Props) {
   const [history, setHistory] = useState<WeightEntry[] | null>(null);
   const [hasError, setHasError] = useState(false);
   const version = useDataVersion();
@@ -146,11 +130,6 @@ export function WeightCard({ height, onLatestEntry }: Props) {
                 <p className="mt-1 text-sm text-theme-600">
                   Dernière pesée le {formatDate(latest.loggedAt)}
                 </p>
-                {height ? (
-                  <p className="text-sm text-theme-600">
-                    {describeBmi(latest.weight, height)}
-                  </p>
-                ) : null}
               </div>
               <dl className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-4">
                 {COMPOSITION.map(({ key, label, unit }) => (

@@ -26,7 +26,7 @@ export default function ProfilePage() {
     >
       <ProfileCard profile={profile} onUpdate={updateProfile} />
 
-      <WeightCard height={profile.height} onLatestEntry={setLatestEntry} />
+      <WeightCard onLatestEntry={setLatestEntry} />
 
       <GoalsCard
         profile={profile}
