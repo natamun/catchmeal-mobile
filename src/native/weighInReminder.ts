@@ -14,7 +14,7 @@ export async function isReminderOn() {
 /**
  * Schedules a notification every Sunday at 8:00, once allowed to notify.
  * The alarm is not exact, so Android never sends the user to its alarm
- * settings: the reminder may come a few minutes late. Returns false when
+ * settings: Samsung delivers it within an hour after 8:00. Returns false when
  * notifications are refused.
  */
 export async function enableReminder() {
