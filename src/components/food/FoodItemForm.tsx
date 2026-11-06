@@ -350,7 +350,7 @@ export function FoodItemForm({
 
             <div className="relative flex flex-col gap-1.5 sm:flex-1">
               <label htmlFor="food-brand" className={LABEL_CLASS}>
-                Marque (optionnel)
+                Marque
               </label>
               <Input
                 id="food-brand"
@@ -396,9 +396,7 @@ export function FoodItemForm({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <p className={LABEL_CLASS}>
-              Valeurs nutritionnelles (pour cette quantité)
-            </p>
+            <p className={LABEL_CLASS}>Valeurs nutritionnelles</p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {MACRO_FIELDS.map(({ field, label }) => (
                 <div key={field} className="relative flex flex-col gap-1">
