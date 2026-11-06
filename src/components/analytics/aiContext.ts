@@ -1,6 +1,8 @@
 import { weightTrend, type MeasuredExpenditure } from '../../data/energy';
+import { estimateWorkoutKcal, weightOn } from '../../data/workoutEnergy';
 import { startOfDay, toDateKey } from '../../utils/dateKey';
 import { formatKg } from '../../utils/format';
+import type { Workout, WorkoutItem } from '../fitness/types';
 import type { Profile } from '../profile/api';
 import { getAge } from '../profile/bmr';
 import { GOAL_TYPE_OPTIONS } from '../profile/goalTypes';
@@ -24,6 +26,11 @@ const MEASURES = [
 
 const NONE = '–';
 
+interface WeighIn {
+  weight: number;
+  loggedAt: string;
+}
+
 export interface AiContextInput {
   /** The period, as YYYY-MM-DD, both days included. */
   from: string;
@@ -32,8 +39,13 @@ export interface AiContextInput {
   days: DashboardDay[];
   profile: Profile;
   measured: MeasuredExpenditure | null;
-  /** The latest weigh-in of all, so the weight is known even without one in the period. */
-  latestWeighIn: { weight: number; loggedAt: string } | null;
+  /**
+   * Every weigh-in: the latest gives the weight even without one in the
+   * period, and each session's calories use the weight of its day.
+   */
+  weighIns: readonly WeighIn[];
+  /** The training sessions; those of the period are summed up. */
+  workouts: readonly Workout[];
   today?: Date;
 }
 
@@ -86,10 +98,7 @@ const average = (values: number[]) =>
 const cell = (value: number | null, format = (n: number) => String(n)) =>
   value === null ? NONE : format(Math.round(value * 10) / 10);
 
-function profileLines(
-  profile: Profile,
-  latestWeighIn: AiContextInput['latestWeighIn'],
-) {
+function profileLines(profile: Profile, latestWeighIn: WeighIn | undefined) {
   const person = [
     profile.gender && labelOf(GENDER_OPTIONS, profile.gender),
     profile.birthDate && `${getAge(profile.birthDate)} ans`,
@@ -219,10 +228,126 @@ function weeklyTable(
   ];
 }
 
+/** "1 h 30" or "45 min". */
+function formatMinutes(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const rest = Math.round(minutes % 60);
+  if (hours === 0) return `${rest} min`;
+  return rest === 0
+    ? `${hours} h`
+    : `${hours} h ${String(rest).padStart(2, '0')}`;
+}
+
+/** A table cell must not hold the column separator. */
+const inCell = (text: string) => text.replaceAll('|', '/');
+
+/**
+ * "Presse à cuisses : 8×100, 10×90 kg", "Tapis de course : 20 min à 5 km/h,
+ * pente 12 %" or "Rameur : 10 min".
+ */
+function describeItem(item: WorkoutItem) {
+  if (item.kind === 'STRENGTH') {
+    const sets = item.sets
+      .map((set) => `${set.reps}×${formatKg(set.weightKg)}`)
+      .join(', ');
+    return `${item.exerciseName} : ${sets} kg`;
+  }
+  const minutes = `${formatKg(item.durationMinutes ?? 0)} min`;
+  if (item.kind === 'CARDIO') return `${item.exerciseName} : ${minutes}`;
+  return `${item.exerciseName} : ${minutes} à ${formatKg(item.speedKmh ?? 0)} km/h, pente ${formatKg(item.inclinePercent ?? 0)} %`;
+}
+
+/**
+ * The sessions of the period: how many, their time and estimated calories,
+ * then one row per session up to 31 days, or per week beyond. A measured
+ * expenditure already holds them: the AI is told not to add them again.
+ */
+function sportLines(
+  calendar: string[],
+  allWorkouts: readonly Workout[],
+  weighIns: readonly WeighIn[],
+  measured: MeasuredExpenditure | null,
+  isDaily: boolean,
+) {
+  const [first, last] = [calendar[0], calendar.at(-1)!];
+  const workouts = allWorkouts
+    .filter(({ performedOn }) => performedOn >= first && performedOn <= last)
+    .sort((a, b) => a.performedOn.localeCompare(b.performedOn) || a.id - b.id);
+  if (workouts.length === 0) return ['- Aucune séance sur la période'];
+
+  const energyOf = (workout: Workout) => {
+    const weight = weightOn(weighIns, workout.performedOn);
+    return weight === null ? null : estimateWorkoutKcal(workout, weight);
+  };
+  const minutesOf = (list: Workout[]) =>
+    list.reduce((sum, { durationMinutes }) => sum + (durationMinutes ?? 0), 0);
+  const kcalOf = (list: Workout[]) => {
+    const energies = list.map(energyOf);
+    return energies.every((energy) => energy === null)
+      ? null
+      : energies.reduce((sum, energy) => sum + (energy?.kcal ?? 0), 0);
+  };
+
+  const minutes = minutesOf(workouts);
+  const kcal = kcalOf(workouts);
+  const lines = [
+    `- Séances : ${workouts.length}${minutes > 0 ? `, ${formatMinutes(minutes)} au total` : ''}`,
+  ];
+  if (kcal !== null) {
+    lines.push(
+      `- Dépense estimée des séances : ${kcal} kcal au-dessus du repos (équations de l'ACSM pour le tapis, METs du Compendium pour le reste)`,
+    );
+  }
+  if (measured) {
+    lines.push(
+      '- Ma dépense mesurée plus haut inclut déjà ces séances : ne les ajoute pas une deuxième fois',
+    );
+  }
+
+  if (isDaily) {
+    lines.push(
+      '',
+      '| Jour | Durée | Exercices | Dépense estimée |',
+      '|---|---|---|---|',
+      ...workouts.map((workout) => {
+        const energy = energyOf(workout);
+        const spent = energy
+          ? `≈ ${energy.kcal} kcal${energy.isPartial ? ' (cardio seul)' : ''}`
+          : NONE;
+        const duration = workout.durationMinutes
+          ? formatMinutes(workout.durationMinutes)
+          : NONE;
+        return `| ${weekdayDate(workout.performedOn)} | ${duration} | ${inCell(workout.items.map(describeItem).join(' ; '))} | ${spent} |`;
+      }),
+    );
+    return lines;
+  }
+
+  lines.push(
+    '',
+    '| Semaine | Séances | Durée | Dépense estimée |',
+    '|---|---|---|---|',
+  );
+  for (let index = 0; index < calendar.length; index += 7) {
+    const week = calendar.slice(index, index + 7);
+    const inWeek = workouts.filter(
+      ({ performedOn }) =>
+        performedOn >= week[0] && performedOn <= week.at(-1)!,
+    );
+    const weekMinutes = minutesOf(inWeek);
+    const weekKcal = kcalOf(inWeek);
+    lines.push(
+      `| ${shortDate(week[0])} → ${shortDate(week.at(-1)!)} | ${inWeek.length} | ${weekMinutes > 0 ? formatMinutes(weekMinutes) : NONE} | ${weekKcal === null || inWeek.length === 0 ? NONE : `≈ ${weekKcal} kcal`} |`,
+    );
+  }
+  return lines;
+}
+
 /**
  * A summary of a period to paste into an AI chat: the profile (age, never the
- * birth date) with the latest weigh-in, the goals set, the measured expenditure, the period's averages
- * and measures, then the detail, day by day up to 31 days and week by week
+ * birth date) with the latest weigh-in, the goals set, the measured
+ * expenditure, the period's averages and measures, its training sessions,
+ * then the detail, day by day up to 31 days and week by week
  * beyond. Today's meals are left out of the averages: the day is not over.
  * It ends on "Ma question :" for the question to be typed after it.
  */
@@ -232,9 +357,13 @@ export function buildAiContext({
   days,
   profile,
   measured,
-  latestWeighIn,
+  weighIns: allWeighIns,
+  workouts,
   today = new Date(),
 }: AiContextInput) {
+  const latestWeighIn = [...allWeighIns].sort((a, b) =>
+    b.loggedAt.localeCompare(a.loggedAt),
+  )[0];
   const todayKey = toDateKey(today);
   const calendar = calendarDays(from, to);
   const byDay = new Map(days.map((day) => [day.day, day]));
@@ -281,6 +410,9 @@ export function buildAiContext({
     '',
     `## Période du ${longDate(from)} au ${longDate(to)} (${calendar.length} jours)`,
     ...period,
+    '',
+    '## Sport sur la période',
+    ...sportLines(calendar, workouts, allWeighIns, measured, isDaily),
     '',
     isDaily
       ? '## Détail par jour'
