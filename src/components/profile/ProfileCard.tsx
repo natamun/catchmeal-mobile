@@ -19,6 +19,7 @@ import { BirthDatePicker } from './BirthDatePicker';
 import { getAge } from './bmr';
 import { GOAL_TYPE_OPTIONS } from './goalTypes';
 import { formatMeasure } from './measures';
+import { ACTIVITY_OPTIONS, GENDER_OPTIONS } from './profileOptions';
 
 interface Props {
   profile: Profile;
@@ -53,20 +54,6 @@ const GOAL_LIMITS = [
   { field: 'dailyCarbsGoal', min: 10, max: 2000, unit: 'g' },
   { field: 'dailyFatGoal', min: 10, max: 1000, unit: 'g' },
 ] as const;
-
-const GENDER_OPTIONS = [
-  { value: 'MALE', label: 'Homme' },
-  { value: 'FEMALE', label: 'Femme' },
-  { value: 'OTHER', label: 'Autre' },
-];
-
-const ACTIVITY_OPTIONS = [
-  { value: 'SEDENTARY', label: 'Sédentaire' },
-  { value: 'LIGHTLY_ACTIVE', label: 'Légèrement actif' },
-  { value: 'MODERATELY_ACTIVE', label: 'Modérément actif' },
-  { value: 'VERY_ACTIVE', label: 'Très actif' },
-  { value: 'EXTRA_ACTIVE', label: 'Extrêmement actif' },
-];
 
 /**
  * One line about the person: gender, age, height and activity, or a hint when

@@ -24,7 +24,7 @@ export interface MeasuredExpenditure {
 }
 
 /** Slope of the weight in kg per day, by least squares over the weigh-ins. */
-function weightTrend(weighIns: WeighIn[]) {
+export function weightTrend(weighIns: WeighIn[]) {
   const n = weighIns.length;
   const meanDay = weighIns.reduce((sum, w) => sum + w.day, 0) / n;
   const meanWeight = weighIns.reduce((sum, w) => sum + w.weight, 0) / n;
