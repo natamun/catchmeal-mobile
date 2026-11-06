@@ -9,7 +9,6 @@ import {
 import { NutritionAverages } from '../components/analytics/NutritionAverages';
 import { lastDays } from '../components/analytics/period';
 import { PeriodSelector } from '../components/analytics/PeriodSelector';
-import { StrengthProgressChart } from '../components/analytics/StrengthProgressChart';
 import { TrainingCard } from '../components/analytics/TrainingCard';
 import { WeeklySessionsChart } from '../components/analytics/WeeklySessionsChart';
 import { WeightVariation } from '../components/analytics/WeightVariation';
@@ -20,7 +19,7 @@ import { toDateKey } from '../utils/dateKey';
 
 /**
  * Stats page: a period, then averages, weight change, training, calorie
- * chart, measure chart and strength progress, and a summary to ask an AI.
+ * chart and measure chart, and a summary to ask an AI.
  */
 export default function StatsPage() {
   const [period, setPeriod] = useState(() => lastDays(7));
@@ -71,11 +70,6 @@ export default function StatsPage() {
             workouts={training.workouts}
             from={from}
             to={to}
-            isLoading={training.isLoading}
-          />
-          <StrengthProgressChart
-            workouts={training.workouts}
-            period={period}
             isLoading={training.isLoading}
           />
           <AiContextCard
