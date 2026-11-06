@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { AiContextCard } from '../components/analytics/AiContextCard';
 import { CalorieChart } from '../components/analytics/CalorieChart';
 import {
   MeasureChart,
@@ -15,7 +16,7 @@ import { toDateKey } from '../utils/dateKey';
 
 /**
  * Stats page: a period, then averages, weight change, calorie chart, measure
- * chart, all from one dashboard request.
+ * chart, all from one dashboard request, and a summary to ask an AI.
  */
 export default function StatsPage() {
   const [period, setPeriod] = useState(() => lastDays(7));
@@ -55,6 +56,12 @@ export default function StatsPage() {
             onMeasureChange={setMeasure}
             days={days}
             period={period}
+            isLoading={isLoading}
+          />
+          <AiContextCard
+            from={from}
+            to={to}
+            days={days}
             isLoading={isLoading}
           />
         </div>
