@@ -7,7 +7,10 @@ const APP = 'CatCHMeal';
  * Version of the file layout. A newer app keeps reading older files; an older
  * app refuses a newer file instead of guessing.
  */
-export const BACKUP_FORMAT = 1;
+export const BACKUP_FORMAT = 2;
+
+/** The format that added the fitness tables. */
+const FITNESS_FORMAT = 2;
 
 /** The stored columns of each table, in the order rows are restored. */
 const TABLES = {
@@ -66,6 +69,18 @@ const TABLES = {
     'objective',
     'start_date',
   ],
+  exercise: ['id', 'name', 'kind', 'met', 'archived'],
+  workout: ['id', 'performed_on', 'duration_minutes'],
+  workout_exercise: [
+    'id',
+    'workout_id',
+    'exercise_id',
+    'position',
+    'duration_minutes',
+    'speed_kmh',
+    'incline_percent',
+  ],
+  workout_set: ['id', 'workout_exercise_id', 'position', 'reps', 'weight_kg'],
 } as const;
 
 type Table = keyof typeof TABLES;
@@ -78,7 +93,33 @@ const LIST_TABLES = [
   'meal_item',
   'weight_log',
   'goal_setting',
+  'exercise',
+  'workout',
+  'workout_exercise',
+  'workout_set',
 ] as const satisfies readonly Table[];
+
+type ListTable = (typeof LIST_TABLES)[number];
+
+/** The tables a file of the first format did not have yet. */
+const FITNESS_TABLES = [
+  'exercise',
+  'workout',
+  'workout_exercise',
+  'workout_set',
+] as const satisfies readonly ListTable[];
+
+/**
+ * The tables a backup holds: all of them, or without the fitness ones for a
+ * file from before the fitness tab.
+ */
+function tablesOf(backup: Pick<Backup, 'format'>): readonly ListTable[] {
+  return backup.format >= FITNESS_FORMAT
+    ? LIST_TABLES
+    : LIST_TABLES.filter(
+        (table) => !(FITNESS_TABLES as readonly string[]).includes(table),
+      );
+}
 
 /** The content of a backup file. */
 export interface Backup {
@@ -91,6 +132,11 @@ export interface Backup {
   meal_item: Row[];
   weight_log: Row[];
   goal_setting: Row[];
+  /** The fitness tables, missing from the files of the first format. */
+  exercise?: Row[];
+  workout?: Row[];
+  workout_exercise?: Row[];
+  workout_set?: Row[];
 }
 
 /** What a restore brought back, for the confirmation message. */
@@ -98,6 +144,7 @@ export interface RestoreSummary {
   foodItems: number;
   meals: number;
   weighIns: number;
+  workouts: number;
 }
 
 const NOT_A_BACKUP = "Ce fichier n'est pas une sauvegarde CatCHMeal.";
@@ -121,6 +168,10 @@ export async function exportBackup(
     meal_item: [],
     weight_log: [],
     goal_setting: [],
+    exercise: [],
+    workout: [],
+    workout_exercise: [],
+    workout_set: [],
   };
   for (const table of LIST_TABLES) {
     backup[table] = await read(table, 'ORDER BY id');
@@ -154,9 +205,10 @@ export function parseBackup(text: string): Backup {
   const backup = content as unknown as Backup;
   if (
     !isRow(backup.profile) ||
-    LIST_TABLES.some(
-      (table) => !Array.isArray(backup[table]) || !backup[table].every(isRow),
-    )
+    tablesOf(backup).some((table) => {
+      const rows = backup[table];
+      return !Array.isArray(rows) || !rows.every(isRow);
+    })
   ) {
     throw new DataError(NOT_A_BACKUP);
   }
@@ -168,7 +220,8 @@ const valueOf = (row: Row, column: string): SqlValue => row[column] ?? null;
 
 /**
  * Replaces all the data of the app with the backup, in one transaction: when
- * one row breaks a rule of the database, nothing changes.
+ * one row breaks a rule of the database, nothing changes. A file from before
+ * the fitness tab leaves the exercises and sessions as they are.
  */
 export async function restoreBackup(
   db: Database,
@@ -176,7 +229,8 @@ export async function restoreBackup(
 ): Promise<RestoreSummary> {
   try {
     await db.transaction(async (tx) => {
-      for (const table of [...LIST_TABLES].reverse()) {
+      const tables = tablesOf(backup);
+      for (const table of [...tables].reverse()) {
         await tx.run(`DELETE FROM ${table}`);
       }
 
@@ -189,10 +243,10 @@ export async function restoreBackup(
       // Each row is inserted after the rows it points to, so a broken link is
       // refused by its own INSERT. A meal made from another meal gets that link
       // once every meal is back.
-      for (const table of LIST_TABLES) {
+      for (const table of tables) {
         const columns = TABLES[table];
         const sql = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(() => '?').join(', ')})`;
-        for (const row of backup[table]) {
+        for (const row of backup[table] ?? []) {
           await tx.run(
             sql,
             columns.map((column) =>
@@ -223,5 +277,6 @@ export async function restoreBackup(
     foodItems: backup.food_item.length,
     meals: backup.meal.filter((meal) => meal.logged_at !== null).length,
     weighIns: backup.weight_log.length,
+    workouts: backup.workout?.length ?? 0,
   };
 }
