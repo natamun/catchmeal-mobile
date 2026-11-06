@@ -1,5 +1,4 @@
 import { useRef, useState, type RefObject } from 'react';
-import { Trash2 } from 'lucide-react';
 
 import { useFormValidation } from '../../hooks/useFormValidation';
 import {
@@ -298,16 +297,8 @@ export function FoodItemForm({
       <BaseDialog
         dialogRef={dialogRef}
         title={editingItem ? 'Modifier un aliment' : 'Ajouter un aliment'}
-        headerActions={
-          editingItem && (
-            <button
-              type="button"
-              onClick={() => confirmDialogRef.current?.showModal()}
-              className="cursor-pointer text-theme-400 transition-colors hover:text-red-500"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
-          )
+        onDelete={
+          editingItem ? () => confirmDialogRef.current?.showModal() : undefined
         }
       >
         <form

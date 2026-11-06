@@ -1,5 +1,5 @@
 import { useCallback, type ReactNode, type RefObject } from 'react';
-import { X } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 
 const MAX_WIDTH_CLASS = {
   sm: 'max-w-sm',
@@ -7,11 +7,15 @@ const MAX_WIDTH_CLASS = {
   xl: 'max-w-2xl',
 } as const;
 
+const HEADER_BUTTON_CLASS =
+  'flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-theme-400 transition-colors hover:bg-theme-50 active:bg-theme-100';
+
 interface BaseDialogProps {
   dialogRef: RefObject<HTMLDialogElement | null>;
   title: string;
   maxWidth?: keyof typeof MAX_WIDTH_CLASS;
-  headerActions?: ReactNode;
+  /** Shows a trash button next to the close button. */
+  onDelete?: () => void;
   onClose?: () => void;
   onDialogNode?: (node: HTMLDialogElement | null) => void;
   children: ReactNode;
@@ -21,7 +25,7 @@ interface BaseDialogProps {
  * Modal used by every dialog of the app: a native <dialog> opened with
  * showModal(), with a title, a close button and scrollable content. A click on
  * the blurred backdrop closes it (that click lands on the <dialog> element
- * itself).
+ * itself). With `onDelete`, a trash button sits next to the close button.
  *
  * `onDialogNode` hands the <dialog> element to the dropdowns, which must render
  * inside it to stay usable above the modal.
@@ -30,7 +34,7 @@ export function BaseDialog({
   dialogRef,
   title,
   maxWidth = 'lg',
-  headerActions,
+  onDelete,
   onClose,
   onDialogNode,
   children,
@@ -63,14 +67,22 @@ export function BaseDialog({
           <h3 className="min-w-0 truncate text-lg font-bold text-theme-800">
             {title}
           </h3>
-          <div className="flex shrink-0 items-center gap-3">
-            {headerActions}
+          <div className="-my-2 -mr-2 flex shrink-0 items-center gap-2">
+            {onDelete && (
+              <button
+                type="button"
+                onClick={onDelete}
+                className={`${HEADER_BUTTON_CLASS} hover:text-red-500`}
+              >
+                <Trash2 className="h-6 w-6" />
+              </button>
+            )}
             <button
               type="button"
               onClick={closeDialog}
-              className="tap-area relative cursor-pointer text-theme-400 transition-colors hover:text-theme-600"
+              className={`${HEADER_BUTTON_CLASS} hover:text-theme-600`}
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6" />
             </button>
           </div>
         </div>

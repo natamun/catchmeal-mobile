@@ -1,5 +1,4 @@
 import { useId, useRef, useState, type RefObject } from 'react';
-import { Trash2 } from 'lucide-react';
 
 import { useFormValidation } from '../../hooks/useFormValidation';
 import {
@@ -231,16 +230,8 @@ export function WeightDialog({
         title={entry ? `Pesée du ${day}` : 'Nouvelle pesée'}
         maxWidth="sm"
         onClose={() => setHasDeleteFailed(false)}
-        headerActions={
-          entry && (
-            <button
-              type="button"
-              onClick={() => confirmDialogRef.current?.showModal()}
-              className="cursor-pointer text-theme-400 transition-colors hover:text-red-500"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
-          )
+        onDelete={
+          entry ? () => confirmDialogRef.current?.showModal() : undefined
         }
       >
         <WeightForm

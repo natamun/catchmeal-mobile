@@ -1,6 +1,5 @@
 import { useRef, useState, type RefObject } from 'react';
 import * as Popover from '@radix-ui/react-popover';
-import { Trash2 } from 'lucide-react';
 
 import { useFormValidation } from '../../hooks/useFormValidation';
 import { useTimeout } from '../../hooks/useTimeout';
@@ -234,16 +233,8 @@ export function MealForm({
         dialogRef={dialogRef}
         title={editingMeal ? 'Modifier un repas' : 'Ajouter un repas'}
         onDialogNode={setDialogNode}
-        headerActions={
-          editingMeal && (
-            <button
-              type="button"
-              onClick={() => confirmDialogRef.current?.showModal()}
-              className="cursor-pointer text-theme-400 transition-colors hover:text-red-500"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
-          )
+        onDelete={
+          editingMeal ? () => confirmDialogRef.current?.showModal() : undefined
         }
       >
         <form
