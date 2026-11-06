@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import type { Workout } from '../fitness/types';
 import type { Profile } from '../profile/api';
 import { getAge } from '../profile/bmr';
 import { buildAiContext, type AiContextInput } from './aiContext';
@@ -65,7 +66,8 @@ const build = (input: Partial<AiContextInput> = {}) =>
     days: [],
     profile: PROFILE,
     measured: null,
-    latestWeighIn: null,
+    weighIns: [],
+    workouts: [],
     today: TODAY,
     ...input,
   });
@@ -81,10 +83,10 @@ describe('buildAiContext', () => {
 
   it('gives the latest weigh-in, even from before the period', () => {
     const text = build({
-      latestWeighIn: {
-        weight: 75.2,
-        loggedAt: new Date(2026, 9, 30, 8).toISOString(),
-      },
+      weighIns: [
+        { weight: 76, loggedAt: new Date(2026, 9, 20, 8).toISOString() },
+        { weight: 75.2, loggedAt: new Date(2026, 9, 30, 8).toISOString() },
+      ],
     });
     expect(text).toContain('- Dernière pesée : 75,2 kg, le 30 oct. 2026');
   });
@@ -213,5 +215,113 @@ describe('buildAiContext', () => {
 
   it('ends on the question to type', () => {
     expect(build().endsWith('Ma question : ')).toBe(true);
+  });
+
+  describe('sport', () => {
+    const LEG_DAY: Workout = {
+      id: 1,
+      performedOn: '2026-11-03',
+      durationMinutes: 60,
+      items: [
+        {
+          id: 1,
+          exerciseId: 1,
+          exerciseName: 'Presse à cuisses',
+          kind: 'STRENGTH',
+          met: null,
+          sets: [
+            { reps: 8, weightKg: 100 },
+            { reps: 10, weightKg: 92.5 },
+          ],
+          durationMinutes: null,
+          speedKmh: null,
+          inclinePercent: null,
+        },
+        {
+          id: 2,
+          exerciseId: 2,
+          exerciseName: 'Tapis de course',
+          kind: 'TREADMILL',
+          met: null,
+          sets: [],
+          durationMinutes: 20,
+          speedKmh: 5,
+          inclinePercent: 12,
+        },
+      ],
+    };
+    const WEIGH_INS = [
+      { weight: 80, loggedAt: new Date(2026, 10, 1, 8).toISOString() },
+    ];
+
+    it('says when there was no session', () => {
+      expect(build()).toContain(
+        '## Sport sur la période\n- Aucune séance sur la période',
+      );
+    });
+
+    it('sums up the sessions of the period with their calories', () => {
+      const text = build({ workouts: [LEG_DAY], weighIns: WEIGH_INS });
+
+      expect(text).toContain('- Séances : 1, 1 h au total');
+      // Treadmill 211 + strength 40 min at 3.5 METs and 80 kg = 133.
+      expect(text).toContain('- Dépense estimée des séances : 344 kcal');
+      expect(text).toContain(
+        '| mar. 03/11 | 1 h | Presse à cuisses : 8×100, 10×92,5 kg ; Tapis de course : 20 min à 5 km/h, pente 12 % | ≈ 344 kcal |',
+      );
+    });
+
+    it('leaves out the sessions outside the period', () => {
+      const text = build({
+        workouts: [{ ...LEG_DAY, performedOn: '2026-10-25' }],
+      });
+
+      expect(text).toContain('- Aucune séance sur la période');
+    });
+
+    it('warns not to count the sessions twice with a measured expenditure', () => {
+      const text = build({
+        workouts: [LEG_DAY],
+        measured: { kcal: 2450, loggedDays: 24, weighIns: 8 },
+      });
+
+      expect(text).toContain('ne les ajoute pas une deuxième fois');
+    });
+
+    it('gives no warning without a measured expenditure', () => {
+      expect(build({ workouts: [LEG_DAY] })).not.toContain('deuxième fois');
+    });
+
+    it('gives no calories without any weigh-in', () => {
+      const text = build({ workouts: [LEG_DAY] });
+
+      expect(text).not.toContain('Dépense estimée des séances');
+      expect(text).toContain('| mar. 03/11 | 1 h |');
+      expect(text).toMatch(/12 % \| – \|/);
+    });
+
+    it('flags a session that only counted its cardio', () => {
+      const text = build({
+        workouts: [{ ...LEG_DAY, durationMinutes: null }],
+        weighIns: WEIGH_INS,
+      });
+
+      expect(text).toContain('≈ 211 kcal (cardio seul)');
+    });
+
+    it('sums up a long period week by week', () => {
+      const text = build({
+        from: '2026-09-01',
+        to: '2026-10-31',
+        workouts: [
+          { ...LEG_DAY, id: 1, performedOn: '2026-09-02' },
+          { ...LEG_DAY, id: 2, performedOn: '2026-09-04' },
+        ],
+        weighIns: WEIGH_INS,
+      });
+
+      expect(text).toContain('| 01/09 → 07/09 | 2 | 2 h | ≈ 688 kcal |');
+      expect(text).toContain('| 08/09 → 14/09 | 0 | – | – |');
+    });
   });
 });
