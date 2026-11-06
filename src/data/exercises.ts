@@ -3,7 +3,7 @@ import type {
   ExerciseInput,
   ExerciseKind,
 } from '../components/fitness/types';
-import type { Executor } from '../db/database';
+import type { Database, Executor } from '../db/database';
 import { DataError } from './errors';
 import { checkChoice, checkText } from './validation';
 
@@ -134,13 +134,20 @@ export async function updateExercise(
 
 /**
  * Archives an exercise instead of deleting it, so the sessions that use it
- * keep it.
+ * keep it. It leaves the favorite sessions: they only hold exercises of the
+ * library.
  */
-export async function archiveExercise(db: Executor, id: number) {
-  const { changes } = await db.run(
-    'UPDATE exercise SET archived = 1 WHERE id = ? AND archived = 0',
-    [id],
-  );
-  if (changes === 0) throw new DataError(GONE);
-  return (await findExercise(db, id))!;
+export async function archiveExercise(db: Database, id: number) {
+  return db.transaction(async (tx) => {
+    const { changes } = await tx.run(
+      'UPDATE exercise SET archived = 1 WHERE id = ? AND archived = 0',
+      [id],
+    );
+    if (changes === 0) throw new DataError(GONE);
+    await tx.run(
+      'DELETE FROM workout_template_exercise WHERE exercise_id = ?',
+      [id],
+    );
+    return (await findExercise(tx, id))!;
+  });
 }
