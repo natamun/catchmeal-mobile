@@ -1,13 +1,11 @@
 import { useId, useRef, useState, type RefObject } from 'react';
-import * as Popover from '@radix-ui/react-popover';
-import { Plus, X } from 'lucide-react';
+import { Plus, Star, X } from 'lucide-react';
 
-import { startOfDay, toDateKey } from '../../utils/dateKey';
+import { startOfDay } from '../../utils/dateKey';
 import { failureMessage } from '../../utils/failureMessage';
 import { formatDayMonth } from '../../utils/format';
 import { BaseDialog } from '../ui/BaseDialog';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
-import { DropdownPanel } from '../ui/DropdownPanel';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
 import { useToast } from '../ui/toastContext';
@@ -17,18 +15,19 @@ import {
   getLastPerformance,
   updateWorkout,
 } from './api';
-import { matchesSearch } from './search';
-import type { Exercise, Workout } from './types';
+import { CardioFields } from './CardioFields';
+import { ExercisePicker } from './ExercisePicker';
+import type { Exercise, Workout, WorkoutItem, WorkoutTemplate } from './types';
 import {
   draftFor,
+  draftFromTemplate,
   draftsOf,
   draftToInput,
   type ItemDraft,
   type SetDraft,
 } from './workoutDraft';
 
-const SMALL_LABEL = 'text-xs text-theme-500';
-const ICON_BUTTON =
+const REMOVE_BUTTON =
   'tap-area relative shrink-0 cursor-pointer text-theme-400 transition-colors hover:text-red-500';
 
 interface ItemEditorProps {
@@ -37,40 +36,9 @@ interface ItemEditorProps {
   onRemove: () => void;
 }
 
-/** One number field of a cardio exercise, with its label above it. */
-function CardioField({
-  label,
-  value,
-  placeholder,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  placeholder: string;
-  onChange: (value: string) => void;
-}) {
-  const id = useId();
-  return (
-    <div className="flex min-w-0 flex-col gap-1">
-      <label htmlFor={id} className={SMALL_LABEL}>
-        {label}
-      </label>
-      <Input
-        id={id}
-        type="text"
-        inputMode="decimal"
-        placeholder={placeholder}
-        className="text-center"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </div>
-  );
-}
-
 /**
  * An exercise of the session: its sets for strength, its duration for
- * cardio, with the speed and incline on a treadmill.
+ * cardio, with the speed and slope on a treadmill.
  */
 function ItemEditor({ item, onChange, onRemove }: ItemEditorProps) {
   const setSet = (index: number, set: SetDraft) =>
@@ -85,12 +53,12 @@ function ItemEditor({ item, onChange, onRemove }: ItemEditorProps) {
         <span className="min-w-0 flex-1 truncate text-base font-medium text-theme-800">
           {item.name}
         </span>
-        <button type="button" onClick={onRemove} className={ICON_BUTTON}>
+        <button type="button" onClick={onRemove} className={REMOVE_BUTTON}>
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      {item.kind === 'STRENGTH' && (
+      {item.kind === 'STRENGTH' ? (
         <>
           {item.sets.map((set, index) => (
             <div key={index} className="flex items-center gap-2">
@@ -132,7 +100,7 @@ function ItemEditor({ item, onChange, onRemove }: ItemEditorProps) {
                       sets: item.sets.filter((_, i) => i !== index),
                     })
                   }
-                  className={`${ICON_BUTTON} ml-auto`}
+                  className={`${REMOVE_BUTTON} ml-auto`}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -156,33 +124,12 @@ function ItemEditor({ item, onChange, onRemove }: ItemEditorProps) {
             Ajouter une série
           </button>
         </>
-      )}
-
-      {item.kind !== 'STRENGTH' && (
-        <div className="grid grid-cols-3 gap-2">
-          <CardioField
-            label="Durée (min)"
-            placeholder="30"
-            value={item.duration}
-            onChange={(duration) => onChange({ ...item, duration })}
-          />
-          {item.kind === 'TREADMILL' && (
-            <>
-              <CardioField
-                label="Vitesse (km/h)"
-                placeholder="5"
-                value={item.speed}
-                onChange={(speed) => onChange({ ...item, speed })}
-              />
-              <CardioField
-                label="Pente (%)"
-                placeholder="0"
-                value={item.incline}
-                onChange={(incline) => onChange({ ...item, incline })}
-              />
-            </>
-          )}
-        </div>
+      ) : (
+        <CardioFields
+          kind={item.kind}
+          values={item}
+          onChange={(values) => onChange({ ...item, ...values })}
+        />
       )}
     </li>
   );
@@ -190,6 +137,8 @@ function ItemEditor({ item, onChange, onRemove }: ItemEditorProps) {
 
 interface FormProps {
   workout: Workout | null;
+  day: string;
+  templates: WorkoutTemplate[];
   exercises: Exercise[];
   dialogNode: HTMLDialogElement | null;
   onSaved: () => void;
@@ -198,10 +147,12 @@ interface FormProps {
 
 /**
  * The form inside the dialog, remounted at each opening (key) so it starts
- * from the right session, or from an empty one dated today.
+ * from the right session, or from an empty one on `day`.
  */
 function WorkoutForm({
   workout,
+  day,
+  templates,
   exercises,
   dialogNode,
   onSaved,
@@ -209,47 +160,57 @@ function WorkoutForm({
 }: FormProps) {
   const formId = useId();
   const showToast = useToast();
-  const searchRef = useRef<HTMLInputElement>(null);
-  const [performedOn, setPerformedOn] = useState(
-    workout?.performedOn ?? toDateKey(new Date()),
-  );
+  const [performedOn, setPerformedOn] = useState(workout?.performedOn ?? day);
+  const [name, setName] = useState(workout?.name ?? '');
   const [duration, setDuration] = useState(
     workout?.durationMinutes ? String(workout.durationMinutes) : '',
   );
   const [items, setItems] = useState<ItemDraft[]>(() =>
     workout ? draftsOf(workout) : [],
   );
-  const [search, setSearch] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const results = exercises.filter(
-    (exercise) => !exercise.archived && matchesSearch(exercise.name, search),
-  );
-  const isSearchOpen = isSearchFocused && results.length > 0;
-
-  const addExercise = async (exercise: Exercise) => {
-    setSearch('');
-    searchRef.current?.blur();
-    const key = crypto.randomUUID();
-    setItems((current) => [...current, draftFor(exercise, null, key)]);
-    // Starts from the last time on this exercise, once it is read.
-    const last = await getLastPerformance(exercise.id, workout?.id).catch(
+  /** Refills a line once what was done the last time is read. */
+  const fillFromLastTime = async (
+    key: string,
+    exerciseId: number,
+    fill: (last: WorkoutItem) => ItemDraft,
+  ) => {
+    const last = await getLastPerformance(exerciseId, workout?.id).catch(
       () => null,
     );
-    if (last) {
-      setItems((current) =>
-        current.map((item) =>
-          item.key === key ? draftFor(exercise, last, key) : item,
-        ),
+    if (!last) return;
+    setItems((current) =>
+      current.map((item) => (item.key === key ? fill(last) : item)),
+    );
+  };
+
+  const addExercise = (exercise: Exercise) => {
+    const key = crypto.randomUUID();
+    setItems((current) => [...current, draftFor(exercise, null, key)]);
+    void fillFromLastTime(key, exercise.id, (last) =>
+      draftFor(exercise, last, key),
+    );
+  };
+
+  const startFrom = (template: WorkoutTemplate) => {
+    setName(template.name);
+    const drafts = template.items.map((item) => ({
+      item,
+      draft: draftFromTemplate(item, null),
+    }));
+    setItems(drafts.map(({ draft }) => draft));
+    for (const { item, draft } of drafts) {
+      void fillFromLastTime(draft.key, item.exerciseId, (last) =>
+        draftFromTemplate(item, last, draft.key),
       );
     }
   };
 
   const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const result = draftToInput({ performedOn, name: '', duration, items });
+    const result = draftToInput({ performedOn, name, duration, items });
     if ('error' in result) {
       setError(result.error);
       return;
@@ -271,6 +232,9 @@ function WorkoutForm({
     }
   };
 
+  const canStartFromFavorite =
+    !workout && items.length === 0 && templates.length > 0;
+
   return (
     <form
       onSubmit={(e) => void handleSubmit(e)}
@@ -278,6 +242,39 @@ function WorkoutForm({
       autoComplete="off"
       className="flex flex-col gap-5"
     >
+      {canStartFromFavorite && (
+        <div className="flex flex-col gap-1.5">
+          <span className={LABEL_CLASS}>Partir d&apos;une favorite</span>
+          <div className="flex flex-wrap gap-2">
+            {templates.map((template) => (
+              <button
+                key={template.id}
+                type="button"
+                onClick={() => startFrom(template)}
+                className="flex cursor-pointer items-center gap-1.5 rounded-full border border-theme-200 bg-theme-50 px-3.5 py-2 text-sm font-medium text-theme-700 transition-colors hover:bg-theme-100"
+              >
+                <Star className="h-3.5 w-3.5" />
+                {template.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor={`${formId}-name`} className={LABEL_CLASS}>
+          Nom <span className="normal-case">(facultatif)</span>
+        </label>
+        <Input
+          id={`${formId}-name`}
+          type="text"
+          placeholder="Ex : Full body"
+          maxLength={80}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <div className="flex min-w-0 flex-col gap-1.5">
           <label htmlFor={`${formId}-date`} className={LABEL_CLASS}>
@@ -305,36 +302,11 @@ function WorkoutForm({
         </div>
       </div>
 
-      <Popover.Root open={isSearchOpen} onOpenChange={() => {}}>
-        <Popover.Anchor className="flex flex-col gap-1.5">
-          <label htmlFor={`${formId}-search`} className={LABEL_CLASS}>
-            Ajouter un exercice
-          </label>
-          <Input
-            ref={searchRef}
-            id={`${formId}-search`}
-            type="text"
-            placeholder="Rechercher un exercice..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => setIsSearchFocused(false)}
-          />
-        </Popover.Anchor>
-        <DropdownPanel container={dialogNode} matchAnchorWidth>
-          {results.map((exercise) => (
-            <button
-              key={exercise.id}
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => void addExercise(exercise)}
-              className="w-full cursor-pointer border-t border-theme-100 px-4 py-2.5 text-left text-sm text-theme-800 transition-colors first:border-t-0 hover:bg-theme-50"
-            >
-              {exercise.name}
-            </button>
-          ))}
-        </DropdownPanel>
-      </Popover.Root>
+      <ExercisePicker
+        exercises={exercises}
+        dialogNode={dialogNode}
+        onPick={addExercise}
+      />
 
       {items.length > 0 && (
         <ul className="flex flex-col gap-2 border-t border-theme-100 pt-5">
@@ -366,7 +338,6 @@ function WorkoutForm({
             Impossible de supprimer la séance. Réessaie.
           </p>
         )}
-
         <button
           type="submit"
           disabled={isSubmitting}
@@ -383,14 +354,22 @@ interface Props {
   dialogRef: RefObject<HTMLDialogElement | null>;
   openCount: number;
   workout: Workout | null;
+  /** The day a new session is logged on (YYYY-MM-DD). */
+  day: string;
+  templates: WorkoutTemplate[];
   exercises: Exercise[];
 }
 
-/** Dialog to log a training session, or to edit or delete one. */
+/**
+ * Dialog to log a training session, from a favorite or from scratch, or to
+ * edit or delete one.
+ */
 export function WorkoutDialog({
   dialogRef,
   openCount,
   workout,
+  day,
+  templates,
   exercises,
 }: Props) {
   const confirmDialogRef = useRef<HTMLDialogElement>(null);
@@ -398,7 +377,9 @@ export function WorkoutDialog({
   const [dialogNode, setDialogNode] = useState<HTMLDialogElement | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [hasDeleteFailed, setHasDeleteFailed] = useState(false);
-  const day = workout ? formatDayMonth(startOfDay(workout.performedOn)) : '';
+  const dayLabel = workout
+    ? formatDayMonth(startOfDay(workout.performedOn))
+    : '';
 
   const handleDelete = async () => {
     if (!workout) return;
@@ -420,7 +401,7 @@ export function WorkoutDialog({
     <>
       <BaseDialog
         dialogRef={dialogRef}
-        title={workout ? `Séance du ${day}` : 'Nouvelle séance'}
+        title={workout ? `Séance du ${dayLabel}` : 'Nouvelle séance'}
         onDialogNode={setDialogNode}
         onClose={() => setHasDeleteFailed(false)}
         onDelete={
@@ -430,6 +411,8 @@ export function WorkoutDialog({
         <WorkoutForm
           key={openCount}
           workout={workout}
+          day={day}
+          templates={templates}
           exercises={exercises}
           dialogNode={dialogNode}
           hasDeleteFailed={hasDeleteFailed}
@@ -440,7 +423,7 @@ export function WorkoutDialog({
       <ConfirmDialog
         dialogRef={confirmDialogRef}
         title="Supprimer cette séance ?"
-        description={`La séance du ${day} sera supprimée avec ses exercices.`}
+        description={`La séance du ${dayLabel} sera supprimée avec ses exercices.`}
         confirmLabel="Supprimer"
         pendingLabel="Suppression..."
         isPending={isDeleting}
