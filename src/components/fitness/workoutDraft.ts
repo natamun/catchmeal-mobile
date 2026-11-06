@@ -4,7 +4,6 @@ import type {
   ExerciseKind,
   TemplateItem,
   Workout,
-  WorkoutInput,
   WorkoutItem,
   WorkoutItemInput,
 } from './types';
@@ -27,7 +26,7 @@ export interface ItemDraft {
   incline: string;
 }
 
-export type DraftResult = { input: WorkoutInput } | { error: string };
+export type DraftResult = { items: WorkoutItemInput[] } | { error: string };
 
 /** A number as the fields show it, with a comma; empty for null. */
 export const asText = (value: number | null | undefined) =>
@@ -180,37 +179,13 @@ function itemInput(item: ItemDraft): WorkoutItemInput {
 }
 
 /**
- * The session to save from what was typed, or the first mistake found, as a
- * message naming the exercise and the set.
+ * The exercises to save from what was typed, or the first mistake found, as a
+ * message naming the exercise and the set. An empty list is fine: it empties
+ * the day.
  */
-export function draftToInput({
-  performedOn,
-  name,
-  duration,
-  items,
-}: {
-  performedOn: string;
-  name: string;
-  duration: string;
-  items: ItemDraft[];
-}): DraftResult {
+export function draftsToItems(items: ItemDraft[]): DraftResult {
   try {
-    if (performedOn === '') throw new DraftError('Date requise');
-    if (items.length === 0) throw new DraftError('Ajoute au moins un exercice');
-    return {
-      input: {
-        performedOn,
-        name: name.trim() === '' ? null : name.trim(),
-        durationMinutes:
-          duration.trim() === ''
-            ? null
-            : readNumber(duration, 'Durée de la séance', {
-                ...MINUTES,
-                integer: true,
-              }),
-        items: items.map(itemInput),
-      },
-    };
+    return { items: items.map(itemInput) };
   } catch (error) {
     if (error instanceof DraftError) return { error: error.message };
     throw error;

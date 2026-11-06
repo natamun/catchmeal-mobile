@@ -49,14 +49,11 @@ export interface WorkoutItem {
 }
 
 /**
- * A training session on a day (YYYY-MM-DD), its exercises in order. Its
- * name is the favorite it was started from, or none.
+ * The training of a day (YYYY-MM-DD): its exercises in order, each once.
  */
 export interface Workout {
   id: number;
   performedOn: string;
-  name: string | null;
-  durationMinutes: number | null;
   items: WorkoutItem[];
 }
 
@@ -66,13 +63,6 @@ export interface WorkoutItemInput {
   durationMinutes?: number | null;
   speedKmh?: number | null;
   inclinePercent?: number | null;
-}
-
-export interface WorkoutInput {
-  performedOn: string;
-  name?: string | null;
-  durationMinutes: number | null;
-  items: WorkoutItemInput[];
 }
 
 /**

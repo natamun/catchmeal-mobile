@@ -6,7 +6,7 @@ import * as templates from '../../data/workoutTemplates';
 import { getDatabase } from '../../db/appDatabase';
 import type {
   ExerciseInput,
-  WorkoutInput,
+  WorkoutItemInput,
   WorkoutTemplateInput,
 } from './types';
 
@@ -53,34 +53,35 @@ export async function listWorkoutsBetween(
   return list;
 }
 
-/** Saves a new session. */
-export async function createWorkout(input: WorkoutInput) {
-  return changing(workouts.createWorkout(await getDatabase(), input));
-}
-
-/** Saves an edited session, its exercises replaced. */
-export async function updateWorkout(id: number, input: WorkoutInput) {
-  return changing(workouts.updateWorkout(await getDatabase(), id, input));
-}
-
-/** Deletes a session. */
-export async function deleteWorkout(id: number) {
-  return changing(workouts.deleteWorkout(await getDatabase(), id));
+/** The session of a day (YYYY-MM-DD), or null. */
+export async function getDay(day: string, signal?: AbortSignal) {
+  const workout = await workouts.getDay(await getDatabase(), day);
+  throwIfAborted(signal);
+  return workout;
 }
 
 /**
- * What was done on the exercise the last time, outside the session being
- * edited, or null.
+ * Adds exercises to the session of a day; those the day already holds stay
+ * as they are.
+ */
+export async function addToDay(day: string, items: WorkoutItemInput[]) {
+  return changing(workouts.addToDay(await getDatabase(), day, items));
+}
+
+/** Saves the whole session of a day; without exercises, it is deleted. */
+export async function saveDay(day: string, items: WorkoutItemInput[]) {
+  return changing(workouts.saveDay(await getDatabase(), day, items));
+}
+
+/**
+ * What was done on the exercise the last time, outside the day being
+ * logged, or null.
  */
 export async function getLastPerformance(
   exerciseId: number,
-  exceptWorkoutId?: number,
+  exceptDay?: string,
 ) {
-  return workouts.lastPerformance(
-    await getDatabase(),
-    exerciseId,
-    exceptWorkoutId,
-  );
+  return workouts.lastPerformance(await getDatabase(), exerciseId, exceptDay);
 }
 
 /** Every favorite session with its exercises, sorted by name. */

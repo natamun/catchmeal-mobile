@@ -1,27 +1,19 @@
 import type {
   ExerciseKind,
   Workout,
-  WorkoutInput,
   WorkoutItem,
   WorkoutItemInput,
   WorkoutSet,
 } from '../components/fitness/types';
 import type { Database, Executor, SqlValue } from '../db/database';
 import { DataError } from './errors';
-import {
-  checkDateOnly,
-  checkNumber,
-  checkOptionalNumber,
-  checkOptionalText,
-} from './validation';
+import { checkDateOnly, checkNumber, checkOptionalNumber } from './validation';
 
-const GONE = "Cette séance n'existe plus.";
 const MISSING_EXERCISE = "Un des exercices n'existe plus.";
 
-/** Limits of what a session can hold, far beyond a real one. */
+/** Limits of what a day can hold, far beyond a real session. */
 const MAX_ITEMS = 50;
 const MAX_SETS = 20;
-const SESSION_MINUTES = { min: 0, exclusive: true, max: 600, integer: true };
 const MINUTES = { min: 0, exclusive: true, max: 600 };
 const SPEED = { min: 0, exclusive: true, max: 25 };
 const INCLINE = { min: 0, max: 30 };
@@ -37,8 +29,6 @@ export interface WorkoutFilter {
 interface WorkoutRow {
   id: number;
   performed_on: string;
-  name: string | null;
-  duration_minutes: number | null;
 }
 
 interface ItemRow {
@@ -68,9 +58,10 @@ interface ItemValues {
   inclinePercent: number | null;
 }
 
-function checkItems(items: unknown): WorkoutItemInput[] {
-  if (!Array.isArray(items) || items.length === 0) {
-    throw new DataError('La séance doit contenir au moins un exercice.');
+/** The lines given, with a real exercise id each; `allowEmpty` for a save. */
+function checkItems(items: unknown, allowEmpty: boolean): WorkoutItemInput[] {
+  if (!Array.isArray(items) || (items.length === 0 && !allowEmpty)) {
+    throw new DataError('Choisis au moins un exercice.');
   }
   if (items.length > MAX_ITEMS) {
     throw new DataError(`${MAX_ITEMS} exercices maximum par séance.`);
@@ -95,6 +86,7 @@ async function buildItems(
   tx: Executor,
   items: WorkoutItemInput[],
 ): Promise<ItemValues[]> {
+  if (items.length === 0) return [];
   const ids = [...new Set(items.map(({ exerciseId }) => exerciseId))];
   const exercises = await tx.query<{ id: number; kind: ExerciseKind }>(
     `SELECT id, kind FROM exercise
@@ -149,15 +141,16 @@ async function insertItems(
   tx: Executor,
   workoutId: number,
   items: ItemValues[],
+  firstPosition = 0,
 ) {
-  for (const [position, item] of items.entries()) {
+  for (const [index, item] of items.entries()) {
     const { lastId } = await tx.run(
       `INSERT INTO workout_exercise (workout_id, exercise_id, position, duration_minutes, speed_kmh, incline_percent)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [
         workoutId,
         item.exerciseId,
-        position,
+        firstPosition + index,
         item.durationMinutes,
         item.speedKmh,
         item.inclinePercent,
@@ -192,8 +185,8 @@ function toItem(row: ItemRow, sets: SetRow[]): WorkoutItem {
 /** Reads sessions with their lines and sets, in three queries in all. */
 async function readWorkouts(db: Executor, where: string, params: SqlValue[]) {
   const workouts = await db.query<WorkoutRow>(
-    `SELECT id, performed_on, name, duration_minutes FROM workout WHERE ${where}
-     ORDER BY performed_on DESC, id DESC`,
+    `SELECT id, performed_on FROM workout WHERE ${where}
+     ORDER BY performed_on DESC`,
     params,
   );
   const items = await db.query<ItemRow>(
@@ -215,30 +208,21 @@ async function readWorkouts(db: Executor, where: string, params: SqlValue[]) {
   return workouts.map((workout): Workout => ({
     id: workout.id,
     performedOn: workout.performed_on,
-    name: workout.name,
-    durationMinutes: workout.duration_minutes,
     items: items
       .filter((item) => item.workout_id === workout.id)
       .map((item) => toItem(item, sets)),
   }));
 }
 
-async function readWorkout(db: Executor, id: number) {
-  const [workout] = await readWorkouts(db, 'id = ?', [id]);
-  return workout;
-}
-
-function checkInput(input: WorkoutInput) {
-  return {
-    performedOn: checkDateOnly(input.performedOn, 'date'),
-    name: checkOptionalText(input.name, 'nom de la séance', 80),
-    durationMinutes: checkOptionalNumber(
-      input.durationMinutes,
-      'durée de la séance',
-      SESSION_MINUTES,
-    ),
-    items: checkItems(input.items),
-  };
+/** The session of a day (YYYY-MM-DD), or null without any. */
+export async function getDay(
+  db: Executor,
+  day: string,
+): Promise<Workout | null> {
+  const [workout] = await readWorkouts(db, 'performed_on = ?', [
+    checkDateOnly(day, 'date'),
+  ]);
+  return workout ?? null;
 }
 
 /** Sessions with their exercises, the newest first, between two days. */
@@ -256,72 +240,101 @@ export async function listWorkouts(db: Executor, filter: WorkoutFilter = {}) {
   return readWorkouts(db, conditions.join(' AND '), params);
 }
 
-/** Saves a session with all its exercises and sets at once. */
-export async function createWorkout(db: Database, input: WorkoutInput) {
-  const workout = checkInput(input);
-  return db.transaction(async (tx) => {
-    const values = await buildItems(tx, workout.items);
-    const { lastId } = await tx.run(
-      'INSERT INTO workout (performed_on, name, duration_minutes) VALUES (?, ?, ?)',
-      [workout.performedOn, workout.name, workout.durationMinutes],
-    );
-    await insertItems(tx, lastId, values);
-    return readWorkout(tx, lastId);
-  });
-}
-
-/** Saves an edited session: its exercises and sets are all replaced. */
-export async function updateWorkout(
-  db: Database,
-  id: number,
-  input: WorkoutInput,
-) {
-  const workout = checkInput(input);
-  return db.transaction(async (tx) => {
-    const [current] = await tx.query<{ id: number }>(
-      'SELECT id FROM workout WHERE id = ?',
-      [id],
-    );
-    if (!current) throw new DataError(GONE);
-    // Built before the old lines go, so an archived exercise they hold still
-    // counts as used.
-    const values = await buildItems(tx, workout.items);
-
-    await tx.run(
-      'UPDATE workout SET performed_on = ?, name = ?, duration_minutes = ? WHERE id = ?',
-      [workout.performedOn, workout.name, workout.durationMinutes, id],
-    );
-    await tx.run('DELETE FROM workout_exercise WHERE workout_id = ?', [id]);
-    await insertItems(tx, id, values);
-    return readWorkout(tx, id);
-  });
-}
-
-/** Deletes a session with its exercises and sets. */
-export async function deleteWorkout(db: Executor, id: number) {
-  const { changes } = await db.run('DELETE FROM workout WHERE id = ?', [id]);
-  if (changes === 0) throw new DataError(GONE);
+/** The id of the day's session, created when the day has none yet. */
+async function workoutIdOf(tx: Executor, day: string) {
+  const [existing] = await tx.query<{ id: number }>(
+    'SELECT id FROM workout WHERE performed_on = ?',
+    [day],
+  );
+  if (existing) return existing.id;
+  const { lastId } = await tx.run(
+    'INSERT INTO workout (performed_on) VALUES (?)',
+    [day],
+  );
+  return lastId;
 }
 
 /**
- * What was done on an exercise the last time, to start the next session from
- * it: the sets, or the duration, speed and incline. `exceptWorkoutId` leaves
- * out the session being edited. Null when the exercise was never done.
+ * Adds exercises to the session of a day, created if needed, after those
+ * already there. An exercise the day already holds is left as it is: each
+ * appears once a day, the new values are not added to it.
+ */
+export async function addToDay(
+  db: Database,
+  day: string,
+  items: WorkoutItemInput[],
+) {
+  checkDateOnly(day, 'date');
+  const lines = checkItems(items, false);
+  return db.transaction(async (tx) => {
+    const workoutId = await workoutIdOf(tx, day);
+    const present = await tx.query<{ exercise_id: number; position: number }>(
+      'SELECT exercise_id, position FROM workout_exercise WHERE workout_id = ?',
+      [workoutId],
+    );
+    const taken = new Set(present.map(({ exercise_id }) => exercise_id));
+    const fresh = lines.filter(({ exerciseId }) => {
+      if (taken.has(exerciseId)) return false;
+      taken.add(exerciseId);
+      return true;
+    });
+    const nextPosition = Math.max(-1, ...present.map((p) => p.position)) + 1;
+    await insertItems(tx, workoutId, await buildItems(tx, fresh), nextPosition);
+    return (await getDay(tx, day))!;
+  });
+}
+
+/**
+ * Saves the whole session of a day: its exercises are replaced, in the order
+ * given. Without any exercise left, the day has no session any more (null).
+ */
+export async function saveDay(
+  db: Database,
+  day: string,
+  items: WorkoutItemInput[],
+) {
+  checkDateOnly(day, 'date');
+  const lines = checkItems(items, true);
+  const ids = lines.map(({ exerciseId }) => exerciseId);
+  if (new Set(ids).size !== ids.length) {
+    throw new DataError("Un exercice n'apparaît qu'une fois par séance.");
+  }
+  return db.transaction(async (tx) => {
+    // Built before the old lines go, so an archived exercise they hold still
+    // counts as used.
+    const values = await buildItems(tx, lines);
+    if (values.length === 0) {
+      await tx.run('DELETE FROM workout WHERE performed_on = ?', [day]);
+      return null;
+    }
+    const workoutId = await workoutIdOf(tx, day);
+    await tx.run('DELETE FROM workout_exercise WHERE workout_id = ?', [
+      workoutId,
+    ]);
+    await insertItems(tx, workoutId, values);
+    return (await getDay(tx, day))!;
+  });
+}
+
+/**
+ * What was done on an exercise the last time, to start from it: the sets, or
+ * the duration, speed and incline. `exceptDay` leaves out the day being
+ * logged. Null when the exercise was never done.
  */
 export async function lastPerformance(
   db: Executor,
   exerciseId: number,
-  exceptWorkoutId?: number,
+  exceptDay?: string,
 ): Promise<WorkoutItem | null> {
-  const [last] = await db.query<{ id: number; workout_id: number }>(
-    `SELECT we.id, we.workout_id FROM workout_exercise we
+  const [last] = await db.query<{ id: number; performed_on: string }>(
+    `SELECT we.id, w.performed_on FROM workout_exercise we
      JOIN workout w ON w.id = we.workout_id
-     WHERE we.exercise_id = ? AND w.id != ?
-     ORDER BY w.performed_on DESC, w.id DESC, we.position DESC
+     WHERE we.exercise_id = ? AND w.performed_on != ?
+     ORDER BY w.performed_on DESC
      LIMIT 1`,
-    [exerciseId, exceptWorkoutId ?? -1],
+    [exerciseId, exceptDay ?? ''],
   );
   if (!last) return null;
-  const workout = await readWorkout(db, last.workout_id);
-  return workout.items.find((item) => item.id === last.id) ?? null;
+  const workout = await getDay(db, last.performed_on);
+  return workout?.items.find((item) => item.id === last.id) ?? null;
 }
