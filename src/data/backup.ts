@@ -7,10 +7,12 @@ const APP = 'CatCHMeal';
  * Version of the file layout. A newer app keeps reading older files; an older
  * app refuses a newer file instead of guessing.
  */
-export const BACKUP_FORMAT = 2;
+export const BACKUP_FORMAT = 3;
 
 /** The format that added the fitness tables. */
 const FITNESS_FORMAT = 2;
+/** The format that added the favorite sessions and the session names. */
+const TEMPLATES_FORMAT = 3;
 
 /** The stored columns of each table, in the order rows are restored. */
 const TABLES = {
@@ -70,7 +72,7 @@ const TABLES = {
     'start_date',
   ],
   exercise: ['id', 'name', 'kind', 'met', 'archived'],
-  workout: ['id', 'performed_on', 'duration_minutes'],
+  workout: ['id', 'performed_on', 'name', 'duration_minutes'],
   workout_exercise: [
     'id',
     'workout_id',
@@ -81,6 +83,16 @@ const TABLES = {
     'incline_percent',
   ],
   workout_set: ['id', 'workout_exercise_id', 'position', 'reps', 'weight_kg'],
+  workout_template: ['id', 'name'],
+  workout_template_exercise: [
+    'id',
+    'template_id',
+    'exercise_id',
+    'position',
+    'duration_minutes',
+    'speed_kmh',
+    'incline_percent',
+  ],
 } as const;
 
 type Table = keyof typeof TABLES;
@@ -97,28 +109,45 @@ const LIST_TABLES = [
   'workout',
   'workout_exercise',
   'workout_set',
+  'workout_template',
+  'workout_template_exercise',
 ] as const satisfies readonly Table[];
 
 type ListTable = (typeof LIST_TABLES)[number];
 
 /** The tables a file of the first format did not have yet. */
-const FITNESS_TABLES = [
+const FITNESS_TABLES: readonly ListTable[] = [
   'exercise',
   'workout',
   'workout_exercise',
   'workout_set',
-] as const satisfies readonly ListTable[];
+  'workout_template',
+  'workout_template_exercise',
+];
+
+/** The tables a file of the second format did not have yet. */
+const TEMPLATE_TABLES: readonly ListTable[] = [
+  'workout_template',
+  'workout_template_exercise',
+];
+
+const without = (excluded: readonly ListTable[]) =>
+  LIST_TABLES.filter((table) => !excluded.includes(table));
+
+/** The tables a file holds, by its format. */
+function tablesIn(backup: Pick<Backup, 'format'>): readonly ListTable[] {
+  if (backup.format < FITNESS_FORMAT) return without(FITNESS_TABLES);
+  if (backup.format < TEMPLATES_FORMAT) return without(TEMPLATE_TABLES);
+  return LIST_TABLES;
+}
 
 /**
- * The tables a backup holds: all of them, or without the fitness ones for a
- * file from before the fitness tab.
+ * The tables a restore replaces. A file from before the fitness tab leaves
+ * them all as they are; a later one replaces the exercises, so the favorites
+ * made of them go too, even when the file has none.
  */
-function tablesOf(backup: Pick<Backup, 'format'>): readonly ListTable[] {
-  return backup.format >= FITNESS_FORMAT
-    ? LIST_TABLES
-    : LIST_TABLES.filter(
-        (table) => !(FITNESS_TABLES as readonly string[]).includes(table),
-      );
+function tablesRestored(backup: Pick<Backup, 'format'>): readonly ListTable[] {
+  return backup.format < FITNESS_FORMAT ? without(FITNESS_TABLES) : LIST_TABLES;
 }
 
 /** The content of a backup file. */
@@ -137,6 +166,8 @@ export interface Backup {
   workout?: Row[];
   workout_exercise?: Row[];
   workout_set?: Row[];
+  workout_template?: Row[];
+  workout_template_exercise?: Row[];
 }
 
 /** What a restore brought back, for the confirmation message. */
@@ -172,6 +203,8 @@ export async function exportBackup(
     workout: [],
     workout_exercise: [],
     workout_set: [],
+    workout_template: [],
+    workout_template_exercise: [],
   };
   for (const table of LIST_TABLES) {
     backup[table] = await read(table, 'ORDER BY id');
@@ -205,7 +238,7 @@ export function parseBackup(text: string): Backup {
   const backup = content as unknown as Backup;
   if (
     !isRow(backup.profile) ||
-    tablesOf(backup).some((table) => {
+    tablesIn(backup).some((table) => {
       const rows = backup[table];
       return !Array.isArray(rows) || !rows.every(isRow);
     })
@@ -229,7 +262,7 @@ export async function restoreBackup(
 ): Promise<RestoreSummary> {
   try {
     await db.transaction(async (tx) => {
-      const tables = tablesOf(backup);
+      const tables = tablesRestored(backup);
       for (const table of [...tables].reverse()) {
         await tx.run(`DELETE FROM ${table}`);
       }
