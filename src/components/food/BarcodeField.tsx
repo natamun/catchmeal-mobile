@@ -140,7 +140,7 @@ export function BarcodeField({
       <div className="relative flex flex-col gap-1.5">
         <div className="flex items-baseline justify-between gap-2">
           <label htmlFor="food-barcode" className={LABEL_CLASS}>
-            Code-barres (optionnel)
+            Code-barres
           </label>
           <a
             href={
