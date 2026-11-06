@@ -18,6 +18,8 @@ const PROFILE: Profile = {
   activityLevel: 'MODERATELY_ACTIVE',
   goalType: 'LOSE_FAT',
   theme: null,
+  targetBodyFat: null,
+  leanLossAlert: true,
 };
 
 const EMPTY_PROFILE: Profile = {
@@ -32,6 +34,8 @@ const EMPTY_PROFILE: Profile = {
   activityLevel: null,
   goalType: null,
   theme: null,
+  targetBodyFat: null,
+  leanLossAlert: true,
 };
 
 const TODAY = new Date(2026, 10, 6, 12);

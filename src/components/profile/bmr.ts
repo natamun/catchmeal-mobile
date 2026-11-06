@@ -1,5 +1,3 @@
-import type { WeightEntry } from './api';
-
 /** Usual activity factors: daily needs = BMR x factor. */
 const ACTIVITY_MULTIPLIERS: Record<string, number> = {
   SEDENTARY: 1.2,
@@ -19,19 +17,6 @@ export function getAge(birthDate: string): number {
     (today.getMonth() === birth.getMonth() &&
       today.getDate() >= birth.getDate());
   return hasBirthdayPassed ? age : age - 1;
-}
-
-/**
- * Fat-free mass of a weigh-in: the measured value, else deduced from the weight
- * and the body fat percentage (weight x (1 - fat / 100)). Null when neither is
- * known.
- */
-export function fatFreeMassOf(
-  entry: Pick<WeightEntry, 'weight' | 'bodyFat' | 'fatFreeMass'>,
-): number | null {
-  if (entry.fatFreeMass !== null) return entry.fatFreeMass;
-  if (entry.bodyFat !== null) return entry.weight * (1 - entry.bodyFat / 100);
-  return null;
 }
 
 /**

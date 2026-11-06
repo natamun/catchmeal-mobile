@@ -15,6 +15,11 @@ import { getWeightHistory, type WeightEntry } from '../components/profile/api';
 import { useProfile } from '../components/profile/profileContext';
 import { DateNavigator } from '../components/ui/DateNavigator';
 import { useToast } from '../components/ui/toastContext';
+import {
+  effectiveTargetWeight,
+  fatFreeMassOf,
+  latestComposition,
+} from '../data/composition';
 import { useDailyMeals } from '../hooks/useDailyMeals';
 import { useDataVersion } from '../hooks/useDataVersion';
 import {
@@ -96,6 +101,12 @@ export default function HomePage() {
     editDialogRef.current?.showModal();
   };
 
+  const measured = weightHistory ? latestComposition(weightHistory) : null;
+  const goalWeight = effectiveTargetWeight(
+    profile,
+    measured ? fatFreeMassOf(measured) : null,
+  );
+
   return (
     <>
       <div className="animate-fade-in-up">
@@ -143,7 +154,7 @@ export default function HomePage() {
               <WeightWidget
                 history={weightHistory}
                 hasError={weightError}
-                goalWeight={profile.targetWeight ?? null}
+                goalWeight={goalWeight}
               />
             </div>
             <DailyMealList

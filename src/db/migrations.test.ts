@@ -335,6 +335,22 @@ describe('migration 7', () => {
   });
 });
 
+describe('migration 8', () => {
+  it('keeps the profile, with the lean mass alert on', async () => {
+    const old = openMemoryDatabase();
+    await migrate(old, MIGRATIONS.slice(0, 7));
+    await old.run('UPDATE profile SET height = 178 WHERE id = 1');
+
+    await migrate(old);
+
+    expect(
+      await old.query(
+        'SELECT height, target_body_fat, lean_loss_alert FROM profile',
+      ),
+    ).toEqual([{ height: 178, target_body_fat: null, lean_loss_alert: 1 }]);
+  });
+});
+
 describe('workout', () => {
   async function addWorkout() {
     await addExercises(db);
@@ -450,6 +466,8 @@ describe('profile', () => {
     ['a zero carbs goal', { daily_carbs_goal: 0 }],
     ['a zero fat goal', { daily_fat_goal: 0 }],
     ['a decimal calorie goal', { daily_calorie_goal: 2200.5 }],
+    ['a target body fat of 100 %', { target_body_fat: 100 }],
+    ['an alert neither 0 nor 1', { lean_loss_alert: 2 }],
   ])('refuses %s', async (_, changes) => {
     await expect(updateProfile(changes)).rejects.toThrow(REFUSED);
   });

@@ -9,6 +9,8 @@ import { getDatabase } from '../../db/appDatabase';
 export interface Profile {
   height: number | null;
   targetWeight: number | null;
+  /** Target share of body fat in %; it sets the target weight when known. */
+  targetBodyFat: number | null;
   dailyCalorieGoal: number | null;
   dailyProteinGoal: number | null;
   dailyCarbsGoal: number | null;
@@ -18,6 +20,8 @@ export interface Profile {
   activityLevel: string | null;
   goalType: string | null;
   theme: string | null;
+  /** Whether losing weight warns when the fat-free mass falls too fast. */
+  leanLossAlert: boolean;
 }
 
 /**
@@ -27,6 +31,7 @@ export interface Profile {
 export interface UpdateProfileInput {
   height?: number | null;
   targetWeight?: number | null;
+  targetBodyFat?: number | null;
   dailyCalorieGoal?: number | null;
   dailyProteinGoal?: number | null;
   dailyCarbsGoal?: number | null;
@@ -36,6 +41,7 @@ export interface UpdateProfileInput {
   activityLevel?: string | null;
   goalType?: string | null;
   theme?: string | null;
+  leanLossAlert?: boolean;
 }
 
 export interface WeightEntry {
@@ -64,6 +70,11 @@ export async function getProfile() {
 /** Saves the profile fields that changed. */
 export async function updateProfile(input: UpdateProfileInput) {
   return changing(profileData.updateProfile(await getDatabase(), input));
+}
+
+/** When the current goal began (ISO), or null before any goal. */
+export async function getGoalStart() {
+  return profileData.getGoalStart(await getDatabase());
 }
 
 /** Corrects a weigh-in. */

@@ -11,16 +11,15 @@ import { ThemeCard } from '../components/theme/ThemeCard';
 
 /**
  * Profile page: body measures, body composition, goals, theme, settings and
- * backup. It
- * shows once the weigh-ins and the measured expenditure are read: drawn
+ * backup. It shows once the weigh-ins and the measured expenditure are read: drawn
  * before, the short loading cards let the bottom ones flash at the top.
  */
 export default function ProfilePage() {
   const { profile, updateProfile } = useProfile();
-  const [latestEntry, setLatestEntry] = useState<WeightEntry | null>();
+  const [history, setHistory] = useState<WeightEntry[]>();
   const [isGoalsReady, setIsGoalsReady] = useState(false);
   const markGoalsReady = useCallback(() => setIsGoalsReady(true), []);
-  const isReady = latestEntry !== undefined && isGoalsReady;
+  const isReady = history !== undefined && isGoalsReady;
 
   return (
     <div
@@ -28,13 +27,9 @@ export default function ProfilePage() {
     >
       <ProfileCard profile={profile} onUpdate={updateProfile} />
 
-      <WeightCard onLatestEntry={setLatestEntry} />
+      <WeightCard onHistory={setHistory} />
 
-      <GoalsCard
-        profile={profile}
-        latestEntry={latestEntry}
-        onReady={markGoalsReady}
-      />
+      <GoalsCard profile={profile} history={history} onReady={markGoalsReady} />
 
       <ThemeCard />
 

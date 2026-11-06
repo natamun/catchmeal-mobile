@@ -1,7 +1,14 @@
 import type { Profile, UpdateProfileInput } from '../components/profile/api';
 import { THEME_IDS } from '../components/theme/themeList';
 import type { Database, Executor, SqlValue } from '../db/database';
-import { checkChoice, checkDateOnly, checkOptionalNumber } from './validation';
+import { effectiveTargetWeight, fatFreeMassOf } from './composition';
+import { goalStartOf } from './goals';
+import {
+  checkBoolean,
+  checkChoice,
+  checkDateOnly,
+  checkOptionalNumber,
+} from './validation';
 
 const GENDERS = ['MALE', 'FEMALE', 'OTHER'] as const;
 
@@ -23,6 +30,7 @@ const ACTIVITY_LEVELS = [
 interface ProfileRow {
   height: number | null;
   target_weight: number | null;
+  target_body_fat: number | null;
   daily_calorie_goal: number | null;
   daily_protein_goal: number | null;
   daily_carbs_goal: number | null;
@@ -32,6 +40,7 @@ interface ProfileRow {
   activity_level: string | null;
   goal_type: string | null;
   theme: string | null;
+  lean_loss_alert: number;
 }
 
 /** Where each profile field is stored, and the rule its value follows. */
@@ -47,6 +56,12 @@ const NUMBER_FIELDS = [
     column: 'target_weight',
     label: 'poids cible',
     rule: { min: 0, exclusive: true, max: 500 },
+  },
+  {
+    field: 'targetBodyFat',
+    column: 'target_body_fat',
+    label: 'masse grasse cible',
+    rule: { min: 3, max: 60, integer: true },
   },
   {
     field: 'dailyCalorieGoal',
@@ -75,12 +90,13 @@ const NUMBER_FIELDS = [
 ] as const;
 
 const PROFILE_COLUMNS =
-  'height, target_weight, daily_calorie_goal, daily_protein_goal, daily_carbs_goal, daily_fat_goal, gender, birth_date, activity_level, goal_type, theme';
+  'height, target_weight, target_body_fat, daily_calorie_goal, daily_protein_goal, daily_carbs_goal, daily_fat_goal, gender, birth_date, activity_level, goal_type, theme, lean_loss_alert';
 
 function toProfile(row: ProfileRow): Profile {
   return {
     height: row.height,
     targetWeight: row.target_weight,
+    targetBodyFat: row.target_body_fat,
     dailyCalorieGoal: row.daily_calorie_goal,
     dailyProteinGoal: row.daily_protein_goal,
     dailyCarbsGoal: row.daily_carbs_goal,
@@ -90,6 +106,7 @@ function toProfile(row: ProfileRow): Profile {
     activityLevel: row.activity_level,
     goalType: row.goal_type,
     theme: row.theme,
+    leanLossAlert: row.lean_loss_alert === 1,
   };
 }
 
@@ -149,6 +166,12 @@ function changesFrom(input: UpdateProfileInput) {
         : checkChoice(input.goalType, 'objectif', GOAL_TYPES),
     ]);
   }
+  if (input.leanLossAlert !== undefined) {
+    changes.push([
+      'lean_loss_alert',
+      checkBoolean(input.leanLossAlert, 'alerte de masse maigre') ? 1 : 0,
+    ]);
+  }
   if (input.theme !== undefined) {
     changes.push([
       'theme',
@@ -160,10 +183,24 @@ function changesFrom(input: UpdateProfileInput) {
   return changes;
 }
 
+/** When the current goal began (see goalStartOf), or null before any goal. */
+export async function getGoalStart(db: Executor) {
+  const rows = await db.query<{ objective: string | null; start_date: string }>(
+    'SELECT objective, start_date FROM goal_setting',
+  );
+  return goalStartOf(
+    rows.map((row) => ({
+      objective: row.objective,
+      startDate: row.start_date,
+    })),
+  );
+}
+
 /**
  * Saves the fields that changed. A new daily calorie goal is also added to the
  * goal history, with the objective of that moment: lose or gain weight, from
- * the latest weigh-in and the target weight.
+ * the latest weigh-in and the target weight, the one the target body fat
+ * sets when the scale tells the fat-free mass.
  */
 export async function updateProfile(
   db: Database,
@@ -189,11 +226,30 @@ export async function updateProfile(
       const [latest] = await tx.query<{ weight: number }>(
         'SELECT weight FROM weight_log ORDER BY logged_at DESC, id DESC LIMIT 1',
       );
+      const [measured] = await tx.query<{
+        weight: number;
+        body_fat: number | null;
+        fat_free_mass: number | null;
+      }>(
+        `SELECT weight, body_fat, fat_free_mass FROM weight_log
+         WHERE body_fat IS NOT NULL OR fat_free_mass IS NOT NULL
+         ORDER BY logged_at DESC, id DESC LIMIT 1`,
+      );
+      const target = effectiveTargetWeight(
+        after,
+        measured
+          ? fatFreeMassOf({
+              weight: measured.weight,
+              bodyFat: measured.body_fat,
+              fatFreeMass: measured.fat_free_mass,
+            })
+          : null,
+      );
       const objective =
-        latest && after.targetWeight !== null
-          ? after.targetWeight < latest.weight
+        latest && target !== null
+          ? target < latest.weight
             ? 'lose'
-            : after.targetWeight > latest.weight
+            : target > latest.weight
               ? 'gain'
               : null
           : null;

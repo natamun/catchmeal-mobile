@@ -5,7 +5,7 @@ import type { Database } from '../db/database';
 import { migrate } from '../db/migrations';
 import { openMemoryDatabase } from '../test/nodeDatabase';
 import { DataError } from './errors';
-import { getProfile, updateProfile } from './profile';
+import { getGoalStart, getProfile, updateProfile } from './profile';
 import { logWeight } from './weights';
 
 let db: Database;
@@ -22,10 +22,10 @@ const goals = () =>
     'SELECT daily_calories, objective FROM goal_setting ORDER BY id',
   );
 
-const weighIn = (weight: number) =>
+const weighIn = (weight: number, bodyFat: number | null = null) =>
   logWeight(db, {
     weight,
-    bodyFat: null,
+    bodyFat,
     fatFreeMass: null,
     bodyWater: null,
     muscleMass: null,
@@ -36,6 +36,7 @@ describe('getProfile', () => {
     expect(await getProfile(db)).toEqual({
       height: null,
       targetWeight: null,
+      targetBodyFat: null,
       dailyCalorieGoal: null,
       dailyProteinGoal: null,
       dailyCarbsGoal: null,
@@ -45,6 +46,7 @@ describe('getProfile', () => {
       activityLevel: null,
       goalType: null,
       theme: null,
+      leanLossAlert: true,
     });
   });
 });
@@ -73,6 +75,16 @@ describe('updateProfile', () => {
     expect((await updateProfile(db, { theme: 'nord' })).theme).toBe('nord');
   });
 
+  it('saves the target body fat and turns the lean mass alert off', async () => {
+    const profile = await updateProfile(db, {
+      targetBodyFat: 14,
+      leanLossAlert: false,
+    });
+
+    expect(profile).toMatchObject({ targetBodyFat: 14, leanLossAlert: false });
+    expect(await getProfile(db)).toEqual(profile);
+  });
+
   it('clears a field given null', async () => {
     await updateProfile(db, { height: 178, targetWeight: 70 });
 
@@ -86,6 +98,13 @@ describe('updateProfile', () => {
     ['a height over 300 cm', { height: 301 }],
     ['a height with 3 decimals', { height: 178.123 }],
     ['a target weight over 500 kg', { targetWeight: 501 }],
+    ['a target body fat of 2 %', { targetBodyFat: 2 }],
+    ['a target body fat over 60 %', { targetBodyFat: 61 }],
+    ['a target body fat with decimals', { targetBodyFat: 14.5 }],
+    [
+      'an alert neither on nor off',
+      { leanLossAlert: 'yes' as unknown as boolean },
+    ],
     ['a calorie goal with decimals', { dailyCalorieGoal: 2200.5 }],
     ['a calorie goal over 10000', { dailyCalorieGoal: 10001 }],
     ['a zero calorie goal', { dailyCalorieGoal: 0 }],
@@ -149,6 +168,21 @@ describe('goal history', () => {
     ]);
   });
 
+  it('sets the objective from the target body fat when the scale tells the fat-free mass', async () => {
+    // 25 % of 80 kg is fat: 60 kg of fat-free mass, 70.6 kg at 15 %.
+    await weighIn(80, 25);
+
+    await updateProfile(db, {
+      targetWeight: 90,
+      targetBodyFat: 15,
+      dailyCalorieGoal: 2000,
+    });
+
+    expect(await goals()).toEqual([
+      { daily_calories: 2000, objective: 'lose' },
+    ]);
+  });
+
   it('records no objective without a weigh-in or a target', async () => {
     await updateProfile(db, { dailyCalorieGoal: 2000 });
 
@@ -171,5 +205,26 @@ describe('goal history', () => {
     await updateProfile(db, { dailyCalorieGoal: null });
 
     expect(await goals()).toHaveLength(1);
+  });
+});
+
+describe('getGoalStart', () => {
+  const change = (objective: string | null, day: string) =>
+    db.run(
+      'INSERT INTO goal_setting (daily_calories, objective, start_date) VALUES (2000, ?, ?)',
+      [objective, `${day}T08:00:00.000Z`],
+    );
+
+  it('gives the first change since the objective last turned', async () => {
+    await change('lose', '2026-09-01');
+    await change('gain', '2026-10-01');
+    await change('gain', '2026-10-15');
+    await change('gain', '2026-11-01');
+
+    expect(await getGoalStart(db)).toBe('2026-10-01T08:00:00.000Z');
+  });
+
+  it('gives nothing before any goal', async () => {
+    expect(await getGoalStart(db)).toBeNull();
   });
 });

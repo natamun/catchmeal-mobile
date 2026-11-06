@@ -14,7 +14,7 @@ import {
 import { DataError } from './errors';
 import { archiveFoodItem, createFoodItem } from './foodItems';
 import { createMeal } from './meals';
-import { updateProfile } from './profile';
+import { getProfile, updateProfile } from './profile';
 import { logWeight } from './weights';
 import { addToDay, listWorkouts } from './workouts';
 import { createTemplate, listTemplates } from './workoutTemplates';
@@ -69,6 +69,8 @@ async function filledDatabase() {
     gender: 'MALE',
     birthDate: '1990-04-12',
     activityLevel: 'LIGHTLY_ACTIVE',
+    targetBodyFat: 15,
+    leanLossAlert: false,
   });
   const { press, treadmill } = await addTestExercises(db);
   await createTemplate(db, {
@@ -116,7 +118,12 @@ describe('backup', () => {
       app: 'CatCHMeal',
       format: BACKUP_FORMAT,
       exportedAt: NOW.toISOString(),
-      profile: { height: 178, gender: 'MALE' },
+      profile: {
+        height: 178,
+        gender: 'MALE',
+        target_body_fat: 15,
+        lean_loss_alert: 0,
+      },
     });
     expect(backup.food_item).toHaveLength(2);
     expect(backup.meal).toHaveLength(2);
@@ -177,6 +184,22 @@ describe('backup', () => {
       { n: 0 },
     ]);
     expect(summary.workouts).toBe(0);
+  });
+
+  it('turns the lean mass alert on when restoring a file from before it', async () => {
+    const old = structuredClone(backup);
+    old.format = 3;
+    delete old.profile.target_body_fat;
+    delete old.profile.lean_loss_alert;
+    const target = await filledDatabase();
+
+    await restoreBackup(target, parseBackup(asText(old)));
+
+    expect(await getProfile(target)).toMatchObject({
+      height: 178,
+      targetBodyFat: null,
+      leanLossAlert: true,
+    });
   });
 
   it('empties the favorites when restoring a file from before them', async () => {

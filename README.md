@@ -18,7 +18,7 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 - **Quick add**: calories and macros logged without a food.
 - **Barcode scanning**: the camera reads EAN and UPC codes, and [Open Food Facts](https://world.openfoodfacts.org) fills the food form.
 - **Body composition**: weigh-ins with body fat, fat-free mass, body water and muscle mass.
-- **Goals**: daily calories and macros recommended from a goal (lose fat, lose weight, maintain, build muscle) and a weekly pace, never under the BMR. The daily expenditure is measured from the last four weeks of journal and weigh-ins, or estimated (Mifflin-St Jeor or Katch-McArdle) until there is enough data. Past goals are kept for the stats.
+- **Goals**: daily calories and macros recommended from a goal (lose fat, lose weight, maintain, build muscle) and a weekly pace, never under the BMR. The daily expenditure is measured from the last four weeks of journal and weigh-ins, or estimated (Mifflin-St Jeor or Katch-McArdle) until there is enough data. With the body composition, the target can be a share of body fat, picked by level (lean, athletic, fit): it sets the target weight from the fat-free mass at each weigh-in. The protein then follows the fat-free mass, the goals card tells how the fat and the fat-free mass moved since the goal began, on their trend, and it warns when the fat rises faster than the fat-free mass while building, or when the fat-free mass falls too fast while losing (an alert that can be turned off). Past goals are kept for the stats.
 - **Training logbook**: kept like the food journal. One session a day: its "+" opens the training library, where exercises and favorite sessions (named sets of exercises) are picked, then the values are checked, started from the last time, before they join the day; each exercise appears once a day. Strength holds sets of repetitions at a load, the treadmill a duration, speed and slope, other cardio a duration. An exercise can be created right from its search, and saving tells the new records. The library recalls the last values of every exercise, also inside the favorites, and each exercise opens its own logbook: records, estimated one-rep max, progress and last sessions. The library starts empty: the user adds their own exercises.
 - **Statistics**: calorie, macro and body composition charts over a chosen period; for the training, the sessions per week split between strength and cardio, the volume lifted, the cardio time and the treadmill distance and climb; and a summary of the period to paste into an AI chat.
 - **Weigh-in reminder**: an optional notification every Sunday morning.
@@ -51,6 +51,7 @@ erDiagram
         int id PK "always 1"
         real height
         real target_weight
+        real target_body_fat "sets the target weight when known"
         int daily_calorie_goal
         text gender
         text birth_date

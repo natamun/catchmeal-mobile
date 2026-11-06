@@ -5,16 +5,21 @@ import {
   enableReminder,
   isReminderOn,
 } from '../../native/weighInReminder';
+import { updateProfile } from '../profile/api';
+import { useProfile } from '../profile/profileContext';
 import { SummaryCard } from '../ui/SummaryCard';
 import { Switch } from '../ui/Switch';
 import { useToast } from '../ui/toastContext';
 
 /**
- * Settings card of the profile page: for now the weekly weigh-in reminder.
- * The switch shows what Android has scheduled.
+ * Settings card of the profile page: the weekly weigh-in reminder, whose
+ * switch shows what Android has scheduled, and the alert about the fat-free
+ * mass lost while losing weight.
  */
 export function SettingsCard() {
   const showToast = useToast();
+  const { profile, updateProfile: keepProfile } = useProfile();
+  const [isAlertBusy, setIsAlertBusy] = useState(false);
   // null while it is read.
   const [isOn, setIsOn] = useState<boolean | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -53,6 +58,17 @@ export function SettingsCard() {
     }
   };
 
+  const toggleAlert = async (next: boolean) => {
+    setIsAlertBusy(true);
+    try {
+      keepProfile(await updateProfile({ leanLossAlert: next }));
+    } catch {
+      showToast("Impossible de changer l'alerte");
+    } finally {
+      setIsAlertBusy(false);
+    }
+  };
+
   return (
     <SummaryCard title="Paramètres">
       <div className="flex items-center justify-between gap-4">
@@ -66,6 +82,21 @@ export function SettingsCard() {
           isOn={isOn ?? false}
           onChange={(next) => void toggle(next)}
           disabled={isOn === null || isBusy}
+        />
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-4 border-t border-theme-100 pt-4">
+        <div className="min-w-0">
+          <p className="text-base font-medium text-theme-800">
+            Alerte de masse maigre
+          </p>
+          <p className="text-sm text-theme-500">
+            En perte de poids, prévient si elle baisse trop vite
+          </p>
+        </div>
+        <Switch
+          isOn={profile.leanLossAlert}
+          onChange={(next) => void toggleAlert(next)}
+          disabled={isAlertBusy}
         />
       </div>
     </SummaryCard>

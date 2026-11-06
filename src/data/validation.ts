@@ -75,6 +75,12 @@ export function checkChoice<T extends string>(
   return value as T;
 }
 
+/** True or false, nothing else. */
+export function checkBoolean(value: unknown, label: string) {
+  if (typeof value !== 'boolean') invalid(label);
+  return value;
+}
+
 const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 /** A real calendar day written YYYY-MM-DD. */

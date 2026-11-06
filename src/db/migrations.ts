@@ -231,6 +231,16 @@ CREATE UNIQUE INDEX workout_one_a_day ON workout (performed_on);
 CREATE UNIQUE INDEX workout_exercise_once ON workout_exercise (workout_id, exercise_id);
 `;
 
+/**
+ * Goals from the body composition: a target share of body fat, which sets
+ * the target weight from the fat-free mass, and the alert about fat-free
+ * mass lost while losing weight, on by default.
+ */
+const COMPOSITION_GOALS_V8 = `
+ALTER TABLE profile ADD COLUMN target_body_fat REAL CHECK (target_body_fat > 0 AND target_body_fat < 100);
+ALTER TABLE profile ADD COLUMN lean_loss_alert INTEGER NOT NULL DEFAULT 1 CHECK (lean_loss_alert IN (0, 1));
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: SCHEMA_V1 },
@@ -240,6 +250,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 5, sql: FITNESS_V5 },
   { version: 6, sql: TEMPLATES_V6 },
   { version: 7, sql: ONE_SESSION_A_DAY_V7 },
+  { version: 8, sql: COMPOSITION_GOALS_V8 },
 ];
 
 /**

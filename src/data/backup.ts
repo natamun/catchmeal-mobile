@@ -7,7 +7,7 @@ const APP = 'CatCHMeal';
  * Version of the file layout. A newer app keeps reading older files; an older
  * app refuses a newer file instead of guessing.
  */
-export const BACKUP_FORMAT = 3;
+export const BACKUP_FORMAT = 4;
 
 /** The format that added the fitness tables. */
 const FITNESS_FORMAT = 2;
@@ -19,6 +19,7 @@ const TABLES = {
   profile: [
     'height',
     'target_weight',
+    'target_body_fat',
     'daily_calorie_goal',
     'daily_protein_goal',
     'daily_carbs_goal',
@@ -28,6 +29,7 @@ const TABLES = {
     'activity_level',
     'goal_type',
     'theme',
+    'lean_loss_alert',
   ],
   food_item: [
     'id',
@@ -252,6 +254,14 @@ export function parseBackup(text: string): Backup {
 const valueOf = (row: Row, column: string): SqlValue => row[column] ?? null;
 
 /**
+ * The profile columns that cannot be empty, with the value a file from
+ * before them gets: the fourth format added the alert, on by default.
+ */
+const PROFILE_DEFAULTS: Partial<Record<string, SqlValue>> = {
+  lean_loss_alert: 1,
+};
+
+/**
  * Replaces all the data of the app with the backup, in one transaction: when
  * one row breaks a rule of the database, nothing changes. A file from before
  * the fitness tab leaves the exercises and sessions as they are.
@@ -270,7 +280,10 @@ export async function restoreBackup(
       const profileColumns = TABLES.profile;
       await tx.run(
         `UPDATE profile SET ${profileColumns.map((c) => `${c} = ?`).join(', ')} WHERE id = 1`,
-        profileColumns.map((column) => valueOf(backup.profile, column)),
+        profileColumns.map(
+          (column) =>
+            backup.profile[column] ?? PROFILE_DEFAULTS[column] ?? null,
+        ),
       );
 
       // Each row is inserted after the rows it points to, so a broken link is

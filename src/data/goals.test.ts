@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   estimateReachDate,
+  goalStartOf,
   recommendGoals,
   suggestGoalType,
   type GoalInput,
@@ -9,6 +10,7 @@ import {
 
 const BASE: GoalInput = {
   weight: 80,
+  fatFreeMass: null,
   bmr: 1700,
   expenditure: 2600,
   goalType: 'LOSE_FAT',
@@ -30,6 +32,15 @@ describe('recommendGoals', () => {
     expect(recommendGoals({ ...BASE, goalType: 'LOSE_WEIGHT' }).protein).toBe(
       128,
     );
+  });
+
+  it('counts the protein on the fat-free mass when the scale tells it', () => {
+    // 2.5 g per kg of 56 kg: as much as 2 g per kg of 70 kg at 20 % fat.
+    expect(recommendGoals({ ...BASE, fatFreeMass: 56 }).protein).toBe(140);
+    expect(
+      recommendGoals({ ...BASE, fatFreeMass: 56, goalType: 'GAIN_MUSCLE' })
+        .protein,
+    ).toBe(123);
   });
 
   it('keeps the expenditure to maintain and adds a surplus to build', () => {
@@ -102,5 +113,22 @@ describe('estimateReachDate', () => {
   it('gives no date when the change goes the other way or is zero', () => {
     expect(estimateReachDate(80, 78, 0.25, FROM)).toBeNull();
     expect(estimateReachDate(80, 78, 0, FROM)).toBeNull();
+  });
+});
+
+describe('goalStartOf', () => {
+  it('keeps the goal going while only the calories are adjusted', () => {
+    expect(
+      goalStartOf([
+        { objective: 'lose', startDate: '2026-10-20' },
+        { objective: 'gain', startDate: '2026-09-01' },
+        { objective: 'lose', startDate: '2026-11-03' },
+        { objective: 'lose', startDate: '2026-10-01' },
+      ]),
+    ).toBe('2026-10-01');
+  });
+
+  it('gives nothing before any goal', () => {
+    expect(goalStartOf([])).toBeNull();
   });
 });

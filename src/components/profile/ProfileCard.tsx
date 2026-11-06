@@ -18,6 +18,7 @@ import { SelectDropdown } from '../ui/SelectDropdown';
 import { updateProfile, type Profile, type UpdateProfileInput } from './api';
 import { BirthDatePicker } from './BirthDatePicker';
 import { getAge } from './bmr';
+import { bodyFatOptions } from './bodyFatLevels';
 import { GOAL_TYPE_OPTIONS } from './goalTypes';
 import { formatMeasure } from './measures';
 import { ACTIVITY_OPTIONS, GENDER_OPTIONS } from './profileOptions';
@@ -38,6 +39,8 @@ type Field =
 interface FormState {
   height: string;
   targetWeight: string;
+  /** '' for none: the target weight typed is then the target. */
+  targetBodyFat: string;
   dailyCalorieGoal: string;
   dailyProteinGoal: string;
   dailyCarbsGoal: string;
@@ -83,7 +86,7 @@ function validate(form: FormState): Partial<Record<Field, string>> {
     else if (h < 50 || h > 300) errors.height = 'Entre 50 et 300 cm';
     else if (hasTooManyDecimals(form.height)) errors.height = TOO_MANY_DECIMALS;
   }
-  if (form.targetWeight) {
+  if (form.targetWeight && !form.targetBodyFat) {
     const w = parseDecimal(form.targetWeight);
     if (w === null || isNaN(w)) errors.targetWeight = 'Valeur invalide';
     else if (w < 20 || w > 500) errors.targetWeight = 'Entre 20 et 500 kg';
@@ -112,6 +115,7 @@ export function ProfileCard({ profile, onUpdate }: Props) {
   const initForm = (): FormState => ({
     height: profile.height?.toString() ?? '',
     targetWeight: profile.targetWeight?.toString() ?? '',
+    targetBodyFat: profile.targetBodyFat?.toString() ?? '',
     dailyCalorieGoal: profile.dailyCalorieGoal?.toString() ?? '',
     dailyProteinGoal: profile.dailyProteinGoal?.toString() ?? '',
     dailyCarbsGoal: profile.dailyCarbsGoal?.toString() ?? '',
@@ -154,9 +158,18 @@ export function ProfileCard({ profile, onUpdate }: Props) {
     // An emptied field sends null, which clears the value.
     const parsedHeight = parseDecimal(form.height);
     if (parsedHeight !== (profile.height ?? null)) input.height = parsedHeight;
+    // A target body fat sets the target weight: the one typed waits, unchanged.
     const parsedTargetWeight = parseDecimal(form.targetWeight);
-    if (parsedTargetWeight !== (profile.targetWeight ?? null))
+    if (
+      !form.targetBodyFat &&
+      parsedTargetWeight !== (profile.targetWeight ?? null)
+    )
       input.targetWeight = parsedTargetWeight;
+    const parsedTargetBodyFat = form.targetBodyFat
+      ? Number(form.targetBodyFat)
+      : null;
+    if (parsedTargetBodyFat !== profile.targetBodyFat)
+      input.targetBodyFat = parsedTargetBodyFat;
     const parsedDailyCalorieGoal = parseDecimal(form.dailyCalorieGoal);
     if (parsedDailyCalorieGoal !== (profile.dailyCalorieGoal ?? null))
       input.dailyCalorieGoal = parsedDailyCalorieGoal;
@@ -269,6 +282,28 @@ export function ProfileCard({ profile, onUpdate }: Props) {
             />
           </div>
 
+          <div className="col-span-2 flex flex-col gap-1">
+            <label htmlFor="pf-target-body-fat" className={LABEL_CLASS}>
+              Masse grasse cible
+            </label>
+            <SelectDropdown
+              id="pf-target-body-fat"
+              value={form.targetBodyFat}
+              options={bodyFatOptions(
+                form.gender || null,
+                form.targetBodyFat ? Number(form.targetBodyFat) : null,
+              )}
+              onChange={(v) => setForm((p) => ({ ...p, targetBodyFat: v }))}
+              container={dialogNode}
+            />
+            {form.targetBodyFat && (
+              <p className="text-xs text-theme-500">
+                Le poids cible se calcule depuis ta masse maigre, à chaque
+                pesée.
+              </p>
+            )}
+          </div>
+
           {[
             {
               field: 'height' as Field,
@@ -312,29 +347,34 @@ export function ProfileCard({ profile, onUpdate }: Props) {
               unit: null,
               example: '65',
             },
-          ].map(({ field, id, label, unit, example }) => (
-            <div
-              key={field}
-              className="relative flex flex-col justify-end gap-1"
-            >
-              <label htmlFor={id} className={LABEL_CLASS}>
-                {label}
-                {unit && ` (${unit})`}
-              </label>
-              <Input
-                id={id}
-                type="text"
-                inputMode="decimal"
-                placeholder={`Ex : ${example}`}
-                value={form[field]}
-                onChange={(e) => handleChange(field, e.target.value)}
-                onFocus={() => handleFocus(field)}
-                onBlur={() => handleBlur(field)}
-                data-invalid={isInvalid(field)}
-              />
-              <FieldError message={errorMessage(field)} />
-            </div>
-          ))}
+          ].map(({ field, id, label, unit, example }) => {
+            const isComputed =
+              field === 'targetWeight' && form.targetBodyFat !== '';
+            return (
+              <div
+                key={field}
+                className="relative flex flex-col justify-end gap-1"
+              >
+                <label htmlFor={id} className={LABEL_CLASS}>
+                  {label}
+                  {unit && ` (${unit})`}
+                </label>
+                <Input
+                  id={id}
+                  type="text"
+                  inputMode="decimal"
+                  placeholder={isComputed ? 'Calculé' : `Ex : ${example}`}
+                  disabled={isComputed}
+                  value={isComputed ? '' : form[field]}
+                  onChange={(e) => handleChange(field, e.target.value)}
+                  onFocus={() => handleFocus(field)}
+                  onBlur={() => handleBlur(field)}
+                  data-invalid={isInvalid(field)}
+                />
+                <FieldError message={errorMessage(field)} />
+              </div>
+            );
+          })}
 
           {saveError && (
             <p className="col-span-2 text-xs text-red-500">{saveError}</p>

@@ -12,13 +12,25 @@ export const PACES: Record<GoalType, readonly number[]> = {
   GAIN_MUSCLE: [0.25, 0.1, 0.5],
 };
 
-/** Protein in g per kg of body weight: more when losing fat or building. */
-const PROTEIN_PER_KG: Record<GoalType, number> = {
-  LOSE_FAT: 2,
-  LOSE_WEIGHT: 1.6,
-  MAINTAIN: 1.6,
-  GAIN_MUSCLE: 1.8,
+/**
+ * Protein in g per kg: of the fat-free mass when the scale tells it, since
+ * fat needs none; of the body weight otherwise. More when losing fat or
+ * building. Both give the same at about 20 % of body fat.
+ */
+const PROTEIN_PER_KG: Record<GoalType, { lean: number; weight: number }> = {
+  LOSE_FAT: { lean: 2.5, weight: 2 },
+  LOSE_WEIGHT: { lean: 2, weight: 1.6 },
+  MAINTAIN: { lean: 2, weight: 1.6 },
+  GAIN_MUSCLE: { lean: 2.2, weight: 1.8 },
 };
+
+/** How the protein of a goal is counted: g per kg, and of which mass. */
+export function proteinRule(goalType: GoalType, fatFreeMass: number | null) {
+  const { lean, weight } = PROTEIN_PER_KG[goalType];
+  return fatFreeMass === null
+    ? { perKg: weight, onLeanMass: false }
+    : { perKg: lean, onLeanMass: true };
+}
 
 /** Energy of one kg of body weight lost (mostly fat) or gained (with muscle). */
 const KCAL_PER_KG_LOST = 7700;
@@ -31,6 +43,8 @@ const FAT_MIN_PER_KG = 0.8;
 export interface GoalInput {
   /** Latest weight, in kg. */
   weight: number;
+  /** Latest fat-free mass in kg, null when the scale does not tell it. */
+  fatFreeMass: number | null;
   /** Calories burned at rest. */
   bmr: number;
   /** Calories burned per day, estimated or measured. */
@@ -56,10 +70,11 @@ const roundTo10 = (kcal: number) => Math.round(kcal / 10) * 10;
 /**
  * Daily calories and macros for a goal. The calories follow the pace (a
  * deficit to lose, a surplus to gain) but never go under the BMR; protein
- * depends on the goal, fat has a floor, and carbs take what is left.
+ * depends on the goal and the fat-free mass, fat has a floor, and carbs take
+ * what is left.
  */
 export function recommendGoals(input: GoalInput): Recommendation {
-  const { weight, bmr, expenditure, goalType, pace } = input;
+  const { weight, fatFreeMass, bmr, expenditure, goalType, pace } = input;
   const losing = goalType === 'LOSE_FAT' || goalType === 'LOSE_WEIGHT';
   const gaining = goalType === 'GAIN_MUSCLE';
   const weeklyKg = (weight * pace) / 100;
@@ -73,7 +88,9 @@ export function recommendGoals(input: GoalInput): Recommendation {
   const limitedByBmr = wanted < bmr;
   const kcal = roundTo10(limitedByBmr ? bmr : wanted);
 
-  const protein = Math.round(weight * PROTEIN_PER_KG[goalType]);
+  const protein = Math.round(
+    (fatFreeMass ?? weight) * proteinRule(goalType, fatFreeMass).perKg,
+  );
   const fat = Math.round(
     Math.max(weight * FAT_MIN_PER_KG, (kcal * FAT_SHARE) / 9),
   );
@@ -102,6 +119,29 @@ export function suggestGoalType(
     return 'MAINTAIN';
   }
   return targetWeight < weight ? 'LOSE_FAT' : 'GAIN_MUSCLE';
+}
+
+/** One change of the daily goals, as the goal history keeps it. */
+export interface GoalChange {
+  objective: string | null;
+  startDate: string;
+}
+
+/**
+ * When the current goal began: the first change of the daily goals since the
+ * objective (lose or gain weight) last turned, so adjusting the calories
+ * along the way keeps the goal going. Null before any goal.
+ */
+export function goalStartOf(changes: readonly GoalChange[]): string | null {
+  const newest = [...changes].sort((a, b) =>
+    b.startDate.localeCompare(a.startDate),
+  );
+  let start: GoalChange | undefined = newest[0];
+  for (const change of newest.slice(1)) {
+    if (change.objective !== newest[0].objective) break;
+    start = change;
+  }
+  return start?.startDate ?? null;
 }
 
 /**
