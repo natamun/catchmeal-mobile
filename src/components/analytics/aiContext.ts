@@ -1,5 +1,14 @@
+import {
+  compositionAlert,
+  compositionChange,
+  effectiveTargetWeight,
+  fatFreeMassOf,
+  latestComposition,
+  type CompositionEntry,
+} from '../../data/composition';
 import { weightTrend, type MeasuredExpenditure } from '../../data/energy';
-import { startOfDay, toDateKey } from '../../utils/dateKey';
+import { proteinRule, suggestGoalType, type GoalType } from '../../data/goals';
+import { endOfDay, startOfDay, toDateKey } from '../../utils/dateKey';
 import { formatKg, formatMinutes } from '../../utils/format';
 import {
   strengthExercisesOf,
@@ -30,11 +39,6 @@ const MEASURES = [
 
 const NONE = '–';
 
-interface WeighIn {
-  weight: number;
-  loggedAt: string;
-}
-
 export interface AiContextInput {
   /** The period, as YYYY-MM-DD, both days included. */
   from: string;
@@ -44,10 +48,12 @@ export interface AiContextInput {
   profile: Profile;
   measured: MeasuredExpenditure | null;
   /**
-   * Every weigh-in: the latest gives the weight even without one in the
-   * period.
+   * Every weigh-in: the latest gives the weight and the body composition
+   * even without one in the period.
    */
-  weighIns: readonly WeighIn[];
+  weighIns: readonly CompositionEntry[];
+  /** When the current goal began (ISO), or null. */
+  goalStart?: string | null;
   /** The training sessions; those of the period are summed up. */
   workouts: readonly Workout[];
   today?: Date;
@@ -102,7 +108,23 @@ const average = (values: number[]) =>
 const cell = (value: number | null, format = (n: number) => String(n)) =>
   value === null ? NONE : format(Math.round(value * 10) / 10);
 
-function profileLines(profile: Profile, latestWeighIn: WeighIn | undefined) {
+/** What the weigh-ins tell of the body and of the goal, for the profile. */
+interface BodyNow {
+  latestWeighIn: CompositionEntry | undefined;
+  measuredEntry: CompositionEntry | null;
+  fatFreeMass: number | null;
+  goalType: GoalType;
+  alert: ReturnType<typeof compositionAlert>;
+}
+
+const ALERT_TEXT = {
+  FAT_GAIN:
+    'le gras monte plus vite que la masse maigre pendant la prise de muscle',
+  LEAN_LOSS: 'la masse maigre baisse vite pendant la perte de poids',
+} as const;
+
+function profileLines(profile: Profile, body: BodyNow) {
+  const { latestWeighIn, measuredEntry, fatFreeMass } = body;
   const person = [
     profile.gender && labelOf(GENDER_OPTIONS, profile.gender),
     profile.birthDate && `${getAge(profile.birthDate)} ans`,
@@ -110,22 +132,33 @@ function profileLines(profile: Profile, latestWeighIn: WeighIn | undefined) {
   ].filter(Boolean);
   const activity =
     profile.activityLevel && labelOf(ACTIVITY_OPTIONS, profile.activityLevel);
+  const target = effectiveTargetWeight(profile, fatFreeMass);
   const goal = [
     profile.goalType && labelOf(GOAL_TYPE_OPTIONS, profile.goalType),
-    profile.targetWeight && `poids cible ${formatKg(profile.targetWeight)} kg`,
+    profile.targetBodyFat !== null && fatFreeMass !== null && target !== null
+      ? `masse grasse cible ${profile.targetBodyFat} %, soit environ ${formatKg(target)} kg en gardant ma masse maigre`
+      : profile.targetWeight &&
+        `poids cible ${formatKg(profile.targetWeight)} kg`,
   ].filter(Boolean);
+  const composition =
+    measuredEntry && fatFreeMass !== null
+      ? `- Composition à la dernière mesure, le ${longDate(toDateKey(new Date(measuredEntry.loggedAt)))} : ${formatKg(measuredEntry.weight - fatFreeMass)} kg de gras (${formatKg(((measuredEntry.weight - fatFreeMass) / measuredEntry.weight) * 100)} %), ${formatKg(fatFreeMass)} kg de masse maigre`
+      : null;
 
   const lines = [
     person.length > 0 && `- ${person.join(', ')}`,
     latestWeighIn &&
       `- Dernière pesée : ${formatKg(latestWeighIn.weight)} kg, le ${longDate(toDateKey(new Date(latestWeighIn.loggedAt)))}`,
+    composition,
     activity && `- Activité : ${activity}`,
     goal.length > 0 && `- Objectif : ${goal.join(', ')}`,
+    body.alert &&
+      `- Alerte de l'app sur les dernières semaines : ${ALERT_TEXT[body.alert]}`,
   ].filter((line): line is string => Boolean(line));
   return lines.length > 0 ? lines : ['- Non renseigné'];
 }
 
-function goalsLine(profile: Profile) {
+function goalsLines(profile: Profile, body: BodyNow) {
   const goals = [
     profile.dailyCalorieGoal !== null && `${profile.dailyCalorieGoal} kcal`,
     profile.dailyProteinGoal !== null &&
@@ -134,7 +167,28 @@ function goalsLine(profile: Profile) {
       `${profile.dailyCarbsGoal} g de glucides`,
     profile.dailyFatGoal !== null && `${profile.dailyFatGoal} g de lipides`,
   ].filter(Boolean);
-  return goals.length > 0 ? `- ${goals.join(', ')}` : '- Aucun objectif fixé';
+  const protein = proteinRule(body.goalType, body.fatFreeMass);
+  return [
+    goals.length > 0 ? `- ${goals.join(', ')}` : '- Aucun objectif fixé',
+    `- L'app recommande ${formatKg(protein.perKg)} g de protéines par kg ${
+      protein.onLeanMass ? 'de masse maigre' : 'de poids'
+    } pour cet objectif`,
+  ];
+}
+
+/** How the fat and the fat-free mass moved over the period, on their trend. */
+function compositionLine(
+  from: string,
+  to: string,
+  weighIns: readonly CompositionEntry[],
+) {
+  const change = compositionChange(weighIns, {
+    from: startOfDay(from),
+    to: endOfDay(to),
+  });
+  return change
+    ? `- Gras et masse maigre sur la période, en tendance sur ${change.weighIns} pesées : gras ${signed(change.fatKg)} kg, masse maigre ${signed(change.leanKg)} kg`
+    : null;
 }
 
 function expenditureLine(measured: MeasuredExpenditure | null) {
@@ -335,7 +389,8 @@ function sportLines(
 
 /**
  * A summary of a period to paste into an AI chat: the profile (age, never the
- * birth date) with the latest weigh-in, the goals set, the measured
+ * birth date) with the latest weigh-in and body composition, the goal and
+ * its alert, the goals set with the protein the app advises, the measured
  * expenditure, the period's averages and measures, its training sessions,
  * then the detail, day by day up to 31 days and week by week
  * beyond. Today's meals are left out of the averages: the day is not over.
@@ -348,12 +403,38 @@ export function buildAiContext({
   profile,
   measured,
   weighIns: allWeighIns,
+  goalStart = null,
   workouts,
   today = new Date(),
 }: AiContextInput) {
   const latestWeighIn = [...allWeighIns].sort((a, b) =>
     b.loggedAt.localeCompare(a.loggedAt),
   )[0];
+  const measuredEntry = latestComposition(allWeighIns);
+  const fatFreeMass = measuredEntry ? fatFreeMassOf(measuredEntry) : null;
+  const goalType =
+    (profile.goalType as GoalType | null) ??
+    (latestWeighIn
+      ? suggestGoalType(
+          latestWeighIn.weight,
+          effectiveTargetWeight(profile, fatFreeMass),
+        )
+      : 'MAINTAIN');
+  const body: BodyNow = {
+    latestWeighIn,
+    measuredEntry,
+    fatFreeMass,
+    goalType,
+    alert: compositionAlert(
+      allWeighIns,
+      {
+        goalType,
+        goalStart: goalStart ? new Date(goalStart) : null,
+        warnLeanLoss: profile.leanLossAlert,
+      },
+      today,
+    ),
+  };
   const todayKey = toDateKey(today);
   const calendar = calendarDays(from, to);
   const byDay = new Map(days.map((day) => [day.day, day]));
@@ -377,7 +458,10 @@ export function buildAiContext({
     `- Pesées : ${weighIns}`,
     ...measureLines(from, days),
   ];
+  const composition = compositionLine(from, to, allWeighIns);
+  if (composition) period.push(composition);
   if (
+    measuredEntry ||
     days.some((day) => MEASURES.slice(1).some(({ key }) => day[key] !== null))
   ) {
     period.push(
@@ -390,10 +474,10 @@ export function buildAiContext({
     'Voici mes données de suivi nutritionnel, tirées de mon app. Analyse-les et réponds à ma question à la fin.',
     '',
     '## Profil',
-    ...profileLines(profile, latestWeighIn),
+    ...profileLines(profile, body),
     '',
     '## Objectifs que je me suis fixés (par jour)',
-    goalsLine(profile),
+    ...goalsLines(profile, body),
     '',
     "## Dépense mesurée par l'app",
     expenditureLine(measured),

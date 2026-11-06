@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import type { CompositionEntry } from '../../data/composition';
 import type { Workout } from '../fitness/types';
 import type { Profile } from '../profile/api';
 import { getAge } from '../profile/bmr';
@@ -39,6 +40,13 @@ const EMPTY_PROFILE: Profile = {
 };
 
 const TODAY = new Date(2026, 10, 6, 12);
+
+/** A weigh-in, with its fat-free mass when the scale told it. */
+const weighIn = (
+  weight: number,
+  loggedAt: string,
+  fatFreeMass: number | null = null,
+): CompositionEntry => ({ weight, bodyFat: null, fatFreeMass, loggedAt });
 
 const day = (key: string, values: Partial<DashboardDay>): DashboardDay => ({
   day: key,
@@ -88,11 +96,73 @@ describe('buildAiContext', () => {
   it('gives the latest weigh-in, even from before the period', () => {
     const text = build({
       weighIns: [
-        { weight: 76, loggedAt: new Date(2026, 9, 20, 8).toISOString() },
-        { weight: 75.2, loggedAt: new Date(2026, 9, 30, 8).toISOString() },
+        weighIn(76, new Date(2026, 9, 20, 8).toISOString()),
+        weighIn(75.2, new Date(2026, 9, 30, 8).toISOString()),
       ],
     });
     expect(text).toContain('- Dernière pesée : 75,2 kg, le 30 oct. 2026');
+  });
+
+  it('gives the body composition and the weight the target body fat sets', () => {
+    const text = build({
+      profile: { ...PROFILE, targetBodyFat: 15 },
+      weighIns: [
+        weighIn(80, new Date(2026, 9, 30, 8).toISOString(), 60),
+        weighIn(79.6, new Date(2026, 10, 2, 8).toISOString()),
+      ],
+    });
+
+    expect(text).toContain(
+      '- Composition à la dernière mesure, le 30 oct. 2026 : 20 kg de gras (25 %), 60 kg de masse maigre',
+    );
+    expect(text).toContain(
+      '- Objectif : Perdre du gras, masse grasse cible 15 %, soit environ 70,6 kg en gardant ma masse maigre',
+    );
+    expect(text).toContain(
+      "- L'app recommande 2,5 g de protéines par kg de masse maigre pour cet objectif",
+    );
+  });
+
+  it('counts the protein on the weight without the composition', () => {
+    expect(build()).toContain(
+      "- L'app recommande 2 g de protéines par kg de poids pour cet objectif",
+    );
+  });
+
+  it('gives how the fat and the fat-free mass moved over the period', () => {
+    const text = build({
+      from: '2026-10-16',
+      weighIns: [
+        [16, 80, 60],
+        [23, 79.6, 60.1],
+        [30, 79.2, 60.2],
+        [37, 78.8, 60.3],
+      ].map(([day, weight, lean]) =>
+        weighIn(weight, new Date(2026, 9, day, 8).toISOString(), lean),
+      ),
+    });
+
+    expect(text).toContain(
+      '- Gras et masse maigre sur la période, en tendance sur 4 pesées : gras −1,5 kg, masse maigre +0,3 kg',
+    );
+  });
+
+  it('passes on the alert about the fat-free mass lost, unless turned off', () => {
+    // 4 kg lost in 6 weeks, half of them fat-free mass.
+    const weighIns = Array.from({ length: 7 }, (_, week) =>
+      weighIn(
+        80 - (week * 4) / 6,
+        new Date(2026, 8, 25 + week * 7, 8).toISOString(),
+        60 - (week * 2) / 6,
+      ),
+    );
+    const alert =
+      "- Alerte de l'app sur les dernières semaines : la masse maigre baisse vite pendant la perte de poids";
+
+    expect(build({ weighIns })).toContain(alert);
+    expect(
+      build({ weighIns, profile: { ...PROFILE, leanLossAlert: false } }),
+    ).not.toContain(alert);
   });
 
   it('gives no latest weigh-in without any', () => {
@@ -251,9 +321,7 @@ describe('buildAiContext', () => {
         },
       ],
     };
-    const WEIGH_INS = [
-      { weight: 80, loggedAt: new Date(2026, 10, 1, 8).toISOString() },
-    ];
+    const WEIGH_INS = [weighIn(80, new Date(2026, 10, 1, 8).toISOString())];
 
     it('says when there was no session', () => {
       expect(build()).toContain(

@@ -3,7 +3,11 @@ import { Copy, Share2 } from 'lucide-react';
 
 import { copyText, shareText } from '../../native/shareText';
 import { listWorkouts } from '../fitness/api';
-import { getMeasuredExpenditure, getWeightHistory } from '../profile/api';
+import {
+  getGoalStart,
+  getMeasuredExpenditure,
+  getWeightHistory,
+} from '../profile/api';
 import { useProfile } from '../profile/profileContext';
 import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { SummaryCard } from '../ui/SummaryCard';
@@ -35,10 +39,11 @@ export function AiContextCard({ from, to, days, isLoading = false }: Props) {
   ) => {
     setIsBusy(true);
     try {
-      const [measured, weighIns, workouts] = await Promise.all([
+      const [measured, weighIns, workouts, goalStart] = await Promise.all([
         getMeasuredExpenditure().catch(() => null),
         getWeightHistory().catch(() => []),
         listWorkouts().catch(() => []),
+        getGoalStart().catch(() => null),
       ]);
       await send(
         buildAiContext({
@@ -48,6 +53,7 @@ export function AiContextCard({ from, to, days, isLoading = false }: Props) {
           profile,
           measured,
           weighIns,
+          goalStart,
           workouts,
         }),
       );
