@@ -1,6 +1,9 @@
 APP = npm run
 CAP = npx cap
-DEV_PORT = 5174
+# Port of the live development server, not Vite's 5173 that another project
+# often holds. Give the same one to both: `make dev DEV_PORT=5180`, then
+# `make live DEV_PORT=5180`.
+DEV_PORT ?= 5174
 # First phone in `adb devices`, so Capacitor does not ask which device to use.
 PHONE = $(shell adb devices 2>/dev/null | awk 'NR > 1 && $$2 == "device" { print $$1; exit }')
 
@@ -37,6 +40,16 @@ check: formatCheck lintCheck build test
 phone: build hasPhone
 	$(CAP) run android --target $(PHONE)
 
+# Builds the app into an APK file to copy to the phone and open there, without
+# adb. Signed with the same debug key as `make phone`, so either updates the
+# other and keeps the data.
+APK = android/app/build/outputs/apk/debug/app-debug.apk
+
+apk: build
+	$(CAP) sync android
+	cd android && ./gradlew assembleDebug
+	@echo "APK ready: $(APK)"
+
 # Live development, in two terminals: `make dev` serves the code, then
 # `make live` installs an app that loads it through the USB cable and reloads
 # on every change. Stop `make live` with Ctrl+C, then `make phone` to get the
@@ -51,4 +64,4 @@ hasPhone:
 	@test -n "$(PHONE)" || { echo "No phone found: check adb devices"; exit 1; }
 
 .PHONY: all format formatCheck lint lintCheck build test testVerbose check \
-	phone dev live hasPhone
+	phone apk dev live hasPhone
