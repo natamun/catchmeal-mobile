@@ -304,12 +304,25 @@ describe('buildAiContext', () => {
         to: '2026-10-31',
         workouts: [
           { ...LEG_DAY, id: 1, performedOn: '2026-09-02' },
-          { ...LEG_DAY, id: 2, performedOn: '2026-09-04' },
+          {
+            ...LEG_DAY,
+            id: 2,
+            performedOn: '2026-09-04',
+            items: [
+              {
+                ...LEG_DAY.items[0],
+                sets: [{ reps: 8, weightKg: 105 }],
+              },
+            ],
+          },
         ],
         weighIns: WEIGH_INS,
       });
 
       expect(text).toContain('| 01/09 → 07/09 | 2 |');
+      expect(text).toContain(
+        '- Charge max, de la première à la dernière séance de la période :\n  - Presse à cuisses : 100 → 105 kg',
+      );
       expect(text).toContain('| 08/09 → 14/09 | 0 |');
     });
   });
