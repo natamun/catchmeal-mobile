@@ -186,6 +186,33 @@ ${STARTER_EXERCISES.map(
 ).join(',\n')};
 `;
 
+/**
+ * Favorite sessions ("Full body", "Tapis incliné"): a name and exercises in
+ * order, a cardio one with its duration, speed and incline when set. Logged
+ * sessions get an optional name, the favorite's they come from.
+ */
+const TEMPLATES_V6 = `
+ALTER TABLE workout ADD COLUMN name TEXT;
+
+CREATE TABLE workout_template (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL CHECK (length(trim(name)) > 0)
+) STRICT;
+
+CREATE TABLE workout_template_exercise (
+  id INTEGER PRIMARY KEY,
+  template_id INTEGER NOT NULL REFERENCES workout_template (id) ON DELETE CASCADE,
+  exercise_id INTEGER NOT NULL REFERENCES exercise (id),
+  position INTEGER NOT NULL CHECK (position >= 0),
+  duration_minutes REAL CHECK (duration_minutes > 0),
+  speed_kmh REAL CHECK (speed_kmh > 0),
+  incline_percent REAL CHECK (incline_percent >= 0)
+) STRICT;
+
+CREATE INDEX workout_template_exercise_template ON workout_template_exercise (template_id);
+CREATE INDEX workout_template_exercise_exercise ON workout_template_exercise (exercise_id);
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: SCHEMA_V1 },
@@ -193,6 +220,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 3, sql: THEME_V3 },
   { version: 4, sql: THEME_FREE_V4 },
   { version: 5, sql: FITNESS_V5 },
+  { version: 6, sql: TEMPLATES_V6 },
 ];
 
 /**
