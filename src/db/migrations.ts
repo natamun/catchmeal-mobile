@@ -213,6 +213,32 @@ CREATE INDEX workout_template_exercise_template ON workout_template_exercise (te
 CREATE INDEX workout_template_exercise_exercise ON workout_template_exercise (exercise_id);
 `;
 
+/**
+ * The training becomes a logbook kept like the food journal: one session per
+ * day, each exercise once in it, no name and no duration (the cardio keeps
+ * its own). The sessions of a same day are merged into the first one, and an
+ * exercise done twice that day keeps the first line with all the sets, in
+ * the order they were logged. The name and duration columns stay, empty.
+ */
+const ONE_SESSION_A_DAY_V7 = `
+UPDATE workout_exercise SET workout_id = (SELECT min(first.id) FROM workout first JOIN workout own ON own.performed_on = first.performed_on WHERE own.id = workout_exercise.workout_id);
+
+DELETE FROM workout WHERE id NOT IN (SELECT min(id) FROM workout GROUP BY performed_on);
+
+UPDATE workout_set SET workout_exercise_id = (SELECT min(first.id) FROM workout_exercise first JOIN workout_exercise own ON own.workout_id = first.workout_id AND own.exercise_id = first.exercise_id WHERE own.id = workout_set.workout_exercise_id);
+
+DELETE FROM workout_exercise WHERE id NOT IN (SELECT min(id) FROM workout_exercise GROUP BY workout_id, exercise_id);
+
+UPDATE workout_exercise SET position = (SELECT count(*) FROM workout_exercise other WHERE other.workout_id = workout_exercise.workout_id AND other.id < workout_exercise.id);
+
+UPDATE workout_set SET position = (SELECT count(*) FROM workout_set other WHERE other.workout_exercise_id = workout_set.workout_exercise_id AND other.id < workout_set.id);
+
+UPDATE workout SET name = NULL, duration_minutes = NULL;
+
+CREATE UNIQUE INDEX workout_one_a_day ON workout (performed_on);
+CREATE UNIQUE INDEX workout_exercise_once ON workout_exercise (workout_id, exercise_id);
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: SCHEMA_V1 },
@@ -221,6 +247,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 4, sql: THEME_FREE_V4 },
   { version: 5, sql: FITNESS_V5 },
   { version: 6, sql: TEMPLATES_V6 },
+  { version: 7, sql: ONE_SESSION_A_DAY_V7 },
 ];
 
 /**
