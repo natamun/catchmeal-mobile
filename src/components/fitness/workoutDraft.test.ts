@@ -13,7 +13,6 @@ const PRESS: Exercise = {
   id: 1,
   name: 'Presse à cuisses',
   kind: 'STRENGTH',
-  met: null,
   archived: false,
 };
 const TREADMILL: Exercise = {
@@ -27,7 +26,6 @@ const ROWER: Exercise = {
   id: 3,
   name: 'Rameur',
   kind: 'CARDIO',
-  met: 7,
 };
 
 const lastTime = (values: Partial<WorkoutItem>): WorkoutItem => ({
@@ -35,7 +33,6 @@ const lastTime = (values: Partial<WorkoutItem>): WorkoutItem => ({
   exerciseId: 1,
   exerciseName: 'Presse à cuisses',
   kind: 'STRENGTH',
-  met: null,
   sets: [],
   durationMinutes: null,
   speedKmh: null,

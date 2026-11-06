@@ -180,10 +180,8 @@ CREATE TABLE workout_set (
 
 CREATE INDEX workout_set_workout_exercise ON workout_set (workout_exercise_id);
 
-INSERT INTO exercise (name, kind, met) VALUES
-${STARTER_EXERCISES.map(
-  ({ name, kind, met }) => `(${sqlText(name)}, '${kind}', ${met ?? 'NULL'})`,
-).join(',\n')};
+INSERT INTO exercise (name, kind) VALUES
+${STARTER_EXERCISES.map(({ name, kind }) => `(${sqlText(name)}, '${kind}')`).join(',\n')};
 `;
 
 /**

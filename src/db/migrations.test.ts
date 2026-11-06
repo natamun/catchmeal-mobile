@@ -166,24 +166,21 @@ describe('migration 4', () => {
 describe('migration 5', () => {
   it('starts the exercise library with the usual machines', async () => {
     const exercises = await db.query<Row>(
-      'SELECT name, kind, met FROM exercise ORDER BY id',
+      'SELECT name, kind FROM exercise ORDER BY id',
     );
 
     expect(exercises).toHaveLength(STARTER_EXERCISES.length);
     expect(exercises).toContainEqual({
       name: 'Presse à cuisses',
       kind: 'STRENGTH',
-      met: null,
     });
     expect(exercises).toContainEqual({
       name: 'Tapis de course',
       kind: 'TREADMILL',
-      met: null,
     });
     expect(exercises).toContainEqual({
       name: 'Rameur',
       kind: 'CARDIO',
-      met: 7,
     });
   });
 

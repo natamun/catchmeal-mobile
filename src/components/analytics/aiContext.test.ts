@@ -227,7 +227,6 @@ describe('buildAiContext', () => {
           exerciseId: 1,
           exerciseName: 'Presse à cuisses',
           kind: 'STRENGTH',
-          met: null,
           sets: [
             { reps: 8, weightKg: 100 },
             { reps: 10, weightKg: 92.5 },
@@ -241,7 +240,6 @@ describe('buildAiContext', () => {
           exerciseId: 2,
           exerciseName: 'Tapis de course',
           kind: 'TREADMILL',
-          met: null,
           sets: [],
           durationMinutes: 20,
           speedKmh: 5,

@@ -16,7 +16,6 @@ const press = (...sets: [number, number][]): WorkoutItem => ({
   exerciseId: 1,
   exerciseName: 'Presse à cuisses',
   kind: 'STRENGTH',
-  met: null,
   sets: sets.map(([reps, weightKg]) => ({ reps, weightKg })),
   durationMinutes: null,
   speedKmh: null,

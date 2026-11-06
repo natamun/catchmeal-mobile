@@ -1,16 +1,14 @@
 /**
- * How an exercise is logged and how its energy is estimated:
+ * How an exercise is logged:
  * - STRENGTH: sets of repetitions at a load;
  * - TREADMILL: a duration at a speed and an incline;
- * - CARDIO: a duration, at the effort of the exercise (its MET).
+ * - CARDIO: a duration.
  */
 export type ExerciseKind = 'STRENGTH' | 'TREADMILL' | 'CARDIO';
 
 export interface StarterExercise {
   name: string;
   kind: ExerciseKind;
-  /** Effort of a cardio exercise, in METs (Compendium of Physical Activities). */
-  met?: number;
 }
 
 /**
@@ -46,8 +44,8 @@ export const STARTER_EXERCISES: readonly StarterExercise[] = [
   { name: 'Dips assistés', kind: 'STRENGTH' },
   { name: 'Crunch machine', kind: 'STRENGTH' },
   { name: 'Tapis de course', kind: 'TREADMILL' },
-  { name: 'Vélo stationnaire', kind: 'CARDIO', met: 6.8 },
-  { name: 'Elliptique', kind: 'CARDIO', met: 5 },
-  { name: 'Rameur', kind: 'CARDIO', met: 7 },
-  { name: 'Stepper', kind: 'CARDIO', met: 9 },
+  { name: 'Vélo stationnaire', kind: 'CARDIO' },
+  { name: 'Elliptique', kind: 'CARDIO' },
+  { name: 'Rameur', kind: 'CARDIO' },
+  { name: 'Stepper', kind: 'CARDIO' },
 ];

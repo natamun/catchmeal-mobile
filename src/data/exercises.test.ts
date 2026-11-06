@@ -9,7 +9,6 @@ import { DataError } from './errors';
 import {
   archiveExercise,
   createExercise,
-  DEFAULT_CARDIO_MET,
   listExercises,
   updateExercise,
 } from './exercises';
@@ -55,18 +54,8 @@ describe('createExercise', () => {
       id: exercise.id,
       name: 'Presse inclinée',
       kind: 'STRENGTH',
-      met: null,
       archived: false,
     });
-  });
-
-  it('gives a new cardio exercise a moderate effort', async () => {
-    const exercise = await createExercise(db, {
-      name: 'Corde à sauter',
-      kind: 'CARDIO',
-    });
-
-    expect(exercise.met).toBe(DEFAULT_CARDIO_MET);
   });
 
   it.each<[string, Partial<ExerciseInput>]>([
@@ -131,7 +120,7 @@ describe('updateExercise', () => {
       kind: 'CARDIO',
     });
 
-    expect(changed).toMatchObject({ kind: 'CARDIO', met: DEFAULT_CARDIO_MET });
+    expect(changed).toMatchObject({ kind: 'CARDIO' });
   });
 
   it('refuses to change the kind once a session uses the exercise', async () => {

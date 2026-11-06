@@ -37,7 +37,6 @@ interface ItemRow {
   exercise_id: number;
   name: string;
   kind: ExerciseKind;
-  met: number | null;
   duration_minutes: number | null;
   speed_kmh: number | null;
   incline_percent: number | null;
@@ -172,7 +171,6 @@ function toItem(row: ItemRow, sets: SetRow[]): WorkoutItem {
     exerciseId: row.exercise_id,
     exerciseName: row.name,
     kind: row.kind,
-    met: row.met,
     sets: sets
       .filter((set) => set.workout_exercise_id === row.id)
       .map((set) => ({ reps: set.reps, weightKg: set.weight_kg })),
@@ -190,7 +188,7 @@ async function readWorkouts(db: Executor, where: string, params: SqlValue[]) {
     params,
   );
   const items = await db.query<ItemRow>(
-    `SELECT we.id, we.workout_id, we.exercise_id, e.name, e.kind, e.met,
+    `SELECT we.id, we.workout_id, we.exercise_id, e.name, e.kind,
             we.duration_minutes, we.speed_kmh, we.incline_percent
      FROM workout_exercise we JOIN exercise e ON e.id = we.exercise_id
      WHERE we.workout_id IN (SELECT id FROM workout WHERE ${where})

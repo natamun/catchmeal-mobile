@@ -10,14 +10,13 @@ export const KIND_LABELS: Record<ExerciseKind, string> = {
 };
 
 /**
- * An exercise of the user's library. `met` is the effort of a cardio
- * exercise. An archived exercise is hidden but kept for the past sessions.
+ * An exercise of the user's library. An archived exercise is hidden but kept
+ * for the past sessions.
  */
 export interface Exercise {
   id: number;
   name: string;
   kind: ExerciseKind;
-  met: number | null;
   archived: boolean;
 }
 
@@ -41,7 +40,6 @@ export interface WorkoutItem {
   exerciseId: number;
   exerciseName: string;
   kind: ExerciseKind;
-  met: number | null;
   sets: WorkoutSet[];
   durationMinutes: number | null;
   speedKmh: number | null;

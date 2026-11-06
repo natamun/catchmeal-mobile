@@ -13,27 +13,22 @@ export const EXERCISE_KINDS: readonly ExerciseKind[] = [
   'CARDIO',
 ];
 
-/** Effort given to a cardio exercise the user adds: moderate. */
-export const DEFAULT_CARDIO_MET = 5;
-
 const GONE = "Cet exercice n'existe plus.";
 
 interface ExerciseRow {
   id: number;
   name: string;
   kind: ExerciseKind;
-  met: number | null;
   archived: number;
 }
 
-const COLUMNS = 'id, name, kind, met, archived';
+const COLUMNS = 'id, name, kind, archived';
 
 function toExercise(row: ExerciseRow): Exercise {
   return {
     id: row.id,
     name: row.name,
     kind: row.kind,
-    met: row.met,
     archived: row.archived === 1,
   };
 }
@@ -80,17 +75,13 @@ export async function listExercises(db: Executor) {
   return rows.map(toExercise).sort(byName);
 }
 
-/** Adds an exercise; a cardio one gets a moderate effort. */
+/** Adds an exercise to the library. */
 export async function createExercise(db: Executor, input: ExerciseInput) {
   const exercise = validateExercise(input);
   await checkNameIsFree(db, exercise.name);
   const { lastId } = await db.run(
-    'INSERT INTO exercise (name, kind, met) VALUES (?, ?, ?)',
-    [
-      exercise.name,
-      exercise.kind,
-      exercise.kind === 'CARDIO' ? DEFAULT_CARDIO_MET : null,
-    ],
+    'INSERT INTO exercise (name, kind) VALUES (?, ?)',
+    [exercise.name, exercise.kind],
   );
   return (await findExercise(db, lastId))!;
 }
@@ -109,7 +100,6 @@ export async function updateExercise(
   if (!current || current.archived) throw new DataError(GONE);
   await checkNameIsFree(db, exercise.name, id);
 
-  let met = current.met;
   if (exercise.kind !== current.kind) {
     const [used] = await db.query(
       'SELECT 1 FROM workout_exercise WHERE exercise_id = ? LIMIT 1',
@@ -120,13 +110,11 @@ export async function updateExercise(
         'Cet exercice a déjà des séances : son type ne peut plus changer.',
       );
     }
-    met = exercise.kind === 'CARDIO' ? DEFAULT_CARDIO_MET : null;
   }
 
-  await db.run('UPDATE exercise SET name = ?, kind = ?, met = ? WHERE id = ?', [
+  await db.run('UPDATE exercise SET name = ?, kind = ? WHERE id = ?', [
     exercise.name,
     exercise.kind,
-    met,
     id,
   ]);
   return (await findExercise(db, id))!;
