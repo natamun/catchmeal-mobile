@@ -147,7 +147,7 @@ function WeightForm({
 
       <fieldset className="min-w-0">
         <legend className={`mb-1.5 ${LABEL_CLASS}`}>
-          Composition corporelle (optionnel)
+          Composition corporelle
         </legend>
         <div className="grid grid-cols-2 gap-3">
           {COMPOSITION.map((measure) => (
