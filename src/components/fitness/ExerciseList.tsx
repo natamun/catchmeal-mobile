@@ -1,31 +1,45 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { ChevronRight, Search } from 'lucide-react';
+import { ChevronRight, Plus, Search } from 'lucide-react';
 
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { Input } from '../ui/Input';
 import { ListCard, ListCardEmpty, ListCardLoading } from '../ui/ListCard';
 import { LoadError } from '../ui/LoadError';
-import { matchesSearch } from './search';
-import type { Exercise, ExerciseKind } from './types';
+import { describeValues } from './format';
+import { isSameName, matchesSearch } from './search';
+import type { Exercise, ExerciseKind, WorkoutItem } from './types';
 
 const SECTIONS: { label: string; kinds: readonly ExerciseKind[] }[] = [
   { label: 'Musculation', kinds: ['STRENGTH'] },
   { label: 'Cardio', kinds: ['TREADMILL', 'CARDIO'] },
 ];
 
+const NEW_KINDS: { kind: ExerciseKind; label: string }[] = [
+  { kind: 'STRENGTH', label: 'Muscu' },
+  { kind: 'TREADMILL', label: 'Tapis' },
+  { kind: 'CARDIO', label: 'Cardio' },
+];
+
 interface Props {
   exercises: Exercise[];
   isLoading: boolean;
   loadError: string | null;
-  onRetry: () => void;
-  headerAction: ReactNode;
-  /** Opens the logbook of an exercise. */
-  onOpen: (exercise: Exercise) => void;
+  onRetry?: () => void;
+  headerAction?: ReactNode;
+  /** The last time each exercise was done, shown under its name. */
+  latest: Map<number, WorkoutItem>;
+  /** Opens the logbook of an exercise, from the library. */
+  onOpen?: (exercise: Exercise) => void;
+  /** A button at the end of each row, such as the picker's selection. */
+  renderAction?: (exercise: Exercise) => ReactNode;
+  /** Creates the typed exercise when the library has none of that name. */
+  onCreate?: (name: string, kind: ExerciseKind) => void;
 }
 
 /**
  * The exercise library, searchable, in two sections: strength, then cardio.
- * Each one opens its logbook. Archived exercises are hidden.
+ * Each row recalls the last time the exercise was done. Archived exercises
+ * are hidden.
  */
 export function ExerciseList({
   exercises,
@@ -33,7 +47,10 @@ export function ExerciseList({
   loadError,
   onRetry,
   headerAction,
+  latest,
   onOpen,
+  renderAction,
+  onCreate,
 }: Props) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -43,6 +60,25 @@ export function ExerciseList({
   const visible = active.filter((exercise) =>
     matchesSearch(exercise.name, query),
   );
+  const typed = query.trim();
+  const canCreate =
+    onCreate !== undefined &&
+    typed !== '' &&
+    !active.some((exercise) => isSameName(exercise.name, typed));
+
+  const content = (exercise: Exercise) => {
+    const last = latest.get(exercise.id);
+    return (
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate text-sm font-semibold text-theme-800">
+          {exercise.name}
+        </span>
+        <span className="truncate text-xs text-theme-500">
+          {last ? describeValues(last) : 'Jamais fait'}
+        </span>
+      </span>
+    );
+  };
 
   return (
     <ListCard
@@ -66,13 +102,39 @@ export function ExerciseList({
     >
       {isLoading && <ListCardLoading />}
       {loadError && <LoadError message={loadError} onRetry={onRetry} />}
-      {!isLoading && !loadError && active.length === 0 && (
+
+      {canCreate && (
+        <div className="flex flex-col gap-2 border-b border-theme-200 bg-theme-50 px-5 py-3">
+          <span className="truncate text-sm text-theme-700">
+            Créer « {typed} »
+          </span>
+          <div className="flex gap-2">
+            {NEW_KINDS.map(({ kind, label }) => (
+              <button
+                key={kind}
+                type="button"
+                onClick={() => {
+                  onCreate(typed, kind);
+                  setQuery('');
+                }}
+                className="flex flex-1 cursor-pointer items-center justify-center gap-1 rounded-lg border border-theme-200 bg-surface py-2 text-sm font-medium text-theme-700 transition-colors hover:bg-theme-100"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!isLoading && !loadError && active.length === 0 && !canCreate && (
         <ListCardEmpty>Aucun exercice enregistré.</ListCardEmpty>
       )}
       {!isLoading &&
         !loadError &&
         active.length > 0 &&
-        visible.length === 0 && (
+        visible.length === 0 &&
+        !canCreate && (
           <ListCardEmpty>
             Aucun exercice ne correspond à cette recherche.
           </ListCardEmpty>
@@ -91,16 +153,21 @@ export function ExerciseList({
             <ul className="divide-y divide-theme-200">
               {rows.map((exercise) => (
                 <li key={exercise.id} className="even:bg-theme-50/60">
-                  <button
-                    type="button"
-                    onClick={() => onOpen(exercise)}
-                    className="flex w-full cursor-pointer items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-theme-50"
-                  >
-                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-theme-800">
-                      {exercise.name}
-                    </span>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-theme-400" />
-                  </button>
+                  {onOpen ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpen(exercise)}
+                      className="flex w-full cursor-pointer items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-theme-50"
+                    >
+                      {content(exercise)}
+                      <ChevronRight className="h-4 w-4 shrink-0 text-theme-400" />
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-3 px-5 py-3">
+                      {content(exercise)}
+                      {renderAction?.(exercise)}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

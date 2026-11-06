@@ -7,9 +7,10 @@ import { TimeLineChart } from '../analytics/TimeLineChart';
 import { BaseDialog } from '../ui/BaseDialog';
 import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { StatTile } from '../ui/StatTile';
+import { describeValues } from './format';
 import { strengthProgress, treadmillClimb, treadmillKm } from './progress';
 import { exerciseHistory, strengthRecord } from './records';
-import type { Exercise, Workout, WorkoutItem } from './types';
+import type { Exercise, Workout } from './types';
 
 /** How many past sessions the sheet lists. */
 const RECENT = 5;
@@ -23,20 +24,6 @@ function shortDay(day: string) {
     year:
       date.getFullYear() === new Date().getFullYear() ? undefined : 'numeric',
   });
-}
-
-/** "12×100 · 10×110 kg" or "45 min · 4 km/h · 10 %". */
-function describe(item: WorkoutItem) {
-  if (item.kind === 'STRENGTH') {
-    return `${item.sets.map((set) => `${set.reps}×${formatKg(set.weightKg)}`).join(' · ')} kg`;
-  }
-  return [
-    item.durationMinutes !== null && `${formatKg(item.durationMinutes)} min`,
-    item.speedKmh !== null && `${formatKg(item.speedKmh)} km/h`,
-    item.inclinePercent !== null && `${formatKg(item.inclinePercent)} %`,
-  ]
-    .filter(Boolean)
-    .join(' · ');
 }
 
 interface Props {
@@ -155,7 +142,7 @@ export function ExerciseSheet({
                         {shortDay(day)}
                       </span>
                       <span className="min-w-0 truncate text-right font-medium text-theme-800 tabular-nums">
-                        {describe(item)}
+                        {describeValues(item)}
                       </span>
                     </li>
                   ))}

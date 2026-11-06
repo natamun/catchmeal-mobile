@@ -36,6 +36,23 @@ export function exerciseHistory(
 }
 
 /**
+ * The last time each exercise was done: its line in the newest session that
+ * holds it. What the favorites and the library show as a reminder.
+ */
+export function latestItems(workouts: readonly Workout[]) {
+  const latest = new Map<number, WorkoutItem>();
+  const newestFirst = [...workouts].sort((a, b) =>
+    b.performedOn.localeCompare(a.performedOn),
+  );
+  for (const workout of newestFirst) {
+    for (const item of workout.items) {
+      if (!latest.has(item.exerciseId)) latest.set(item.exerciseId, item);
+    }
+  }
+  return latest;
+}
+
+/**
  * The best of a strength exercise: its heaviest load and its best estimated
  * one-rep max, each with the first day it was reached. Null when it was
  * never done.

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   listExercises,
@@ -8,10 +8,12 @@ import {
 import { ExerciseDialog } from '../components/fitness/ExerciseDialog';
 import { ExerciseList } from '../components/fitness/ExerciseList';
 import { ExerciseSheet } from '../components/fitness/ExerciseSheet';
+import { latestItems } from '../components/fitness/records';
 import { TemplateDialog } from '../components/fitness/TemplateDialog';
 import { TemplateList } from '../components/fitness/TemplateList';
 import type { Exercise, WorkoutTemplate } from '../components/fitness/types';
 import { AddCircleButton } from '../components/ui/AddCircleButton';
+import { EditIconButton } from '../components/ui/EditIconButton';
 import { PillTabs } from '../components/ui/PillTabs';
 import { useDataVersion } from '../hooks/useDataVersion';
 
@@ -57,14 +59,16 @@ function useList<T>(read: (signal: AbortSignal) => Promise<T[]>) {
 
 /**
  * Fitness page, the training library, like the food one: the favorite
- * sessions and the exercises, each with its create and edit dialog. The
- * sessions done are logged from the journal.
+ * sessions and the exercises, each recalling the last values of its
+ * exercises, with their create and edit dialogs. The sessions done are
+ * logged from the journal.
  */
 export default function FitnessPage() {
   const [activeTab, setActiveTab] = useState<Tab>('favorites');
   const templates = useList(listTemplates);
   const exercises = useList(listExercises);
   const workouts = useList(listWorkouts);
+  const latest = useMemo(() => latestItems(workouts.items), [workouts.items]);
 
   const templateDialogRef = useRef<HTMLDialogElement>(null);
   const [templateDialog, setTemplateDialog] = useState<{
@@ -122,7 +126,10 @@ export default function FitnessPage() {
             headerAction={
               <AddCircleButton onClick={() => openTemplate(null)} />
             }
-            onEdit={openTemplate}
+            latest={latest}
+            renderAction={(template) => (
+              <EditIconButton onClick={() => openTemplate(template)} />
+            )}
           />
         ) : (
           <ExerciseList
@@ -135,6 +142,7 @@ export default function FitnessPage() {
             headerAction={
               <AddCircleButton onClick={() => openExercise(null)} />
             }
+            latest={latest}
             onOpen={openSheet}
           />
         )}
