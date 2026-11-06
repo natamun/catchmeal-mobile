@@ -10,11 +10,11 @@ interface Props {
   goalWeight: number | null;
 }
 
-/** A day such as "1er octobre" or "20 octobre". */
+/** A day such as "1er oct." or "20 oct.". */
 function formatDay(isoDate: string) {
   const date = new Date(isoDate);
   const day = date.getDate();
-  const month = date.toLocaleDateString('fr-FR', { month: 'long' });
+  const month = date.toLocaleDateString('fr-FR', { month: 'short' });
   return `${day === 1 ? '1er' : day} ${month}`;
 }
 
@@ -58,7 +58,7 @@ export function WeightWidget({ history, hasError = false, goalWeight }: Props) {
         <p className="text-sm text-theme-600">Aucune pesée enregistrée.</p>
       )}
       {current !== null && (
-        <>
+        <div className="flex items-end justify-between gap-3">
           <div className="flex items-end gap-2">
             <span className="text-4xl font-bold text-theme-800">
               {formatKg(current.weight)}
@@ -66,14 +66,19 @@ export function WeightWidget({ history, hasError = false, goalWeight }: Props) {
             <span className="mb-1 text-theme-500">kg</span>
           </div>
           {previous !== null && change !== null && (
-            <p className="mt-1 flex items-center gap-1 text-sm text-theme-600">
-              <TrendIcon className="h-4 w-4 shrink-0" />
-              {stable
-                ? `Stable depuis le ${formatDay(previous.loggedAt)}`
-                : `${change > 0 ? '+' : '−'}${formatKg(Math.abs(change))} kg depuis le ${formatDay(previous.loggedAt)}`}
-            </p>
+            <div className="mb-1 text-right">
+              <p className="flex items-center justify-end gap-1 text-sm font-semibold text-theme-800">
+                <TrendIcon className="h-4 w-4 shrink-0" />
+                {stable
+                  ? 'Stable'
+                  : `${change > 0 ? '+' : '−'}${formatKg(Math.abs(change))} kg`}
+              </p>
+              <p className="text-xs text-theme-600">
+                depuis le {formatDay(previous.loggedAt)}
+              </p>
+            </div>
           )}
-        </>
+        </div>
       )}
       <dl className="mt-auto grid grid-cols-2 gap-3 pt-3">
         <StatTile label="Objectif">
