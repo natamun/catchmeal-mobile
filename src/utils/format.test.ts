@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatSince } from './format';
+import { formatMinutes, formatSince } from './format';
 
 const TODAY = new Date(2026, 10, 6, 9, 0);
 const at = (month: number, day: number, hour = 12, year = 2026) =>
@@ -26,5 +26,16 @@ describe('formatSince', () => {
 
   it('treats a moment later today as today', () => {
     expect(formatSince(at(10, 6, 20), TODAY)).toBe("Aujourd'hui");
+  });
+});
+
+describe('formatMinutes', () => {
+  it.each([
+    [45, '45 min'],
+    [60, '1 h'],
+    [90, '1 h 30'],
+    [125, '2 h 05'],
+  ])('writes %i minutes as %s', (minutes, expected) => {
+    expect(formatMinutes(minutes)).toBe(expected);
   });
 });
