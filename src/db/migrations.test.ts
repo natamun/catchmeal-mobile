@@ -233,6 +233,111 @@ describe('migration 6', () => {
   });
 });
 
+describe('migration 7', () => {
+  it('merges the sessions of a day, an exercise done twice into one line', async () => {
+    const old = openMemoryDatabase();
+    await migrate(old, MIGRATIONS.slice(0, 6));
+    const insertInto = (table: string, row: Row) =>
+      old.run(
+        `INSERT INTO ${table} (${Object.keys(row).join(', ')}) VALUES (${Object.keys(
+          row,
+        )
+          .map(() => '?')
+          .join(', ')})`,
+        Object.values(row),
+      );
+    const morning = await insertInto('workout', {
+      performed_on: '2026-11-05',
+      name: 'Matin',
+      duration_minutes: 30,
+    });
+    const evening = await insertInto('workout', { performed_on: '2026-11-05' });
+    const other = await insertInto('workout', { performed_on: '2026-11-06' });
+    const line = (workoutId: number, exerciseId: number, position: number) =>
+      insertInto('workout_exercise', {
+        workout_id: workoutId,
+        exercise_id: exerciseId,
+        position,
+      });
+    const pressAm = await line(morning.lastId, 1, 0);
+    await line(morning.lastId, 2, 1);
+    const pressPm = await line(evening.lastId, 1, 0);
+    await line(evening.lastId, 3, 1);
+    await line(other.lastId, 1, 0);
+    const set = (lineId: number, position: number, reps: number) =>
+      insertInto('workout_set', {
+        workout_exercise_id: lineId,
+        position,
+        reps,
+        weight_kg: 80,
+      });
+    await set(pressAm.lastId, 0, 12);
+    await set(pressAm.lastId, 1, 10);
+    await set(pressPm.lastId, 0, 8);
+
+    await migrate(old);
+
+    expect(
+      await old.query(
+        'SELECT id, performed_on, name, duration_minutes FROM workout ORDER BY id',
+      ),
+    ).toEqual([
+      {
+        id: morning.lastId,
+        performed_on: '2026-11-05',
+        name: null,
+        duration_minutes: null,
+      },
+      {
+        id: other.lastId,
+        performed_on: '2026-11-06',
+        name: null,
+        duration_minutes: null,
+      },
+    ]);
+    expect(
+      await old.query(
+        'SELECT exercise_id, position FROM workout_exercise WHERE workout_id = ? ORDER BY position',
+        [morning.lastId],
+      ),
+    ).toEqual([
+      { exercise_id: 1, position: 0 },
+      { exercise_id: 2, position: 1 },
+      { exercise_id: 3, position: 2 },
+    ]);
+    expect(
+      await old.query(
+        'SELECT reps, position FROM workout_set WHERE workout_exercise_id = ? ORDER BY position',
+        [pressAm.lastId],
+      ),
+    ).toEqual([
+      { reps: 12, position: 0 },
+      { reps: 10, position: 1 },
+      { reps: 8, position: 2 },
+    ]);
+  });
+
+  it('refuses a second session on a day and an exercise twice in it', async () => {
+    const { lastId } = await insert('workout', { performed_on: '2026-11-05' });
+    await insert('workout_exercise', {
+      workout_id: lastId,
+      exercise_id: 1,
+      position: 0,
+    });
+
+    await expect(
+      insert('workout', { performed_on: '2026-11-05' }),
+    ).rejects.toThrow(/UNIQUE/);
+    await expect(
+      insert('workout_exercise', {
+        workout_id: lastId,
+        exercise_id: 1,
+        position: 1,
+      }),
+    ).rejects.toThrow(/UNIQUE/);
+  });
+});
+
 describe('workout', () => {
   async function addWorkout() {
     const { lastId: workoutId } = await insert('workout', {
