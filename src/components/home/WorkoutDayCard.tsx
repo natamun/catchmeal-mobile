@@ -126,6 +126,7 @@ export function WorkoutDayCard({ day }: Props) {
         openCount={dialog.openCount}
         workout={dialog.workout}
         day={day}
+        history={training?.workouts ?? []}
         templates={training?.templates ?? []}
         exercises={training?.exercises ?? []}
       />

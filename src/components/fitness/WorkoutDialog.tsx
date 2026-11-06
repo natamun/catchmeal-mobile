@@ -1,9 +1,9 @@
 import { useId, useRef, useState, type RefObject } from 'react';
-import { Plus, Star, X } from 'lucide-react';
+import { Plus, Star, Trophy, X } from 'lucide-react';
 
 import { startOfDay } from '../../utils/dateKey';
 import { failureMessage } from '../../utils/failureMessage';
-import { formatDayMonth } from '../../utils/format';
+import { formatDayMonth, formatKg } from '../../utils/format';
 import { BaseDialog } from '../ui/BaseDialog';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { LABEL_CLASS } from '../ui/fieldStyle';
@@ -17,6 +17,7 @@ import {
 } from './api';
 import { CardioFields } from './CardioFields';
 import { ExercisePicker } from './ExercisePicker';
+import { newRecords } from './records';
 import type { Exercise, Workout, WorkoutItem, WorkoutTemplate } from './types';
 import {
   draftFor,
@@ -138,6 +139,7 @@ function ItemEditor({ item, onChange, onRemove }: ItemEditorProps) {
 interface FormProps {
   workout: Workout | null;
   day: string;
+  history: Workout[];
   templates: WorkoutTemplate[];
   exercises: Exercise[];
   dialogNode: HTMLDialogElement | null;
@@ -152,6 +154,7 @@ interface FormProps {
 function WorkoutForm({
   workout,
   day,
+  history,
   templates,
   exercises,
   dialogNode,
@@ -224,7 +227,16 @@ function WorkoutForm({
         await createWorkout(result.input);
       }
       onSaved();
-      showToast(workout ? 'Séance modifiée' : 'Séance enregistrée');
+      const records = newRecords(history, result.input.items, workout?.id);
+      if (records.length === 0) {
+        showToast(workout ? 'Séance modifiée' : 'Séance enregistrée');
+      } else if (records.length === 1) {
+        const [{ exerciseId, weightKg }] = records;
+        const name = items.find((item) => item.exerciseId === exerciseId)?.name;
+        showToast(`Nouveau record : ${name}, ${formatKg(weightKg)} kg`, Trophy);
+      } else {
+        showToast(`${records.length} nouveaux records !`, Trophy);
+      }
     } catch (err) {
       setError(failureMessage(err, "Impossible d'enregistrer la séance."));
     } finally {
@@ -356,19 +368,22 @@ interface Props {
   workout: Workout | null;
   /** The day a new session is logged on (YYYY-MM-DD). */
   day: string;
+  /** Every session logged, to tell a new record. */
+  history: Workout[];
   templates: WorkoutTemplate[];
   exercises: Exercise[];
 }
 
 /**
  * Dialog to log a training session, from a favorite or from scratch, or to
- * edit or delete one.
+ * edit or delete one. Saving tells the new records it holds.
  */
 export function WorkoutDialog({
   dialogRef,
   openCount,
   workout,
   day,
+  history,
   templates,
   exercises,
 }: Props) {
@@ -412,6 +427,7 @@ export function WorkoutDialog({
           key={openCount}
           workout={workout}
           day={day}
+          history={history}
           templates={templates}
           exercises={exercises}
           dialogNode={dialogNode}
