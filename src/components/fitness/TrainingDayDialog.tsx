@@ -11,7 +11,7 @@ import { newRecords } from './records';
 import type { Workout } from './types';
 import { draftsToItems, type ItemDraft } from './workoutDraft';
 
-interface FormProps {
+interface ReviewProps {
   day: string;
   isEdit: boolean;
   initialItems: ItemDraft[];
@@ -19,14 +19,18 @@ interface FormProps {
   onSaved: () => void;
 }
 
-/** The form inside the dialog, remounted at each opening (key). */
-function TrainingDayForm({
+/**
+ * The exercises of the day's session to check, then add to it, or the whole
+ * session to save when editing it. Saving tells the new records. Remount it
+ * (key) to start again from `initialItems`.
+ */
+export function TrainingDayReview({
   day,
   isEdit,
   initialItems,
   history,
   onSaved,
-}: FormProps) {
+}: ReviewProps) {
   const showToast = useToast();
   const [items, setItems] = useState(initialItems);
   const [error, setError] = useState<string | null>(null);
@@ -154,7 +158,7 @@ export function TrainingDayDialog({
       dialogRef={dialogRef}
       title={isEdit ? 'Modifier : Séance' : 'Ajouter : Séance'}
     >
-      <TrainingDayForm
+      <TrainingDayReview
         key={sessionKey}
         day={day}
         isEdit={isEdit}

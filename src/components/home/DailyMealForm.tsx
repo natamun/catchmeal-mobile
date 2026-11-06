@@ -1,13 +1,9 @@
-import { useState, type RefObject } from 'react';
+import type { RefObject } from 'react';
 
-import { toDateKey } from '../../utils/dateKey';
-import { failureMessage } from '../../utils/failureMessage';
-import { createMeal, deleteMeal, updateMeal } from '../meal/api';
-import { draftsToInput, draftTotals, type MealItemDraft } from '../meal/draft';
-import { DraftItemList } from '../meal/DraftItemList';
+import type { MealItemDraft } from '../meal/draft';
 import { MEAL_TYPE_LABELS, type Meal, type MealType } from '../meal/types';
 import { BaseDialog } from '../ui/BaseDialog';
-import { MacroSummary } from '../ui/MacroSummary';
+import { DailyMealReview } from './DailyMealReview';
 
 interface DailyMealFormProps {
   dialogRef: RefObject<HTMLDialogElement | null>;
@@ -20,8 +16,8 @@ interface DailyMealFormProps {
 }
 
 /**
- * Review dialog of a journal section: adjust the quantities, then save. It adds
- * a new meal, or saves the whole section when it already has meals.
+ * Dialog to edit a journal section: its quantities to adjust, then save. Each
+ * opening gets a new sessionKey, which starts the review again.
  */
 export function DailyMealForm({
   dialogRef,
@@ -32,105 +28,24 @@ export function DailyMealForm({
   existingMeals = [],
   onSaved,
 }: DailyMealFormProps) {
-  const [items, setItems] = useState<MealItemDraft[]>(initialItems);
-  const [syncedKey, setSyncedKey] = useState(sessionKey);
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Each opening gets a new sessionKey: the items are reset to the section's
-  // content during render, without an effect.
-  if (sessionKey !== syncedKey) {
-    setSyncedKey(sessionKey);
-    setItems(initialItems);
-    setError(null);
-  }
-
   const isEdit = existingMeals.length > 0;
-
-  const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const adjustQuantity = (id: string, delta: number) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item,
-      ),
-    );
-  };
-
-  const handleSubmit = async () => {
-    if (items.length === 0 && !isEdit) {
-      return;
-    }
-    setError(null);
-    setIsSubmitting(true);
-    try {
-      if (!isEdit) {
-        await createMeal({
-          typeMeal: mealType,
-          loggedAt: toDateKey(date),
-          items: draftsToInput(items),
-        });
-      } else if (items.length === 0) {
-        await Promise.all(existingMeals.map((meal) => deleteMeal(meal.id)));
-      } else {
-        // A section may hold several meals: the first one receives every item
-        // and the others are deleted.
-        const [first, ...others] = existingMeals;
-        await updateMeal(first.id, { items: draftsToInput(items) });
-        await Promise.all(others.map((meal) => deleteMeal(meal.id)));
-      }
-      dialogRef.current?.close();
-      onSaved();
-    } catch (err: unknown) {
-      setError(failureMessage(err, 'Une erreur est survenue, réessayez.'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const totals = draftTotals(items);
 
   return (
     <BaseDialog
       dialogRef={dialogRef}
       title={`${isEdit ? 'Modifier' : 'Ajouter'} : ${MEAL_TYPE_LABELS[mealType]}`}
     >
-      {items.length > 0 ? (
-        <DraftItemList
-          items={items}
-          onAdjust={adjustQuantity}
-          onRemove={removeItem}
-        />
-      ) : (
-        <p className="py-4 text-center text-sm text-theme-400">
-          {isEdit
-            ? 'Plus aucun aliment : enregistrer videra cette section.'
-            : 'Aucun élément à ajouter.'}
-        </p>
-      )}
-
-      <div className="flex flex-col gap-3 border-t border-theme-100 pt-5">
-        {items.length > 0 && <MacroSummary totals={totals} />}
-
-        {error && <p className="text-sm text-red-500">{error}</p>}
-
-        <button
-          type="button"
-          onClick={() => void handleSubmit()}
-          disabled={isSubmitting || (!isEdit && items.length === 0)}
-          className="w-full cursor-pointer rounded-xl bg-theme-500 px-6 py-3 font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isSubmitting
-            ? 'Enregistrement...'
-            : isEdit
-              ? 'Enregistrer'
-              : 'Ajouter au journal'}
-        </button>
-      </div>
+      <DailyMealReview
+        key={sessionKey}
+        mealType={mealType}
+        date={date}
+        initialItems={initialItems}
+        existingMeals={existingMeals}
+        onSaved={() => {
+          dialogRef.current?.close();
+          onSaved();
+        }}
+      />
     </BaseDialog>
   );
 }
