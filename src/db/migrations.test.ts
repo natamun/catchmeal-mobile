@@ -103,6 +103,8 @@ describe('migrate', () => {
       'workout',
       'workout_exercise',
       'workout_set',
+      'workout_template',
+      'workout_template_exercise',
     ]);
     expect(await count('profile')).toBe(1);
   });
@@ -195,6 +197,39 @@ describe('migration 5', () => {
     expect(await old.query('SELECT height FROM profile')).toEqual([
       { height: 178 },
     ]);
+  });
+});
+
+describe('migration 6', () => {
+  it('keeps the sessions logged before the favorites, without a name', async () => {
+    const old = openMemoryDatabase();
+    await migrate(old, MIGRATIONS.slice(0, 5));
+    await old.run("INSERT INTO workout (performed_on) VALUES ('2026-11-05')");
+
+    await migrate(old);
+
+    expect(await old.query('SELECT performed_on, name FROM workout')).toEqual([
+      { performed_on: '2026-11-05', name: null },
+    ]);
+  });
+
+  it('deletes the exercises of a favorite with it', async () => {
+    const { lastId } = await insert('workout_template', { name: 'Full body' });
+    await insert('workout_template_exercise', {
+      template_id: lastId,
+      exercise_id: 1,
+      position: 0,
+    });
+
+    await db.run('DELETE FROM workout_template WHERE id = ?', [lastId]);
+
+    expect(await count('workout_template_exercise')).toBe(0);
+  });
+
+  it('refuses a favorite without a name', async () => {
+    await expect(insert('workout_template', { name: '  ' })).rejects.toThrow(
+      REFUSED,
+    );
   });
 });
 
