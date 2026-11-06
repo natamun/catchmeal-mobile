@@ -1,5 +1,6 @@
 import type { Executor } from '../db/database';
 import { endOfDay, startOfDay, toDateKey } from '../utils/dateKey';
+import { slopePerDay } from '../utils/trend';
 
 /** The days looked at: the last four weeks, today left out (not over yet). */
 const WINDOW_DAYS = 28;
@@ -25,16 +26,9 @@ export interface MeasuredExpenditure {
 
 /** Slope of the weight in kg per day, by least squares over the weigh-ins. */
 export function weightTrend(weighIns: WeighIn[]) {
-  const n = weighIns.length;
-  const meanDay = weighIns.reduce((sum, w) => sum + w.day, 0) / n;
-  const meanWeight = weighIns.reduce((sum, w) => sum + w.weight, 0) / n;
-  let covariance = 0;
-  let variance = 0;
-  for (const { day, weight } of weighIns) {
-    covariance += (day - meanDay) * (weight - meanWeight);
-    variance += (day - meanDay) ** 2;
-  }
-  return covariance / variance;
+  return slopePerDay(
+    weighIns.map(({ day, weight }) => ({ day, value: weight })),
+  );
 }
 
 /**
