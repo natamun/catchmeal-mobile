@@ -20,8 +20,8 @@ import { useDataVersion } from '../hooks/useDataVersion';
 type Tab = 'favorites' | 'exercises';
 
 const TAB_OPTIONS: { value: Tab; label: string }[] = [
-  { value: 'favorites', label: 'Séances' },
   { value: 'exercises', label: 'Exercices' },
+  { value: 'favorites', label: 'Séances' },
 ];
 
 /** A list read from the database, with its loading state. */
@@ -58,13 +58,13 @@ function useList<T>(read: (signal: AbortSignal) => Promise<T[]>) {
 }
 
 /**
- * Fitness page, the training library, like the food one: the favorite
- * sessions and the exercises, each recalling the last values of its
+ * Fitness page, the training library, like the food one: the exercises and
+ * the favorite sessions, each recalling the last values of its
  * exercises, with their create and edit dialogs. The sessions done are
  * logged from the journal.
  */
 export default function FitnessPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('favorites');
+  const [activeTab, setActiveTab] = useState<Tab>('exercises');
   const templates = useList(listTemplates);
   const exercises = useList(listExercises);
   const workouts = useList(listWorkouts);
