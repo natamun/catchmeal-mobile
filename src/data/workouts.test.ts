@@ -102,6 +102,23 @@ describe('createWorkout', () => {
     expect(workout.items[0].sets).toEqual([{ reps: 15, weightKg: 0 }]);
   });
 
+  it('keeps the name of the session, trimmed, or none', async () => {
+    const named = await createWorkout(db, {
+      ...LEG_DAY(),
+      name: '  Full body ',
+    });
+    const unnamed = await createWorkout(db, { ...LEG_DAY(), name: '  ' });
+
+    expect(named.name).toBe('Full body');
+    expect(unnamed.name).toBeNull();
+  });
+
+  it('refuses a name over 80 characters', async () => {
+    await expect(
+      createWorkout(db, { ...LEG_DAY(), name: 'x'.repeat(81) }),
+    ).rejects.toThrow(DataError);
+  });
+
   it('keeps only the fields of each kind', async () => {
     const workout = await createWorkout(
       db,
