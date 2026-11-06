@@ -1,0 +1,124 @@
+import { useId, useRef, useState } from 'react';
+import * as Popover from '@radix-ui/react-popover';
+import { Plus } from 'lucide-react';
+
+import { failureMessage } from '../../utils/failureMessage';
+import { DropdownPanel } from '../ui/DropdownPanel';
+import { LABEL_CLASS } from '../ui/fieldStyle';
+import { Input } from '../ui/Input';
+import { useToast } from '../ui/toastContext';
+import { createExercise } from './api';
+import { isSameName, matchesSearch } from './search';
+import type { Exercise, ExerciseKind } from './types';
+
+const NEW_KINDS: { kind: ExerciseKind; label: string }[] = [
+  { kind: 'STRENGTH', label: 'Muscu' },
+  { kind: 'TREADMILL', label: 'Tapis' },
+  { kind: 'CARDIO', label: 'Cardio' },
+];
+
+const ROW_CLASS =
+  'w-full cursor-pointer border-t border-theme-100 px-4 py-2.5 text-left text-sm text-theme-800 transition-colors first:border-t-0 hover:bg-theme-50';
+
+interface Props {
+  exercises: Exercise[];
+  /** The open dialog, for the list to show above it. */
+  dialogNode: HTMLDialogElement | null;
+  onPick: (exercise: Exercise) => void;
+}
+
+/**
+ * A search field to add an exercise: the library's matches, and when the
+ * typed name is new, a way to create it on the spot as strength, treadmill or
+ * cardio.
+ */
+export function ExercisePicker({ exercises, dialogNode, onPick }: Props) {
+  const id = useId();
+  const showToast = useToast();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [search, setSearch] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+
+  const active = exercises.filter((exercise) => !exercise.archived);
+  const results = active.filter((exercise) =>
+    matchesSearch(exercise.name, search),
+  );
+  const typed = search.trim();
+  const canCreate =
+    typed !== '' &&
+    !active.some((exercise) => isSameName(exercise.name, typed));
+  const isOpen = isFocused && (results.length > 0 || canCreate);
+
+  const pick = (exercise: Exercise) => {
+    setSearch('');
+    inputRef.current?.blur();
+    onPick(exercise);
+  };
+
+  const create = async (kind: ExerciseKind) => {
+    setIsCreating(true);
+    try {
+      pick(await createExercise({ name: typed, kind }));
+    } catch (error) {
+      showToast(failureMessage(error, "Impossible de créer l'exercice."));
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  return (
+    <Popover.Root open={isOpen} onOpenChange={() => {}}>
+      <Popover.Anchor className="flex flex-col gap-1.5">
+        <label htmlFor={id} className={LABEL_CLASS}>
+          Ajouter un exercice
+        </label>
+        <Input
+          ref={inputRef}
+          id={id}
+          type="text"
+          placeholder="Rechercher ou créer un exercice..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        />
+      </Popover.Anchor>
+      <DropdownPanel container={dialogNode} matchAnchorWidth>
+        {canCreate && (
+          <div className="flex flex-col gap-2 border-b border-theme-100 bg-theme-50 px-4 py-2.5">
+            <span className="truncate text-sm text-theme-700">
+              Créer « {typed} »
+            </span>
+            <div className="flex gap-2">
+              {NEW_KINDS.map(({ kind, label }) => (
+                <button
+                  key={kind}
+                  type="button"
+                  disabled={isCreating}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => void create(kind)}
+                  className="flex flex-1 cursor-pointer items-center justify-center gap-1 rounded-lg border border-theme-200 bg-surface py-2 text-sm font-medium text-theme-700 transition-colors hover:bg-theme-100 disabled:opacity-60"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {results.map((exercise) => (
+          <button
+            key={exercise.id}
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => pick(exercise)}
+            className={ROW_CLASS}
+          >
+            {exercise.name}
+          </button>
+        ))}
+      </DropdownPanel>
+    </Popover.Root>
+  );
+}

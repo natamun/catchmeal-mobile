@@ -10,3 +10,8 @@ const simplify = (text: string) =>
 export function matchesSearch(name: string, query: string) {
   return simplify(name).includes(simplify(query));
 }
+
+/** True when two names are the same, case and accents aside. */
+export function isSameName(a: string, b: string) {
+  return simplify(a) === simplify(b);
+}
