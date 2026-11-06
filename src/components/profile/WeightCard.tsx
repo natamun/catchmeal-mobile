@@ -4,6 +4,7 @@ import { CalendarDays } from 'lucide-react';
 import { useDataVersion } from '../../hooks/useDataVersion';
 import { formatKg, formatSince } from '../../utils/format';
 import { AddCircleButton } from '../ui/AddCircleButton';
+import { BaseDialog } from '../ui/BaseDialog';
 import { EditIconButton } from '../ui/EditIconButton';
 import { LoadError } from '../ui/LoadError';
 import { Skeleton } from '../ui/Skeleton';
@@ -12,6 +13,9 @@ import { SummaryCard } from '../ui/SummaryCard';
 import { getWeightHistory, type WeightEntry } from './api';
 import { COMPOSITION, formatMeasure } from './measures';
 import { WeightDialog } from './WeightDialog';
+
+/** Weigh-ins listed in the card; the others are in the history dialog. */
+const PREVIEW_COUNT = 5;
 
 const ROW_COLUMNS =
   'md:grid-cols-[minmax(0,1.5fr)_repeat(5,minmax(0,1fr))_1.5rem]';
@@ -24,12 +28,68 @@ function formatDate(isoDate: string) {
   });
 }
 
+interface HistoryProps {
+  entries: WeightEntry[];
+  onEdit: (entry: WeightEntry) => void;
+}
+
+/** Weigh-ins, latest first, each with a button to correct it. */
+function WeightHistory({ entries, onEdit }: HistoryProps) {
+  return (
+    <div className="relative">
+      <div
+        className={`sticky top-0 hidden gap-x-3 bg-surface pb-2 text-xs text-theme-600 md:grid ${ROW_COLUMNS}`}
+      >
+        <span>Date</span>
+        <span>Poids</span>
+        {COMPOSITION.map(({ key, label }) => (
+          <span key={key}>{label}</span>
+        ))}
+      </div>
+      <ul className="divide-y divide-theme-100">
+        {entries.map((entry) => (
+          <li
+            key={entry.id}
+            className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-1.5 py-2.5 text-sm ${ROW_COLUMNS}`}
+          >
+            <span className="text-theme-600">{formatDate(entry.loggedAt)}</span>
+            <span className="font-semibold whitespace-nowrap text-theme-800 tabular-nums">
+              {formatMeasure(entry.weight, 'kg')}
+            </span>
+            <dl
+              className={`col-span-full row-start-2 grid-cols-2 gap-x-2 gap-y-1 text-xs sm:grid-cols-4 sm:gap-x-3 md:contents md:text-sm ${
+                COMPOSITION.some(({ key }) => entry[key] !== null)
+                  ? 'grid'
+                  : 'hidden'
+              }`}
+            >
+              {COMPOSITION.map(({ key, label, unit }) => (
+                <div
+                  key={key}
+                  className="flex min-w-0 justify-between gap-1 md:block"
+                >
+                  <dt className="truncate text-theme-600 md:hidden">{label}</dt>
+                  <dd className="whitespace-nowrap text-theme-800 tabular-nums">
+                    {formatMeasure(entry[key], unit)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <EditIconButton onClick={() => onEdit(entry)} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 interface Props {
   onLatestEntry?: (entry: WeightEntry | null) => void;
 }
 
 /**
- * Body composition card: latest weigh-in, the history, and a dialog to
+ * Body composition card: latest weigh-in, the last weigh-ins with the
+ * full history in a dialog,, and a dialog to
  * add, correct or delete a weigh-in. It reports the latest weigh-in to the
  * page, which GoalsCard needs.
  */
@@ -43,6 +103,7 @@ export function WeightCard({ onLatestEntry }: Props) {
     openCount: number;
   }>({ entry: null, openCount: 0 });
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const historyRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -147,58 +208,31 @@ export function WeightCard({ onLatestEntry }: Props) {
             </div>
 
             <div className="mt-5 border-t border-theme-100 pt-3">
-              <div className="relative max-h-72 overflow-x-hidden overflow-y-auto md:pr-1">
-                <div
-                  className={`sticky top-0 hidden gap-x-3 bg-surface pb-2 text-xs text-theme-600 md:grid ${ROW_COLUMNS}`}
+              <WeightHistory
+                entries={history.slice(0, PREVIEW_COUNT)}
+                onEdit={openDialog}
+              />
+              {history.length > PREVIEW_COUNT && (
+                <button
+                  type="button"
+                  onClick={() => historyRef.current?.showModal()}
+                  className="mt-2 w-full cursor-pointer rounded-xl py-2.5 text-sm font-medium text-theme-600 transition-colors hover:bg-theme-50"
                 >
-                  <span>Date</span>
-                  <span>Poids</span>
-                  {COMPOSITION.map(({ key, label }) => (
-                    <span key={key}>{label}</span>
-                  ))}
-                </div>
-                <ul className="divide-y divide-theme-100">
-                  {history.map((entry) => (
-                    <li
-                      key={entry.id}
-                      className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-1.5 py-2.5 text-sm ${ROW_COLUMNS}`}
-                    >
-                      <span className="text-theme-600">
-                        {formatDate(entry.loggedAt)}
-                      </span>
-                      <span className="font-semibold whitespace-nowrap text-theme-800 tabular-nums">
-                        {formatMeasure(entry.weight, 'kg')}
-                      </span>
-                      <dl
-                        className={`col-span-full row-start-2 grid-cols-2 gap-x-2 gap-y-1 text-xs sm:grid-cols-4 sm:gap-x-3 md:contents md:text-sm ${
-                          COMPOSITION.some(({ key }) => entry[key] !== null)
-                            ? 'grid'
-                            : 'hidden'
-                        }`}
-                      >
-                        {COMPOSITION.map(({ key, label, unit }) => (
-                          <div
-                            key={key}
-                            className="flex min-w-0 justify-between gap-1 md:block"
-                          >
-                            <dt className="truncate text-theme-600 md:hidden">
-                              {label}
-                            </dt>
-                            <dd className="whitespace-nowrap text-theme-800 tabular-nums">
-                              {formatMeasure(entry[key], unit)}
-                            </dd>
-                          </div>
-                        ))}
-                      </dl>
-                      <EditIconButton onClick={() => openDialog(entry)} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                  Voir tout l'historique ({history.length})
+                </button>
+              )}
             </div>
           </>
         )}
       </SummaryCard>
+
+      <BaseDialog
+        dialogRef={historyRef}
+        title="Historique des pesées"
+        maxWidth="xl"
+      >
+        <WeightHistory entries={history ?? []} onEdit={openDialog} />
+      </BaseDialog>
 
       <WeightDialog
         dialogRef={dialogRef}
