@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import { CalendarDays } from 'lucide-react';
 
 import { useDataVersion } from '../../hooks/useDataVersion';
-import { formatKg } from '../../utils/format';
+import { formatKg, formatSince } from '../../utils/format';
 import { AddCircleButton } from '../ui/AddCircleButton';
 import { EditIconButton } from '../ui/EditIconButton';
 import { LoadError } from '../ui/LoadError';
@@ -120,16 +121,17 @@ export function WeightCard({ onLatestEntry }: Props) {
         {history && latest && (
           <>
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-8">
-              <div className="shrink-0">
+              <div className="flex shrink-0 items-end justify-between gap-3">
                 <div className="flex items-end gap-2">
                   <span className="text-4xl font-bold text-theme-800">
                     {formatKg(latest.weight)}
                   </span>
                   <span className="mb-1 text-theme-500">kg</span>
                 </div>
-                <p className="mt-1 text-sm text-theme-600">
-                  Dernière pesée le {formatDate(latest.loggedAt)}
-                </p>
+                <span className="mb-1 flex items-center gap-1.5 rounded-full bg-theme-100 px-3 py-1 text-xs font-medium whitespace-nowrap text-theme-700">
+                  <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                  {formatSince(latest.loggedAt)}
+                </span>
               </div>
               <dl className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-4">
                 {COMPOSITION.map(({ key, label, unit }) => (
