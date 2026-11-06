@@ -11,7 +11,8 @@ const LOCK_PX = 10;
 const RUBBER_BAND = 0.25;
 /** Where a swipe must not change tab: typing, reading a chart. */
 const IGNORED = 'input, textarea, select, .recharts-wrapper, [data-no-swipe]';
-const SLIDE = 'transform 0.3s ease-out';
+/** Quick, and slowing down at the end: the pages snap into place. */
+const SLIDE = 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)';
 
 /** Shows the page at `index`, shifted by `dx` px, sliding there or not. */
 function placeTrack(
