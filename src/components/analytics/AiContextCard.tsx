@@ -66,12 +66,7 @@ export function AiContextCard({ from, to, days, isLoading = false }: Props) {
 
   return (
     <SummaryCard title={TITLE}>
-      <p className="text-sm text-theme-600">
-        Un résumé de cette période (profil, objectifs, dépense, moyennes,
-        mesures et détail) à coller dans Claude ou ChatGPT, suivi de ta
-        question.
-      </p>
-      <div className="mt-4 flex gap-3">
+      <div className="flex gap-3">
         <button
           type="button"
           onClick={() => void copy()}
