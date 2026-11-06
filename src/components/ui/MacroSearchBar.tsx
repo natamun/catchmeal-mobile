@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { ChevronRight, Filter, Search } from 'lucide-react';
 
+import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { BaseDialog } from './BaseDialog';
 import { DropdownPanel } from './DropdownPanel';
 import { Input } from './Input';
@@ -133,20 +134,7 @@ export function MacroSearchBar({
   const filterDialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Android keeps the focus when its back button closes the keyboard: drop it
-  // once the page is back to full height, or the tab bar would stay hidden.
-  useEffect(() => {
-    let fullHeight = window.innerHeight;
-    const handleResize = () => {
-      if (window.innerHeight < fullHeight) return;
-      fullHeight = window.innerHeight;
-      if (document.activeElement === inputRef.current) {
-        inputRef.current?.blur();
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  useBlurOnKeyboardClose(inputRef);
 
   const macroBounds = useMemo<MacroDraft>(
     () => ({
