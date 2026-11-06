@@ -17,6 +17,7 @@ import { createMeal } from './meals';
 import { updateProfile } from './profile';
 import { logWeight } from './weights';
 import { createWorkout, listWorkouts } from './workouts';
+import { createTemplate, listTemplates } from './workoutTemplates';
 
 const NOW = new Date('2026-11-05T09:00:00.000Z');
 
@@ -71,8 +72,20 @@ async function filledDatabase() {
   });
   const exercises = await listExercises(db);
   const idOf = (name: string) => exercises.find((e) => e.name === name)!.id;
+  await createTemplate(db, {
+    name: 'Tapis incliné',
+    items: [
+      {
+        exerciseId: idOf('Tapis de course'),
+        durationMinutes: 45,
+        speedKmh: 4,
+        inclinePercent: 10,
+      },
+    ],
+  });
   await createWorkout(db, {
     performedOn: '2026-11-04',
+    name: 'Jambes',
     durationMinutes: 50,
     items: [
       {
@@ -120,6 +133,9 @@ describe('backup', () => {
     expect(backup.workout).toHaveLength(1);
     expect(backup.workout_exercise).toHaveLength(2);
     expect(backup.workout_set).toHaveLength(2);
+    expect(backup.workout?.[0].name).toBe('Jambes');
+    expect(backup.workout_template).toHaveLength(1);
+    expect(backup.workout_template_exercise).toHaveLength(1);
   });
 
   it('restores exactly what was exported', async () => {
@@ -168,6 +184,19 @@ describe('backup', () => {
       { n: 0 },
     ]);
     expect(summary.workouts).toBe(0);
+  });
+
+  it('empties the favorites when restoring a file from before them', async () => {
+    const old = structuredClone(backup);
+    old.format = 2;
+    delete old.workout_template;
+    delete old.workout_template_exercise;
+    const target = await filledDatabase();
+
+    await restoreBackup(target, parseBackup(asText(old)));
+
+    expect(await listTemplates(target)).toEqual([]);
+    expect(await listWorkouts(target)).toHaveLength(1);
   });
 
   it('replaces the data already there', async () => {
