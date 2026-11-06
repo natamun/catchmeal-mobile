@@ -6,6 +6,7 @@ import { createMeal, deleteMeal, updateMeal } from '../meal/api';
 import { draftsToInput, draftTotals, type MealItemDraft } from '../meal/draft';
 import { DraftItemList } from '../meal/DraftItemList';
 import type { Meal, MealType } from '../meal/types';
+import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { MacroSummary } from '../ui/MacroSummary';
 
 interface Props {
@@ -105,7 +106,7 @@ export function DailyMealReview({
           type="button"
           onClick={() => void handleSubmit()}
           disabled={isSubmitting || (!isEdit && items.length === 0)}
-          className="w-full cursor-pointer rounded-xl bg-theme-500 px-6 py-3 font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className={PRIMARY_BUTTON_CLASS}
         >
           {isSubmitting
             ? 'Enregistrement...'

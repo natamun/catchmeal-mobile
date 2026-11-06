@@ -9,6 +9,7 @@ import {
 } from '../../utils/decimals';
 import { failureMessage } from '../../utils/failureMessage';
 import { BaseDialog } from '../ui/BaseDialog';
+import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { EditIconButton } from '../ui/EditIconButton';
 import { FieldError } from '../ui/FieldError';
 import { LABEL_CLASS } from '../ui/fieldStyle';
@@ -343,7 +344,7 @@ export function ProfileCard({ profile, onUpdate }: Props) {
             type="button"
             onClick={() => void handleSave()}
             disabled={saving}
-            className="col-span-2 mt-2 w-full cursor-pointer rounded-xl bg-theme-500 px-6 py-3 font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className={`col-span-2 mt-2 ${PRIMARY_BUTTON_CLASS}`}
           >
             {saving ? 'Enregistrement...' : 'Enregistrer'}
           </button>

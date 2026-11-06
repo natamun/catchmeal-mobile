@@ -14,6 +14,7 @@ import {
 } from '../meal/quickMealAdd';
 import { MEAL_TYPE_LABELS, type MealType } from '../meal/types';
 import { BaseDialog } from '../ui/BaseDialog';
+import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { DropdownPanel } from '../ui/DropdownPanel';
 import { FieldError } from '../ui/FieldError';
 import { Input } from '../ui/Input';
@@ -197,7 +198,7 @@ export function QuickAddDialog({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full cursor-pointer rounded-xl bg-theme-500 px-6 py-3 font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className={PRIMARY_BUTTON_CLASS}
         >
           {isSubmitting ? 'Enregistrement...' : 'Ajouter au journal'}
         </button>

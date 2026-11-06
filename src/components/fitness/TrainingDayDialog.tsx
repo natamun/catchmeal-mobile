@@ -4,6 +4,7 @@ import { Trophy } from 'lucide-react';
 import { failureMessage } from '../../utils/failureMessage';
 import { formatKg } from '../../utils/format';
 import { BaseDialog } from '../ui/BaseDialog';
+import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { useToast } from '../ui/toastContext';
 import { addToDay, saveDay } from './api';
 import { ItemEditor } from './ItemEditor';
@@ -112,7 +113,7 @@ export function TrainingDayReview({
           type="button"
           onClick={() => void handleSubmit()}
           disabled={isSubmitting || (!isEdit && items.length === 0)}
-          className="w-full cursor-pointer rounded-xl bg-theme-500 px-6 py-3 font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className={PRIMARY_BUTTON_CLASS}
         >
           {isSubmitting
             ? 'Enregistrement...'

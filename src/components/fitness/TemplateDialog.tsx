@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 
 import { failureMessage } from '../../utils/failureMessage';
 import { BaseDialog } from '../ui/BaseDialog';
+import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
@@ -156,7 +157,7 @@ function TemplateForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full cursor-pointer rounded-xl bg-theme-500 px-6 py-3 font-semibold text-on-accent transition-colors hover:bg-theme-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className={PRIMARY_BUTTON_CLASS}
         >
           {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
         </button>

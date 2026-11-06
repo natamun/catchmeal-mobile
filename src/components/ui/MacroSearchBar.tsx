@@ -4,6 +4,7 @@ import { ChevronRight, Filter, Search } from 'lucide-react';
 
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { BaseDialog } from './BaseDialog';
+import { PRIMARY_BUTTON_CLASS } from './buttonStyle';
 import { DropdownPanel } from './DropdownPanel';
 import { Input } from './Input';
 import {
@@ -327,7 +328,7 @@ export function MacroSearchBar({
         <button
           type="button"
           onClick={applyFilters}
-          className="w-full cursor-pointer rounded-xl bg-theme-500 px-6 py-3 font-semibold text-on-accent transition-colors hover:bg-theme-600"
+          className={PRIMARY_BUTTON_CLASS}
         >
           Appliquer
         </button>
