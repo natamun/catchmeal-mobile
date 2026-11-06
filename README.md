@@ -19,8 +19,8 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 - **Barcode scanning**: the camera reads EAN and UPC codes, and [Open Food Facts](https://world.openfoodfacts.org) fills the food form.
 - **Body composition**: weigh-ins with body fat, fat-free mass, body water and muscle mass.
 - **Goals**: daily calories and macros recommended from a goal (lose fat, lose weight, maintain, build muscle) and a weekly pace, never under the BMR. The daily expenditure is measured from the last four weeks of journal and weigh-ins, or estimated (Mifflin-St Jeor or Katch-McArdle) until there is enough data. Past goals are kept for the stats.
-- **Training**: sessions logged with their exercises, sets of repetitions at a load for strength, duration, speed and incline for the treadmill, duration for other cardio. Each new session starts from what was done on the exercise the last time. The exercise library starts with the usual gym machines and is edited like the food library.
-- **Statistics**: calorie, macro, body composition and strength progress charts over a chosen period, with the training sessions, and a summary of the period to paste into an AI chat.
+- **Training logbook**: sessions logged from the journal, from a favorite session (a named set of exercises) or from scratch: sets of repetitions at a load for strength, duration, speed and incline for the treadmill, duration for other cardio. Each exercise starts from what was done on it the last time, an exercise can be created right from its search, and saving tells the new records. Each exercise opens its own logbook: records, estimated one-rep max, progress and last sessions. The exercise library starts with the usual gym machines.
+- **Statistics**: calorie, macro and body composition charts over a chosen period; for the training, the sessions per week, the volume lifted, the treadmill distance and climb, and the progress of each strength exercise (heaviest load, estimated one-rep max or volume); and a summary of the period to paste into an AI chat.
 - **Weigh-in reminder**: an optional notification every Sunday morning.
 - **Backup and restore**: all the data in one JSON file, shared through Android (Drive, e-mail, Files) and restored all or nothing.
 - **Color themes**: twelve themes from known palettes (Graphite, Nord, Dracula, Gruvbox, Catppuccin, Rosé Pine, Tokyo Night, Monokai, Solarized dark and light, navy and coral, Klein and cream), each with two accents, picked in the profile.
@@ -101,6 +101,7 @@ erDiagram
     workout {
         int id PK
         text performed_on "local day"
+        text name "the favorite it came from"
         int duration_minutes
     }
     workout_exercise {
@@ -118,6 +119,19 @@ erDiagram
         int reps
         real weight_kg
     }
+    workout_template {
+        int id PK
+        text name
+    }
+    workout_template_exercise {
+        int id PK
+        int template_id FK
+        int exercise_id FK
+        int position
+        real duration_minutes "cardio, optional"
+        real speed_kmh "treadmill, optional"
+        real incline_percent "treadmill, optional"
+    }
 
     meal ||--o{ meal_item : "contains"
     meal ||--o| meal : "made from"
@@ -125,6 +139,8 @@ erDiagram
     workout ||--|{ workout_exercise : "contains"
     exercise ||--o{ workout_exercise : "done in"
     workout_exercise ||--o{ workout_set : "made of"
+    workout_template ||--|{ workout_template_exercise : "contains"
+    exercise ||--o{ workout_template_exercise : "used in"
 ```
 
 A meal line stores the calories and macros computed when the meal is saved, so editing or archiving a food later leaves past meals unchanged.
