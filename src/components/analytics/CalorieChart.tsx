@@ -31,6 +31,7 @@ import { legendLabel } from './legendLabel';
 import { MACRO_SERIES, UNSPLIT_SERIES } from './macroSeries';
 import { MacroTooltip } from './MacroTooltip';
 import type { DashboardDay, DataGraph, Grain, KcalPoint } from './types';
+import { useChartTooltip } from './useChartTooltip';
 
 const GRAIN_CAPTION: Record<Grain, string> = {
   day: 'Par jour',
@@ -147,6 +148,7 @@ interface Props {
  */
 export function CalorieChart({ days, isLoading = false }: Props) {
   const [width, setWidth] = useState(INITIAL_WIDTH);
+  const tooltipArea = useChartTooltip();
 
   const dataLength = days.length;
 
@@ -187,51 +189,53 @@ export function CalorieChart({ days, isLoading = false }: Props) {
         <span className="text-sm text-theme-600">{GRAIN_CAPTION[grain]}</span>
       }
     >
-      <ResponsiveContainer
-        width="100%"
-        height={CHART_HEIGHT}
-        onResize={setWidth}
-      >
-        <BarChart data={kcalData} margin={KCAL_MARGIN}>
-          <CartesianGrid stroke={GRID_STROKE} vertical={false} />
-          <XAxis
-            stroke={AXIS_LINE}
-            dataKey="from"
-            tick={X_TICK}
-            minTickGap={MIN_TICK_GAP}
-          />
-          <YAxis
-            stroke={AXIS_LINE}
-            width={AXIS_WIDTH}
-            interval={0}
-            ticks={kcalScale.ticks}
-            domain={[0, kcalScale.top]}
-            tick={Y_TICK}
-          />
-          <Tooltip
-            cursor={false}
-            content={(props: TooltipContentProps) => (
-              <MacroTooltip {...props} averaged={averaged} />
-            )}
-          />
-          {series.map(({ dataKey, label, fill }) => (
-            <Bar
-              key={dataKey}
-              dataKey={dataKey}
-              name={label}
-              stackId="kcal"
-              fill={fill}
-              maxBarSize={MAX_BAR_SIZE}
-              shape={renderSegment}
-              radius={TOP_SERIES.includes(dataKey) ? TOP_RADIUS : 0}
+      <div ref={tooltipArea}>
+        <ResponsiveContainer
+          width="100%"
+          height={CHART_HEIGHT}
+          onResize={setWidth}
+        >
+          <BarChart data={kcalData} margin={KCAL_MARGIN}>
+            <CartesianGrid stroke={GRID_STROKE} vertical={false} />
+            <XAxis
+              stroke={AXIS_LINE}
+              dataKey="from"
+              tick={X_TICK}
+              minTickGap={MIN_TICK_GAP}
             />
-          ))}
-          <Legend
-            itemSorter={(item) => SERIES_ORDER.indexOf(String(item.dataKey))}
-            formatter={legendLabel}
-          />
-        </BarChart>
-      </ResponsiveContainer>
+            <YAxis
+              stroke={AXIS_LINE}
+              width={AXIS_WIDTH}
+              interval={0}
+              ticks={kcalScale.ticks}
+              domain={[0, kcalScale.top]}
+              tick={Y_TICK}
+            />
+            <Tooltip
+              cursor={false}
+              content={(props: TooltipContentProps) => (
+                <MacroTooltip {...props} averaged={averaged} />
+              )}
+            />
+            {series.map(({ dataKey, label, fill }) => (
+              <Bar
+                key={dataKey}
+                dataKey={dataKey}
+                name={label}
+                stackId="kcal"
+                fill={fill}
+                maxBarSize={MAX_BAR_SIZE}
+                shape={renderSegment}
+                radius={TOP_SERIES.includes(dataKey) ? TOP_RADIUS : 0}
+              />
+            ))}
+            <Legend
+              itemSorter={(item) => SERIES_ORDER.indexOf(String(item.dataKey))}
+              formatter={legendLabel}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </SummaryCard>
   );
 }

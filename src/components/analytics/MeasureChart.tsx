@@ -29,6 +29,7 @@ import {
 import { ChartTooltip } from './ChartTooltip';
 import { measureScale } from './measureScale';
 import type { DashboardDay } from './types';
+import { useChartTooltip } from './useChartTooltip';
 
 const TITLE = 'Évolution';
 const MAX_DOTS = 31;
@@ -72,6 +73,7 @@ export function MeasureChart({
   period,
   isLoading = false,
 }: Props) {
+  const tooltipArea = useChartTooltip();
   const points = useMemo(
     () =>
       days.flatMap((day) => {
@@ -127,56 +129,58 @@ export function MeasureChart({
 
   return (
     <SummaryCard title={TITLE} aside={selector} inlineAside>
-      <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-        <LineChart
-          data={points}
-          margin={{ top: 8, right: 16, bottom: 0, left: 0 }}
-        >
-          <CartesianGrid stroke={GRID_STROKE} vertical={false} />
-          <XAxis
-            stroke={AXIS_LINE}
-            dataKey="time"
-            type="number"
-            scale="time"
-            domain={timeDomain}
-            tickFormatter={formatTick}
-            tick={X_TICK}
-            minTickGap={MIN_TICK_GAP}
-          />
-          <YAxis
-            stroke={AXIS_LINE}
-            width={AXIS_WIDTH}
-            interval={0}
-            ticks={scale.ticks}
-            domain={[scale.bottom, scale.top]}
-            tick={Y_TICK}
-            tickFormatter={formatKg}
-          />
-          <Tooltip
-            cursor={false}
-            content={(props: TooltipContentProps) => (
-              <ChartTooltip
-                {...props}
-                label={formatWeekday(new Date(Number(props.label)))}
-              />
-            )}
-          />
-          <Line
-            type="linear"
-            dataKey="value"
-            name={label}
-            unit={unit}
-            stroke={LINE_COLOR}
-            strokeWidth={2}
-            dot={
-              points.length <= MAX_DOTS
-                ? { r: 3.5, fill: LINE_COLOR, strokeWidth: 0 }
-                : false
-            }
-            activeDot={{ r: 5 }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <div ref={tooltipArea}>
+        <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+          <LineChart
+            data={points}
+            margin={{ top: 8, right: 16, bottom: 0, left: 0 }}
+          >
+            <CartesianGrid stroke={GRID_STROKE} vertical={false} />
+            <XAxis
+              stroke={AXIS_LINE}
+              dataKey="time"
+              type="number"
+              scale="time"
+              domain={timeDomain}
+              tickFormatter={formatTick}
+              tick={X_TICK}
+              minTickGap={MIN_TICK_GAP}
+            />
+            <YAxis
+              stroke={AXIS_LINE}
+              width={AXIS_WIDTH}
+              interval={0}
+              ticks={scale.ticks}
+              domain={[scale.bottom, scale.top]}
+              tick={Y_TICK}
+              tickFormatter={formatKg}
+            />
+            <Tooltip
+              cursor={false}
+              content={(props: TooltipContentProps) => (
+                <ChartTooltip
+                  {...props}
+                  label={formatWeekday(new Date(Number(props.label)))}
+                />
+              )}
+            />
+            <Line
+              type="linear"
+              dataKey="value"
+              name={label}
+              unit={unit}
+              stroke={LINE_COLOR}
+              strokeWidth={2}
+              dot={
+                points.length <= MAX_DOTS
+                  ? { r: 3.5, fill: LINE_COLOR, strokeWidth: 0 }
+                  : false
+              }
+              activeDot={{ r: 5 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </SummaryCard>
   );
 }
