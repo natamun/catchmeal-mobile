@@ -6,10 +6,12 @@ import { GoalsCard } from '../components/profile/GoalsCard';
 import { ProfileCard } from '../components/profile/ProfileCard';
 import { useProfile } from '../components/profile/profileContext';
 import { WeightCard } from '../components/profile/WeightCard';
+import { SettingsCard } from '../components/settings/SettingsCard';
 import { ThemeCard } from '../components/theme/ThemeCard';
 
 /**
- * Profile page: body measures, body composition, goals, theme and backup. It
+ * Profile page: body measures, body composition, goals, theme, settings and
+ * backup. It
  * shows once the weigh-ins and the measured expenditure are read: drawn
  * before, the short loading cards let the bottom ones flash at the top.
  */
@@ -35,6 +37,8 @@ export default function ProfilePage() {
       />
 
       <ThemeCard />
+
+      <SettingsCard />
 
       <BackupCard />
     </div>
