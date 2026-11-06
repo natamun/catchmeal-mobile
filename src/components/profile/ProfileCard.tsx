@@ -300,28 +300,28 @@ export function ProfileCard({ profile, onUpdate }: Props) {
               field: 'dailyCalorieGoal' as Field,
               id: 'pf-calorie-goal',
               label: 'Objectif calorique',
-              unit: 'kcal/jour',
+              unit: null,
               example: '2000',
             },
             {
               field: 'dailyProteinGoal' as Field,
               id: 'pf-protein-goal',
               label: 'Objectif protéines',
-              unit: 'g/jour',
+              unit: null,
               example: '120',
             },
             {
               field: 'dailyCarbsGoal' as Field,
               id: 'pf-carbs-goal',
               label: 'Objectif glucides',
-              unit: 'g/jour',
+              unit: null,
               example: '230',
             },
             {
               field: 'dailyFatGoal' as Field,
               id: 'pf-fat-goal',
               label: 'Objectif lipides',
-              unit: 'g/jour',
+              unit: null,
               example: '65',
             },
           ].map(({ field, id, label, unit, example }) => (
@@ -330,12 +330,8 @@ export function ProfileCard({ profile, onUpdate }: Props) {
               className="relative flex flex-col justify-end gap-1"
             >
               <label htmlFor={id} className={LABEL_CLASS}>
-                {label}{' '}
-                <span
-                  className={unit.endsWith('/jour') ? 'max-[500px]:block' : ''}
-                >
-                  ({unit})
-                </span>
+                {label}
+                {unit && ` (${unit})`}
               </label>
               <Input
                 id={id}
