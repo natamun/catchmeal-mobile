@@ -33,6 +33,11 @@ export function journalAddPath(mealType: MealType, date: Date) {
   );
 }
 
+/** URL of the page that adds exercises to the session of a day. */
+export function trainingAddPath(date: Date) {
+  return withDate(PATHS.trainingAdd, date);
+}
+
 /**
  * Reads the meal type back from the URL, or null for an unknown slug (the page
  * then redirects).

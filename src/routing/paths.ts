@@ -5,6 +5,7 @@
 export const PATHS = {
   home: '/home',
   journalAdd: '/home/add/:mealType',
+  trainingAdd: '/home/training',
   food: '/food',
   fitness: '/fitness',
   stats: '/stats',

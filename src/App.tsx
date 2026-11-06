@@ -7,6 +7,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { PATHS } from './routing/paths';
 
 const JournalAddPage = lazy(() => import('./pages/JournalAddPage'));
+const TrainingAddPage = lazy(() => import('./pages/TrainingAddPage'));
 
 /**
  * All the routes of the app. The app opens on the journal. The tabs are
@@ -24,6 +25,7 @@ function AppRoutes() {
         <Route path={PATHS.stats} element={null} />
         <Route path={PATHS.profile} element={null} />
         <Route path={PATHS.journalAdd} element={<JournalAddPage />} />
+        <Route path={PATHS.trainingAdd} element={<TrainingAddPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

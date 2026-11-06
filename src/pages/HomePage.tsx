@@ -7,8 +7,8 @@ import { DailyMealForm } from '../components/home/DailyMealForm';
 import { DailyMealList } from '../components/home/DailyMealList';
 import { MacroBreakdown } from '../components/home/MacroBreakdown';
 import { QuickAddDialog } from '../components/home/QuickAddDialog';
+import { TrainingDayCard } from '../components/home/TrainingDayCard';
 import { WeightWidget } from '../components/home/WeightWidget';
-import { WorkoutDayCard } from '../components/home/WorkoutDayCard';
 import { buildDrafts, type MealItemDraft } from '../components/meal/draft';
 import { mealTotals, type Meal, type MealType } from '../components/meal/types';
 import { getWeightHistory, type WeightEntry } from '../components/profile/api';
@@ -22,7 +22,6 @@ import {
   journalPath,
   parseDateParam,
 } from '../routing/journal';
-import { toDateKey } from '../utils/dateKey';
 
 interface SectionEdit {
   mealType: MealType;
@@ -158,7 +157,7 @@ export default function HomePage() {
               }
               onEdit={openSectionEditor}
             />
-            <WorkoutDayCard day={toDateKey(selectedDate)} />
+            <TrainingDayCard date={selectedDate} />
           </div>
         </div>
       </div>
