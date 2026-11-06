@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { openMemoryDatabase } from '../test/nodeDatabase';
 import type { Database, SqlValue } from './database';
 import { migrate, MIGRATIONS } from './migrations';
-import { STARTER_EXERCISES } from './starterExercises';
 
 type Row = Record<string, SqlValue>;
 
@@ -30,6 +29,20 @@ function insert(table: string, row: Row) {
     `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(() => '?').join(', ')})`,
     Object.values(row),
   );
+}
+
+/** Adds three exercises, ids 1 to 3: the library starts empty. */
+async function addExercises(target: Database) {
+  for (const [name, kind] of [
+    ['Presse à cuisses', 'STRENGTH'],
+    ['Leg curl assis', 'STRENGTH'],
+    ['Rameur', 'CARDIO'],
+  ]) {
+    await target.run('INSERT INTO exercise (name, kind) VALUES (?, ?)', [
+      name,
+      kind,
+    ]);
+  }
 }
 
 function updateProfile(changes: Row) {
@@ -164,24 +177,8 @@ describe('migration 4', () => {
 });
 
 describe('migration 5', () => {
-  it('starts the exercise library with the usual machines', async () => {
-    const exercises = await db.query<Row>(
-      'SELECT name, kind FROM exercise ORDER BY id',
-    );
-
-    expect(exercises).toHaveLength(STARTER_EXERCISES.length);
-    expect(exercises).toContainEqual({
-      name: 'Presse à cuisses',
-      kind: 'STRENGTH',
-    });
-    expect(exercises).toContainEqual({
-      name: 'Tapis de course',
-      kind: 'TREADMILL',
-    });
-    expect(exercises).toContainEqual({
-      name: 'Rameur',
-      kind: 'CARDIO',
-    });
+  it('starts the exercise library empty', async () => {
+    expect(await count('exercise')).toBe(0);
   });
 
   it('keeps the data of a database from before the fitness tab', async () => {
@@ -211,6 +208,7 @@ describe('migration 6', () => {
   });
 
   it('deletes the exercises of a favorite with it', async () => {
+    await addExercises(db);
     const { lastId } = await insert('workout_template', { name: 'Full body' });
     await insert('workout_template_exercise', {
       template_id: lastId,
@@ -234,6 +232,7 @@ describe('migration 7', () => {
   it('merges the sessions of a day, an exercise done twice into one line', async () => {
     const old = openMemoryDatabase();
     await migrate(old, MIGRATIONS.slice(0, 6));
+    await addExercises(old);
     const insertInto = (table: string, row: Row) =>
       old.run(
         `INSERT INTO ${table} (${Object.keys(row).join(', ')}) VALUES (${Object.keys(
@@ -315,6 +314,7 @@ describe('migration 7', () => {
   });
 
   it('refuses a second session on a day and an exercise twice in it', async () => {
+    await addExercises(db);
     const { lastId } = await insert('workout', { performed_on: '2026-11-05' });
     await insert('workout_exercise', {
       workout_id: lastId,
@@ -337,6 +337,7 @@ describe('migration 7', () => {
 
 describe('workout', () => {
   async function addWorkout() {
+    await addExercises(db);
     const { lastId: workoutId } = await insert('workout', {
       performed_on: '2026-11-05',
       duration_minutes: 60,

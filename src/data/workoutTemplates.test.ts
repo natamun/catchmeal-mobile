@@ -3,9 +3,10 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { WorkoutTemplateInput } from '../components/fitness/types';
 import type { Database } from '../db/database';
 import { migrate } from '../db/migrations';
+import { addTestExercises } from '../test/exercises';
 import { openMemoryDatabase } from '../test/nodeDatabase';
 import { DataError } from './errors';
-import { archiveExercise, listExercises } from './exercises';
+import { archiveExercise } from './exercises';
 import {
   createTemplate,
   deleteTemplate,
@@ -22,13 +23,7 @@ let rower: number;
 beforeEach(async () => {
   db = openMemoryDatabase();
   await migrate(db);
-  const idOf = new Map(
-    (await listExercises(db)).map(({ name, id }) => [name, id]),
-  );
-  press = idOf.get('Presse à cuisses')!;
-  pulldown = idOf.get('Tirage vertical')!;
-  treadmill = idOf.get('Tapis de course')!;
-  rower = idOf.get('Rameur')!;
+  ({ press, pulldown, treadmill, rower } = await addTestExercises(db));
 });
 
 const FULL_BODY = (): WorkoutTemplateInput => ({

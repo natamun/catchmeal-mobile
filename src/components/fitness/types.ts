@@ -1,6 +1,10 @@
-import type { ExerciseKind } from '../../db/starterExercises';
-
-export type { ExerciseKind };
+/**
+ * How an exercise is logged:
+ * - STRENGTH: sets of repetitions at a load;
+ * - TREADMILL: a duration at a speed and an incline;
+ * - CARDIO: a duration.
+ */
+export type ExerciseKind = 'STRENGTH' | 'TREADMILL' | 'CARDIO';
 
 /**
  * An exercise of the user's library. An archived exercise is hidden but kept

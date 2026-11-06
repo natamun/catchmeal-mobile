@@ -3,9 +3,10 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { WorkoutItemInput } from '../components/fitness/types';
 import type { Database } from '../db/database';
 import { migrate } from '../db/migrations';
+import { addTestExercises } from '../test/exercises';
 import { openMemoryDatabase } from '../test/nodeDatabase';
 import { DataError } from './errors';
-import { archiveExercise, createExercise, listExercises } from './exercises';
+import { archiveExercise, createExercise } from './exercises';
 import {
   addToDay,
   getDay,
@@ -23,13 +24,7 @@ let rower: number;
 beforeEach(async () => {
   db = openMemoryDatabase();
   await migrate(db);
-  const idOf = new Map(
-    (await listExercises(db)).map(({ name, id }) => [name, id]),
-  );
-  press = idOf.get('Presse à cuisses')!;
-  curl = idOf.get('Leg curl assis')!;
-  treadmill = idOf.get('Tapis de course')!;
-  rower = idOf.get('Rameur')!;
+  ({ press, curl, treadmill, rower } = await addTestExercises(db));
 });
 
 const strength = (

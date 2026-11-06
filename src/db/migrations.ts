@@ -1,5 +1,4 @@
 import type { Database } from './database';
-import { STARTER_EXERCISES } from './starterExercises';
 
 /** One step of the schema: applied once, in version order. */
 export interface Migration {
@@ -131,8 +130,6 @@ DROP TABLE profile;
 ALTER TABLE profile_v4 RENAME TO profile;
 `;
 
-const sqlText = (text: string) => `'${text.replaceAll("'", "''")}'`;
-
 /**
  * The fitness tab: a library of exercises (archived rather than deleted, like
  * foods, so past sessions keep them) and the sessions. A session lists its
@@ -179,9 +176,6 @@ CREATE TABLE workout_set (
 ) STRICT;
 
 CREATE INDEX workout_set_workout_exercise ON workout_set (workout_exercise_id);
-
-INSERT INTO exercise (name, kind) VALUES
-${STARTER_EXERCISES.map(({ name, kind }) => `(${sqlText(name)}, '${kind}')`).join(',\n')};
 `;
 
 /**

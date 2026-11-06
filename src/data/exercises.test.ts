@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { ExerciseInput } from '../components/fitness/types';
 import type { Database } from '../db/database';
 import { migrate } from '../db/migrations';
-import { STARTER_EXERCISES } from '../db/starterExercises';
 import { openMemoryDatabase } from '../test/nodeDatabase';
 import { DataError } from './errors';
 import {
@@ -34,15 +33,14 @@ async function useInSession(exerciseId: number) {
 }
 
 describe('listExercises', () => {
-  it('starts with the starter library, sorted the French way', async () => {
+  it('sorts the library the French way, case and accents aside', async () => {
+    for (const name of ['Élévations latérales', 'abducteurs', 'Dips']) {
+      await createExercise(db, { name, kind: 'STRENGTH' });
+    }
+
     const names = (await listExercises(db)).map(({ name }) => name);
 
-    expect(names).toHaveLength(STARTER_EXERCISES.length);
-    expect(names).toEqual(
-      [...names].sort((a, b) =>
-        a.localeCompare(b, 'fr', { sensitivity: 'base' }),
-      ),
-    );
+    expect(names).toEqual(['abducteurs', 'Dips', 'Élévations latérales']);
   });
 });
 
@@ -69,6 +67,8 @@ describe('createExercise', () => {
   });
 
   it('refuses a name already used, case and accents aside', async () => {
+    await createExercise(db, { name: 'Presse à cuisses', kind: 'STRENGTH' });
+
     await expect(
       createExercise(db, { name: 'presse a cuisses', kind: 'STRENGTH' }),
     ).rejects.toThrow('Un exercice porte déjà ce nom.');
@@ -105,6 +105,7 @@ describe('updateExercise', () => {
   });
 
   it('refuses the name of another exercise', async () => {
+    await createExercise(db, { name: 'Leg extension', kind: 'STRENGTH' });
     const exercise = await createExercise(db, NEW);
 
     await expect(

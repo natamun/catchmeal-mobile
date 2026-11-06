@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { Database } from '../db/database';
 import { migrate } from '../db/migrations';
+import { addTestExercises } from '../test/exercises';
 import { openMemoryDatabase } from '../test/nodeDatabase';
 import {
   BACKUP_FORMAT,
@@ -11,7 +12,6 @@ import {
   type Backup,
 } from './backup';
 import { DataError } from './errors';
-import { listExercises } from './exercises';
 import { archiveFoodItem, createFoodItem } from './foodItems';
 import { createMeal } from './meals';
 import { updateProfile } from './profile';
@@ -70,13 +70,12 @@ async function filledDatabase() {
     birthDate: '1990-04-12',
     activityLevel: 'LIGHTLY_ACTIVE',
   });
-  const exercises = await listExercises(db);
-  const idOf = (name: string) => exercises.find((e) => e.name === name)!.id;
+  const { press, treadmill } = await addTestExercises(db);
   await createTemplate(db, {
     name: 'Tapis incliné',
     items: [
       {
-        exerciseId: idOf('Tapis de course'),
+        exerciseId: treadmill,
         durationMinutes: 45,
         speedKmh: 4,
         inclinePercent: 10,
@@ -85,14 +84,14 @@ async function filledDatabase() {
   });
   await addToDay(db, '2026-11-04', [
     {
-      exerciseId: idOf('Presse à cuisses'),
+      exerciseId: press,
       sets: [
         { reps: 10, weightKg: 90 },
         { reps: 8, weightKg: 100 },
       ],
     },
     {
-      exerciseId: idOf('Tapis de course'),
+      exerciseId: treadmill,
       durationMinutes: 20,
       speedKmh: 5,
       inclinePercent: 12,
@@ -124,7 +123,7 @@ describe('backup', () => {
     expect(backup.meal_item).toHaveLength(3);
     expect(backup.weight_log).toHaveLength(1);
     expect(backup.goal_setting).toHaveLength(1);
-    expect(backup.exercise).toHaveLength(32);
+    expect(backup.exercise).toHaveLength(5);
     expect(backup.workout).toHaveLength(1);
     expect(backup.workout_exercise).toHaveLength(2);
     expect(backup.workout_set).toHaveLength(2);
