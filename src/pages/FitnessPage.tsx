@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import {
   listExercises,
@@ -15,7 +15,7 @@ import type { Exercise, WorkoutTemplate } from '../components/fitness/types';
 import { AddCircleButton } from '../components/ui/AddCircleButton';
 import { EditIconButton } from '../components/ui/EditIconButton';
 import { PillTabs } from '../components/ui/PillTabs';
-import { useDataVersion } from '../hooks/useDataVersion';
+import { useList } from '../hooks/useList';
 
 type Tab = 'favorites' | 'exercises';
 
@@ -23,39 +23,6 @@ const TAB_OPTIONS: { value: Tab; label: string }[] = [
   { value: 'exercises', label: 'Exercices' },
   { value: 'favorites', label: 'Séances' },
 ];
-
-/** A list read from the database, with its loading state. */
-function useList<T>(read: (signal: AbortSignal) => Promise<T[]>) {
-  const version = useDataVersion();
-  const [attempt, setAttempt] = useState(0);
-  const [items, setItems] = useState<T[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    read(controller.signal)
-      .then((list) => {
-        setItems(list);
-        setHasError(false);
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setHasError(true);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setIsLoading(false);
-      });
-    return () => controller.abort();
-  }, [read, attempt, version]);
-
-  const retry = () => {
-    setHasError(false);
-    setIsLoading(true);
-    setAttempt((count) => count + 1);
-  };
-
-  return { items, isLoading, hasError, retry };
-}
 
 /**
  * Fitness page, the training library, like the food one: the exercises and

@@ -147,9 +147,6 @@ interface FoodItemFormProps {
   dialogRef: RefObject<HTMLDialogElement | null>;
   editingItem: FoodItem | null;
   foodItems: FoodItem[];
-  onItemAdded: (item: FoodItem) => void;
-  onItemUpdated: (item: FoodItem) => void;
-  onItemDeleted: (id: number) => void;
 }
 
 /**
@@ -161,9 +158,6 @@ export function FoodItemForm({
   dialogRef,
   editingItem,
   foodItems,
-  onItemAdded,
-  onItemUpdated,
-  onItemDeleted,
 }: FoodItemFormProps) {
   const {
     form,
@@ -248,14 +242,10 @@ export function FoodItemForm({
         carbs: parseDecimal(form.carbs) ?? 0,
         fat: parseDecimal(form.fat) ?? 0,
       };
-      const savedItem = editingItem
-        ? await updateFoodItem(editingItem.id, input)
-        : await createFoodItem(input);
-
       if (editingItem) {
-        onItemUpdated(savedItem);
+        await updateFoodItem(editingItem.id, input);
       } else {
-        onItemAdded(savedItem);
+        await createFoodItem(input);
         setForm(EMPTY_FORM);
         setBarcodeFieldKey((key) => key + 1);
       }
@@ -282,7 +272,6 @@ export function FoodItemForm({
     setIsSubmitting(true);
     try {
       await deleteFoodItem(editingItem.id);
-      onItemDeleted(editingItem.id);
       closeDialog();
       showToast('Produit supprimé');
     } catch {

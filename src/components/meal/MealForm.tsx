@@ -35,23 +35,13 @@ interface MealFormProps {
   dialogRef: RefObject<HTMLDialogElement | null>;
   foodItems: FoodItem[];
   editingMeal: Meal | null;
-  onMealAdded: (meal: Meal) => void;
-  onMealUpdated: (meal: Meal) => void;
-  onMealDeleted: (id: number) => void;
 }
 
 /**
  * Dialog to create or edit a library meal: a name, foods searched in the
  * library with their quantity, and quick adds.
  */
-export function MealForm({
-  dialogRef,
-  foodItems,
-  editingMeal,
-  onMealAdded,
-  onMealUpdated,
-  onMealDeleted,
-}: MealFormProps) {
+export function MealForm({ dialogRef, foodItems, editingMeal }: MealFormProps) {
   const [name, setName] = useState('');
   const [nameTouched, setNameTouched] = useState(false);
   const [nameFocused, setNameFocused] = useState(false);
@@ -183,14 +173,10 @@ export function MealForm({
         name,
         items: draftsToInput(items),
       };
-      const savedMeal = editingMeal
-        ? await updateMeal(editingMeal.id, input)
-        : await createMeal(input);
-
       if (editingMeal) {
-        onMealUpdated(savedMeal);
+        await updateMeal(editingMeal.id, input);
       } else {
-        onMealAdded(savedMeal);
+        await createMeal(input);
         setName('');
         setItems([]);
       }
@@ -217,7 +203,6 @@ export function MealForm({
     setIsSubmitting(true);
     try {
       await deleteMeal(editingMeal.id);
-      onMealDeleted(editingMeal.id);
       closeDialog();
       showToast('Repas supprimé');
     } catch {

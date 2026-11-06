@@ -14,9 +14,12 @@ import { EditIconButton } from '../components/ui/EditIconButton';
 import { InfoBubble } from '../components/ui/InfoBubble';
 import { PillTabs } from '../components/ui/PillTabs';
 import { MACROS } from '../constants/macros';
-import { useDataVersion } from '../hooks/useDataVersion';
+import { useList } from '../hooks/useList';
 
 type Tab = 'food' | 'meal';
+
+/** The library meals, the journal left out. */
+const listLibraryMeals = (signal: AbortSignal) => listMeals(false, signal);
 
 const TAB_OPTIONS: { value: Tab; label: string }[] = [
   { value: 'food', label: 'Aliments' },
@@ -46,57 +49,18 @@ const MACRO_LEGEND = (
  */
 export default function FoodPage() {
   const [activeTab, setActiveTab] = useState<Tab>('food');
-  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
+  const foods = useList(listFoodItems);
+  const meals = useList(listLibraryMeals);
   const [editingItem, setEditingItem] = useState<FoodItem | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const version = useDataVersion();
+  const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const mealDialogRef = useRef<HTMLDialogElement>(null);
 
   // The scanner is slow to open the first time: prepare it once the app is up.
   useEffect(() => {
     const timer = setTimeout(preloadScanner, 2000);
     return () => clearTimeout(timer);
   }, []);
-  const [foodsAttempt, setFoodsAttempt] = useState(0);
-  const [meals, setMeals] = useState<Meal[]>([]);
-  const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
-  const [isMealsLoading, setIsMealsLoading] = useState(true);
-  const [mealsLoadError, setMealsLoadError] = useState<string | null>(null);
-  const [mealsAttempt, setMealsAttempt] = useState(0);
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const mealDialogRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    listFoodItems(controller.signal)
-      .then(setFoodItems)
-      .catch(() => {
-        if (controller.signal.aborted) return;
-        setLoadError('Impossible de charger les aliments.');
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
-      });
-    return () => controller.abort();
-  }, [foodsAttempt, version]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    listMeals(false, controller.signal)
-      .then(setMeals)
-      .catch(() => {
-        if (controller.signal.aborted) return;
-        setMealsLoadError('Impossible de charger les repas.');
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsMealsLoading(false);
-        }
-      });
-    return () => controller.abort();
-  }, [mealsAttempt, version]);
 
   const openDialog = (item: FoodItem | null) => {
     setEditingItem(item);
@@ -123,44 +87,24 @@ export default function FoodPage() {
       <FoodItemForm
         dialogRef={dialogRef}
         editingItem={editingItem}
-        foodItems={foodItems}
-        onItemAdded={(item) => setFoodItems((prev) => [...prev, item])}
-        onItemUpdated={(updated) =>
-          setFoodItems((prev) =>
-            prev.map((item) => (item.id === updated.id ? updated : item)),
-          )
-        }
-        onItemDeleted={(id) =>
-          setFoodItems((prev) => prev.filter((item) => item.id !== id))
-        }
+        foodItems={foods.items}
       />
 
       <MealForm
         dialogRef={mealDialogRef}
-        foodItems={foodItems}
+        foodItems={foods.items}
         editingMeal={editingMeal}
-        onMealAdded={(meal) => setMeals((prev) => [...prev, meal])}
-        onMealUpdated={(updated) =>
-          setMeals((prev) =>
-            prev.map((meal) => (meal.id === updated.id ? updated : meal)),
-          )
-        }
-        onMealDeleted={(id) =>
-          setMeals((prev) => prev.filter((meal) => meal.id !== id))
-        }
       />
 
       <div key={activeTab} className="animate-fade-in-up">
         {activeTab === 'food' ? (
           <FoodItemList
-            items={foodItems}
-            isLoading={isLoading}
-            loadError={loadError}
-            onRetry={() => {
-              setLoadError(null);
-              setIsLoading(true);
-              setFoodsAttempt((attempt) => attempt + 1);
-            }}
+            items={foods.items}
+            isLoading={foods.isLoading}
+            loadError={
+              foods.hasError ? 'Impossible de charger les aliments.' : null
+            }
+            onRetry={foods.retry}
             headerAction={<AddCircleButton onClick={() => openDialog(null)} />}
             renderAction={(item) => (
               <EditIconButton onClick={() => openDialog(item)} />
@@ -168,14 +112,12 @@ export default function FoodPage() {
           />
         ) : (
           <MealList
-            meals={meals}
-            isLoading={isMealsLoading}
-            loadError={mealsLoadError}
-            onRetry={() => {
-              setMealsLoadError(null);
-              setIsMealsLoading(true);
-              setMealsAttempt((attempt) => attempt + 1);
-            }}
+            meals={meals.items}
+            isLoading={meals.isLoading}
+            loadError={
+              meals.hasError ? 'Impossible de charger les repas.' : null
+            }
+            onRetry={meals.retry}
             headerAction={
               <AddCircleButton onClick={() => openMealDialog(null)} />
             }
