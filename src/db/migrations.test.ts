@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { openMemoryDatabase } from '../test/nodeDatabase';
 import type { Database, SqlValue } from './database';
 import { migrate, MIGRATIONS } from './migrations';
+import { STARTER_EXERCISES } from './starterExercises';
 
 type Row = Record<string, SqlValue>;
 
@@ -92,12 +93,16 @@ describe('migrate', () => {
 
     expect(await versionOf(db)).toBe(MIGRATIONS.length);
     expect(tables.map(({ name }) => name)).toEqual([
+      'exercise',
       'food_item',
       'goal_setting',
       'meal',
       'meal_item',
       'profile',
       'weight_log',
+      'workout',
+      'workout_exercise',
+      'workout_set',
     ]);
     expect(await count('profile')).toBe(1);
   });
@@ -153,6 +158,124 @@ describe('migration 4', () => {
     expect(
       await old.query('SELECT theme, height, goal_type FROM profile'),
     ).toEqual([{ theme: after, height: 178, goal_type: 'LOSE_FAT' }]);
+  });
+});
+
+describe('migration 5', () => {
+  it('starts the exercise library with the usual machines', async () => {
+    const exercises = await db.query<Row>(
+      'SELECT name, kind, met FROM exercise ORDER BY id',
+    );
+
+    expect(exercises).toHaveLength(STARTER_EXERCISES.length);
+    expect(exercises).toContainEqual({
+      name: 'Presse à cuisses',
+      kind: 'STRENGTH',
+      met: null,
+    });
+    expect(exercises).toContainEqual({
+      name: 'Tapis de course',
+      kind: 'TREADMILL',
+      met: null,
+    });
+    expect(exercises).toContainEqual({
+      name: 'Rameur',
+      kind: 'CARDIO',
+      met: 7,
+    });
+  });
+
+  it('keeps the data of a database from before the fitness tab', async () => {
+    const old = openMemoryDatabase();
+    await migrate(old, MIGRATIONS.slice(0, 4));
+    await old.run('UPDATE profile SET height = 178 WHERE id = 1');
+
+    await migrate(old);
+
+    expect(await old.query('SELECT height FROM profile')).toEqual([
+      { height: 178 },
+    ]);
+  });
+});
+
+describe('workout', () => {
+  async function addWorkout() {
+    const { lastId: workoutId } = await insert('workout', {
+      performed_on: '2026-11-05',
+      duration_minutes: 60,
+    });
+    const [{ id: exerciseId }] = await db.query<{ id: number }>(
+      "SELECT id FROM exercise WHERE kind = 'STRENGTH' LIMIT 1",
+    );
+    const { lastId: itemId } = await insert('workout_exercise', {
+      workout_id: workoutId,
+      exercise_id: exerciseId,
+      position: 0,
+    });
+    await insert('workout_set', {
+      workout_exercise_id: itemId,
+      position: 0,
+      reps: 10,
+      weight_kg: 60,
+    });
+    return { workoutId, exerciseId, itemId };
+  }
+
+  it('accepts a session with its exercises and sets', async () => {
+    await addWorkout();
+
+    expect(await count('workout_set')).toBe(1);
+  });
+
+  it('deletes the exercises and sets with their session', async () => {
+    const { workoutId } = await addWorkout();
+
+    await db.run('DELETE FROM workout WHERE id = ?', [workoutId]);
+
+    expect(await count('workout_exercise')).toBe(0);
+    expect(await count('workout_set')).toBe(0);
+  });
+
+  it('refuses to delete an exercise used in a session', async () => {
+    const { exerciseId } = await addWorkout();
+
+    await expect(
+      db.run('DELETE FROM exercise WHERE id = ?', [exerciseId]),
+    ).rejects.toThrow(REFUSED);
+  });
+
+  it.each<[string, string, Row]>([
+    [
+      'an exercise of an unknown kind',
+      'exercise',
+      { name: 'Yoga', kind: 'YOGA' },
+    ],
+    ['an exercise without a name', 'exercise', { name: ' ', kind: 'CARDIO' }],
+    [
+      'a session on a badly written day',
+      'workout',
+      { performed_on: '5/11/2026' },
+    ],
+    [
+      'a session of 0 minutes',
+      'workout',
+      { performed_on: '2026-11-05', duration_minutes: 0 },
+    ],
+  ])('refuses %s', async (_, table, row) => {
+    await expect(insert(table, row)).rejects.toThrow(REFUSED);
+  });
+
+  it('refuses a set without repetitions', async () => {
+    const { itemId } = await addWorkout();
+
+    await expect(
+      insert('workout_set', {
+        workout_exercise_id: itemId,
+        position: 1,
+        reps: 0,
+        weight_kg: 60,
+      }),
+    ).rejects.toThrow(REFUSED);
   });
 });
 
