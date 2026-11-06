@@ -15,3 +15,14 @@ export function endOfDay(dateKey: string) {
   const start = startOfDay(dateKey);
   return new Date(start.getFullYear(), start.getMonth(), start.getDate() + 1);
 }
+
+/** Local noon of a YYYY-MM-DD day, in ms: where the day sits on a time axis. */
+export function middayOf(dateKey: string) {
+  const start = startOfDay(dateKey);
+  return new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate(),
+    12,
+  ).getTime();
+}
