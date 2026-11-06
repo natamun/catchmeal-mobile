@@ -1,8 +1,7 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { Search } from 'lucide-react';
+import { ChevronRight, Search } from 'lucide-react';
 
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
-import { EditIconButton } from '../ui/EditIconButton';
 import { Input } from '../ui/Input';
 import { ListCard, ListCardEmpty, ListCardLoading } from '../ui/ListCard';
 import { LoadError } from '../ui/LoadError';
@@ -20,12 +19,13 @@ interface Props {
   loadError: string | null;
   onRetry: () => void;
   headerAction: ReactNode;
-  onEdit: (exercise: Exercise) => void;
+  /** Opens the logbook of an exercise. */
+  onOpen: (exercise: Exercise) => void;
 }
 
 /**
  * The exercise library, searchable, in two sections: strength, then cardio.
- * Archived exercises are hidden.
+ * Each one opens its logbook. Archived exercises are hidden.
  */
 export function ExerciseList({
   exercises,
@@ -33,7 +33,7 @@ export function ExerciseList({
   loadError,
   onRetry,
   headerAction,
-  onEdit,
+  onOpen,
 }: Props) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -90,14 +90,17 @@ export function ExerciseList({
             </h3>
             <ul className="divide-y divide-theme-200">
               {rows.map((exercise) => (
-                <li
-                  key={exercise.id}
-                  className="flex items-center gap-3 px-5 py-3.5 even:bg-theme-50/60"
-                >
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-theme-800">
-                    {exercise.name}
-                  </span>
-                  <EditIconButton onClick={() => onEdit(exercise)} />
+                <li key={exercise.id} className="even:bg-theme-50/60">
+                  <button
+                    type="button"
+                    onClick={() => onOpen(exercise)}
+                    className="flex w-full cursor-pointer items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-theme-50"
+                  >
+                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-theme-800">
+                      {exercise.name}
+                    </span>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-theme-400" />
+                  </button>
                 </li>
               ))}
             </ul>

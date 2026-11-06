@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { listExercises, listTemplates } from '../components/fitness/api';
+import {
+  listExercises,
+  listTemplates,
+  listWorkouts,
+} from '../components/fitness/api';
 import { ExerciseDialog } from '../components/fitness/ExerciseDialog';
 import { ExerciseList } from '../components/fitness/ExerciseList';
+import { ExerciseSheet } from '../components/fitness/ExerciseSheet';
 import { TemplateDialog } from '../components/fitness/TemplateDialog';
 import { TemplateList } from '../components/fitness/TemplateList';
 import type { Exercise, WorkoutTemplate } from '../components/fitness/types';
@@ -59,12 +64,15 @@ export default function FitnessPage() {
   const [activeTab, setActiveTab] = useState<Tab>('favorites');
   const templates = useList(listTemplates);
   const exercises = useList(listExercises);
+  const workouts = useList(listWorkouts);
 
   const templateDialogRef = useRef<HTMLDialogElement>(null);
   const [templateDialog, setTemplateDialog] = useState<{
     template: WorkoutTemplate | null;
     openCount: number;
   }>({ template: null, openCount: 0 });
+  const sheetRef = useRef<HTMLDialogElement>(null);
+  const [sheetExercise, setSheetExercise] = useState<Exercise | null>(null);
   const exerciseDialogRef = useRef<HTMLDialogElement>(null);
   const [exerciseDialog, setExerciseDialog] = useState<{
     exercise: Exercise | null;
@@ -85,6 +93,11 @@ export default function FitnessPage() {
       openCount: openCount + 1,
     }));
     exerciseDialogRef.current?.showModal();
+  };
+
+  const openSheet = (exercise: Exercise) => {
+    setSheetExercise(exercise);
+    sheetRef.current?.showModal();
   };
 
   return (
@@ -122,7 +135,7 @@ export default function FitnessPage() {
             headerAction={
               <AddCircleButton onClick={() => openExercise(null)} />
             }
-            onEdit={openExercise}
+            onOpen={openSheet}
           />
         )}
       </div>
@@ -132,6 +145,15 @@ export default function FitnessPage() {
         openCount={templateDialog.openCount}
         template={templateDialog.template}
         exercises={exercises.items}
+      />
+      <ExerciseSheet
+        dialogRef={sheetRef}
+        exercise={sheetExercise}
+        workouts={workouts.items}
+        onEdit={(exercise) => {
+          sheetRef.current?.close();
+          openExercise(exercise);
+        }}
       />
       <ExerciseDialog
         dialogRef={exerciseDialogRef}
