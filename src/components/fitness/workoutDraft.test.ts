@@ -5,7 +5,7 @@ import {
   draftFor,
   draftFromTemplate,
   draftsOf,
-  draftToInput,
+  draftsToItems,
   type ItemDraft,
 } from './workoutDraft';
 
@@ -142,8 +142,6 @@ describe('draftsOf', () => {
     const drafts = draftsOf({
       id: 4,
       performedOn: '2026-11-05',
-      name: null,
-      durationMinutes: 60,
       items: [lastTime({ id: 12, sets: [{ reps: 8, weightKg: 100 }] })],
     });
 
@@ -162,151 +160,91 @@ describe('draftsOf', () => {
   });
 });
 
-describe('draftToInput', () => {
-  it('reads the typed session, commas included', () => {
-    const result = draftToInput({
-      performedOn: '2026-11-05',
-      name: '  Jambes ',
-      duration: '60',
-      items: [
+describe('draftsToItems', () => {
+  it('reads the typed exercises, commas included', () => {
+    expect(
+      draftsToItems([
         strengthDraft(['8', '82,5'], ['10', '0']),
         walkDraft('20', '5', '12'),
         { ...draftFor(ROWER, null, 'c'), duration: '10' },
+      ]),
+    ).toEqual({
+      items: [
+        {
+          exerciseId: 1,
+          sets: [
+            { reps: 8, weightKg: 82.5 },
+            { reps: 10, weightKg: 0 },
+          ],
+        },
+        { exerciseId: 2, durationMinutes: 20, speedKmh: 5, inclinePercent: 12 },
+        { exerciseId: 3, durationMinutes: 10 },
       ],
     });
+  });
 
-    expect(result).toEqual({
-      input: {
-        performedOn: '2026-11-05',
-        name: 'Jambes',
-        durationMinutes: 60,
-        items: [
-          {
-            exerciseId: 1,
-            sets: [
-              { reps: 8, weightKg: 82.5 },
-              { reps: 10, weightKg: 0 },
-            ],
-          },
-          {
-            exerciseId: 2,
-            durationMinutes: 20,
-            speedKmh: 5,
-            inclinePercent: 12,
-          },
-          { exerciseId: 3, durationMinutes: 10 },
-        ],
-      },
+  it('counts a treadmill without slope as flat', () => {
+    expect(draftsToItems([walkDraft('30', '6', '')])).toMatchObject({
+      items: [{ inclinePercent: 0 }],
     });
   });
 
-  it('leaves the session duration out when empty and a flat treadmill', () => {
-    const result = draftToInput({
-      performedOn: '2026-11-05',
-      name: ' ',
-      duration: ' ',
-      items: [walkDraft('30', '6', '')],
-    });
-
-    expect(result).toMatchObject({
-      input: {
-        name: null,
-        durationMinutes: null,
-        items: [{ inclinePercent: 0 }],
-      },
-    });
+  it('accepts no exercise: it empties the day', () => {
+    expect(draftsToItems([])).toEqual({ items: [] });
   });
 
-  it.each<[string, string, string, ItemDraft[], string]>([
-    ['no date', '', '60', [strengthDraft(['8', '80'])], 'Date requise'],
-    ['no exercise', '2026-11-05', '60', [], 'Ajoute au moins un exercice'],
-    [
-      'a session of 0 minutes',
-      '2026-11-05',
-      '0',
-      [strengthDraft(['8', '80'])],
-      'Durée de la séance : entre 0 et 600',
-    ],
-    [
-      'a session of 45.5 minutes',
-      '2026-11-05',
-      '45,5',
-      [strengthDraft(['8', '80'])],
-      'Durée de la séance : nombre entier',
-    ],
+  it.each<[string, ItemDraft[], string]>([
     [
       'a strength exercise without sets',
-      '2026-11-05',
-      '60',
       [strengthDraft()],
       'Presse à cuisses : au moins une série',
     ],
     [
       'missing repetitions',
-      '2026-11-05',
-      '60',
       [strengthDraft(['8', '80'], ['', '80'])],
       'Presse à cuisses, série 2, répétitions : valeur requise',
     ],
     [
       '2.5 repetitions',
-      '2026-11-05',
-      '60',
       [strengthDraft(['2,5', '80'])],
       'Presse à cuisses, série 1, répétitions : nombre entier',
     ],
     [
       'a missing load',
-      '2026-11-05',
-      '60',
       [strengthDraft(['8', ''])],
       'Presse à cuisses, série 1, charge : valeur requise',
     ],
     [
       'a load over 500 kg',
-      '2026-11-05',
-      '60',
       [strengthDraft(['8', '501'])],
       'Presse à cuisses, série 1, charge : entre 0 et 500',
     ],
     [
       'a load with 3 decimals',
-      '2026-11-05',
-      '60',
       [strengthDraft(['8', '80,125'])],
       'Presse à cuisses, série 1, charge : 2 décimales maximum',
     ],
     [
       'a load that is not a number',
-      '2026-11-05',
-      '60',
       [strengthDraft(['8', 'abc'])],
       'Presse à cuisses, série 1, charge : entre 0 et 500',
     ],
     [
       'a cardio without duration',
-      '2026-11-05',
-      '60',
       [draftFor(ROWER, null, 'c')],
       'Rameur, durée : valeur requise',
     ],
     [
       'a treadmill without speed',
-      '2026-11-05',
-      '60',
       [walkDraft('20', '', '5')],
       'Tapis, vitesse : valeur requise',
     ],
     [
       'a treadmill too steep',
-      '2026-11-05',
-      '60',
       [walkDraft('20', '5', '31')],
       'Tapis, inclinaison : entre 0 et 30',
     ],
-  ])('refuses %s', (_, day, duration, items, message) => {
-    expect(
-      draftToInput({ performedOn: day, name: '', duration, items }),
-    ).toEqual({ error: message });
+  ])('refuses %s', (_, items, message) => {
+    expect(draftsToItems(items)).toEqual({ error: message });
   });
 });

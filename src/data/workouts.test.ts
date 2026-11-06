@@ -1,20 +1,17 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import type {
-  WorkoutInput,
-  WorkoutItemInput,
-} from '../components/fitness/types';
+import type { WorkoutItemInput } from '../components/fitness/types';
 import type { Database } from '../db/database';
 import { migrate } from '../db/migrations';
 import { openMemoryDatabase } from '../test/nodeDatabase';
 import { DataError } from './errors';
 import { archiveExercise, createExercise, listExercises } from './exercises';
 import {
-  createWorkout,
-  deleteWorkout,
+  addToDay,
+  getDay,
   lastPerformance,
   listWorkouts,
-  updateWorkout,
+  saveDay,
 } from './workouts';
 
 let db: Database;
@@ -43,31 +40,26 @@ const strength = (
   sets: sets.map(([reps, weightKg]) => ({ reps, weightKg })),
 });
 
-const session = (
-  performedOn: string,
-  ...items: WorkoutItemInput[]
-): WorkoutInput => ({ performedOn, durationMinutes: 60, items });
+const walk = (values: Partial<WorkoutItemInput> = {}): WorkoutItemInput => ({
+  exerciseId: treadmill,
+  durationMinutes: 20,
+  speedKmh: 5,
+  inclinePercent: 12,
+  ...values,
+});
 
-const LEG_DAY = () =>
-  session(
-    '2026-11-05',
-    strength(press, [8, 100], [10, 90], [12, 80]),
-    {
-      exerciseId: treadmill,
-      durationMinutes: 20,
-      speedKmh: 5,
-      inclinePercent: 12,
-    },
-    { exerciseId: rower, durationMinutes: 10 },
-  );
+const LEG_DAY = () => [
+  strength(press, [8, 100], [10, 90], [12, 80]),
+  walk(),
+  { exerciseId: rower, durationMinutes: 10 },
+];
 
-describe('createWorkout', () => {
-  it('saves the session with its exercises in order and their sets', async () => {
-    const workout = await createWorkout(db, LEG_DAY());
+describe('addToDay', () => {
+  it('starts the session of the day with the exercises in order', async () => {
+    const day = await addToDay(db, '2026-11-05', LEG_DAY());
 
-    expect(workout).toMatchObject({
+    expect(day).toMatchObject({
       performedOn: '2026-11-05',
-      durationMinutes: 60,
       items: [
         {
           exerciseId: press,
@@ -87,139 +79,111 @@ describe('createWorkout', () => {
           speedKmh: 5,
           inclinePercent: 12,
         },
-        { kind: 'CARDIO', met: 7, durationMinutes: 10, speedKmh: null },
+        { kind: 'CARDIO', durationMinutes: 10, speedKmh: null },
       ],
     });
   });
 
-  it('accepts a session without its duration and a set at body weight', async () => {
-    const workout = await createWorkout(db, {
-      ...session('2026-11-05', strength(curl, [15, 0])),
-      durationMinutes: null,
-    });
+  it('adds new exercises after those of the day, in one session', async () => {
+    await addToDay(db, '2026-11-05', [strength(press, [8, 100])]);
 
-    expect(workout.durationMinutes).toBeNull();
-    expect(workout.items[0].sets).toEqual([{ reps: 15, weightKg: 0 }]);
+    const day = await addToDay(db, '2026-11-05', [strength(curl, [12, 40])]);
+
+    expect(day.items.map(({ exerciseId }) => exerciseId)).toEqual([
+      press,
+      curl,
+    ]);
+    expect(await listWorkouts(db)).toHaveLength(1);
   });
 
-  it('keeps the name of the session, trimmed, or none', async () => {
-    const named = await createWorkout(db, {
-      ...LEG_DAY(),
-      name: '  Full body ',
-    });
-    const unnamed = await createWorkout(db, { ...LEG_DAY(), name: '  ' });
+  it('leaves an exercise the day already holds as it is', async () => {
+    await addToDay(db, '2026-11-05', [strength(press, [8, 100])]);
 
-    expect(named.name).toBe('Full body');
-    expect(unnamed.name).toBeNull();
-  });
+    const day = await addToDay(db, '2026-11-05', [
+      strength(press, [12, 60]),
+      strength(curl, [12, 40]),
+      strength(curl, [10, 45]),
+    ]);
 
-  it('refuses a name over 80 characters', async () => {
-    await expect(
-      createWorkout(db, { ...LEG_DAY(), name: 'x'.repeat(81) }),
-    ).rejects.toThrow(DataError);
+    expect(day.items).toMatchObject([
+      { exerciseId: press, sets: [{ reps: 8, weightKg: 100 }] },
+      { exerciseId: curl, sets: [{ reps: 12, weightKg: 40 }] },
+    ]);
   });
 
   it('keeps only the fields of each kind', async () => {
-    const workout = await createWorkout(
-      db,
-      session(
-        '2026-11-05',
-        { ...strength(press, [8, 100]), durationMinutes: 5, speedKmh: 3 },
-        {
-          exerciseId: rower,
-          durationMinutes: 10,
-          speedKmh: 12,
-          sets: [{ reps: 1, weightKg: 1 }],
-        },
-      ),
-    );
+    const day = await addToDay(db, '2026-11-05', [
+      { ...strength(press, [8, 100]), durationMinutes: 5, speedKmh: 3 },
+      {
+        exerciseId: rower,
+        durationMinutes: 10,
+        speedKmh: 12,
+        sets: [{ reps: 1, weightKg: 1 }],
+      },
+    ]);
 
-    expect(workout.items[0]).toMatchObject({
+    expect(day.items[0]).toMatchObject({
       durationMinutes: null,
       speedKmh: null,
     });
-    expect(workout.items[1]).toMatchObject({ sets: [], speedKmh: null });
+    expect(day.items[1]).toMatchObject({ sets: [], speedKmh: null });
   });
 
-  it('counts a treadmill without incline as flat', async () => {
-    const workout = await createWorkout(
-      db,
-      session('2026-11-05', {
-        exerciseId: treadmill,
-        durationMinutes: 30,
-        speedKmh: 6,
-        inclinePercent: null,
-      }),
-    );
+  it('counts a treadmill without incline as flat, and a set at body weight', async () => {
+    const day = await addToDay(db, '2026-11-05', [
+      walk({ inclinePercent: null }),
+      strength(curl, [15, 0]),
+    ]);
 
-    expect(workout.items[0].inclinePercent).toBe(0);
+    expect(day.items[0].inclinePercent).toBe(0);
+    expect(day.items[1].sets).toEqual([{ reps: 15, weightKg: 0 }]);
   });
 
-  it.each<[string, WorkoutInput]>([
-    ['a badly written day', session('05/11/2026', strength(press, [8, 100]))],
-    ['a session without exercises', session('2026-11-05')],
-    [
-      'a session of 0 minutes',
-      {
-        ...session('2026-11-05', strength(press, [8, 100])),
-        durationMinutes: 0,
-      },
-    ],
-    [
-      'a session over 10 hours',
-      {
-        ...session('2026-11-05', strength(press, [8, 100])),
-        durationMinutes: 601,
-      },
-    ],
-    [
-      'a strength exercise without sets',
-      session('2026-11-05', strength(press)),
-    ],
-    [
-      'a set of 0 repetitions',
-      session('2026-11-05', strength(press, [0, 100])),
-    ],
+  it.each<[string, string, () => WorkoutItemInput[]]>([
+    ['a badly written day', '05/11/2026', () => [strength(press, [8, 100])]],
+    ['no exercise', '2026-11-05', () => []],
+    ['a strength exercise without sets', '2026-11-05', () => [strength(press)]],
+    ['a set of 0 repetitions', '2026-11-05', () => [strength(press, [0, 100])]],
     [
       'a set of 2.5 repetitions',
-      session('2026-11-05', strength(press, [2.5, 100])),
+      '2026-11-05',
+      () => [strength(press, [2.5, 100])],
     ],
-    ['a negative load', session('2026-11-05', strength(press, [8, -5]))],
-    ['a load over 500 kg', session('2026-11-05', strength(press, [8, 501]))],
+    ['a negative load', '2026-11-05', () => [strength(press, [8, -5])]],
+    ['a load over 500 kg', '2026-11-05', () => [strength(press, [8, 501])]],
     [
       'a load with 3 decimals',
-      session('2026-11-05', strength(press, [8, 80.125])),
+      '2026-11-05',
+      () => [strength(press, [8, 80.125])],
     ],
     [
       '21 sets on one exercise',
-      session(
-        '2026-11-05',
+      '2026-11-05',
+      () => [
         strength(
           press,
           ...Array.from({ length: 21 }, (): [number, number] => [8, 80]),
         ),
-      ),
+      ],
     ],
-    ['a cardio without duration', session('2026-11-05', { exerciseId: rower })],
+    ['a cardio without duration', '2026-11-05', () => [{ exerciseId: rower }]],
     [
       'a treadmill without speed',
-      session('2026-11-05', { exerciseId: treadmill, durationMinutes: 20 }),
+      '2026-11-05',
+      () => [walk({ speedKmh: null })],
     ],
     [
       'a treadmill over 30 % of incline',
-      session('2026-11-05', {
-        exerciseId: treadmill,
-        durationMinutes: 20,
-        speedKmh: 5,
-        inclinePercent: 31,
-      }),
+      '2026-11-05',
+      () => [walk({ inclinePercent: 31 })],
     ],
     [
       'an exercise that does not exist',
-      session('2026-11-05', strength(999, [8, 80])),
+      '2026-11-05',
+      () => [strength(999, [8, 80])],
     ],
-  ])('refuses %s and saves nothing', async (_, input) => {
-    await expect(createWorkout(db, input)).rejects.toThrow(DataError);
+  ])('refuses %s and saves nothing', async (_, day, items) => {
+    await expect(addToDay(db, day, items())).rejects.toThrow(DataError);
     expect(await listWorkouts(db)).toEqual([]);
   });
 
@@ -227,16 +191,27 @@ describe('createWorkout', () => {
     await archiveExercise(db, curl);
 
     await expect(
-      createWorkout(db, session('2026-11-05', strength(curl, [10, 40]))),
+      addToDay(db, '2026-11-05', [strength(curl, [10, 40])]),
     ).rejects.toThrow("Un des exercices n'existe plus.");
+  });
+});
+
+describe('getDay', () => {
+  it('gives the session of a day, or nothing', async () => {
+    await addToDay(db, '2026-11-05', [strength(press, [8, 100])]);
+
+    expect(await getDay(db, '2026-11-05')).toMatchObject({
+      performedOn: '2026-11-05',
+    });
+    expect(await getDay(db, '2026-11-06')).toBeNull();
   });
 });
 
 describe('listWorkouts', () => {
   it('gives the sessions between two days, the newest first', async () => {
-    await createWorkout(db, session('2026-11-01', strength(press, [8, 90])));
-    await createWorkout(db, session('2026-11-03', strength(curl, [10, 40])));
-    await createWorkout(db, session('2026-11-05', strength(press, [8, 100])));
+    await addToDay(db, '2026-11-01', [strength(press, [8, 90])]);
+    await addToDay(db, '2026-11-03', [strength(curl, [10, 40])]);
+    await addToDay(db, '2026-11-05', [strength(press, [8, 100])]);
 
     const workouts = await listWorkouts(db, {
       from: '2026-11-02',
@@ -256,70 +231,35 @@ describe('listWorkouts', () => {
   });
 });
 
-describe('updateWorkout', () => {
-  it('replaces the exercises and sets of the session', async () => {
-    const workout = await createWorkout(db, LEG_DAY());
+describe('saveDay', () => {
+  it('replaces the exercises and sets of the day', async () => {
+    await addToDay(db, '2026-11-05', LEG_DAY());
 
-    const updated = await updateWorkout(db, workout.id, {
-      performedOn: '2026-11-06',
-      durationMinutes: 45,
-      items: [strength(curl, [12, 45])],
-    });
+    const day = await saveDay(db, '2026-11-05', [
+      strength(curl, [12, 45]),
+      strength(press, [8, 105]),
+    ]);
 
-    expect(updated).toMatchObject({
-      id: workout.id,
-      performedOn: '2026-11-06',
-      durationMinutes: 45,
-      items: [{ exerciseId: curl, sets: [{ reps: 12, weightKg: 45 }] }],
-    });
+    expect(day?.items).toMatchObject([
+      { exerciseId: curl, sets: [{ reps: 12, weightKg: 45 }] },
+      { exerciseId: press, sets: [{ reps: 8, weightKg: 105 }] },
+    ]);
     const [{ n }] = await db.query<{ n: number }>(
       'SELECT count(*) AS n FROM workout_set',
     );
-    expect(n).toBe(1);
+    expect(n).toBe(2);
   });
 
-  it('keeps an exercise archived since the session', async () => {
-    const workout = await createWorkout(
-      db,
-      session('2026-11-05', strength(curl, [10, 40])),
-    );
-    await archiveExercise(db, curl);
+  it('starts the session of a day that had none', async () => {
+    const day = await saveDay(db, '2026-11-05', [strength(press, [8, 100])]);
 
-    await expect(
-      updateWorkout(
-        db,
-        workout.id,
-        session('2026-11-05', strength(curl, [11, 40])),
-      ),
-    ).resolves.toMatchObject({ items: [{ sets: [{ reps: 11 }] }] });
+    expect(day?.performedOn).toBe('2026-11-05');
   });
 
-  it('refuses a session that no longer exists', async () => {
-    await expect(updateWorkout(db, 999, LEG_DAY())).rejects.toThrow(
-      "Cette séance n'existe plus.",
-    );
-  });
+  it('deletes the session of the day without any exercise left', async () => {
+    await addToDay(db, '2026-11-05', LEG_DAY());
 
-  it('refuses a broken set and changes nothing', async () => {
-    const workout = await createWorkout(db, LEG_DAY());
-
-    await expect(
-      updateWorkout(
-        db,
-        workout.id,
-        session('2026-11-05', strength(press, [0, 1])),
-      ),
-    ).rejects.toThrow(DataError);
-    expect(await listWorkouts(db)).toEqual([workout]);
-  });
-});
-
-describe('deleteWorkout', () => {
-  it('deletes the session with its exercises and sets', async () => {
-    const workout = await createWorkout(db, LEG_DAY());
-
-    await deleteWorkout(db, workout.id);
-
+    expect(await saveDay(db, '2026-11-05', [])).toBeNull();
     expect(await listWorkouts(db)).toEqual([]);
     const [{ n }] = await db.query<{ n: number }>(
       'SELECT count(*) AS n FROM workout_exercise',
@@ -327,21 +267,42 @@ describe('deleteWorkout', () => {
     expect(n).toBe(0);
   });
 
-  it('refuses a session that no longer exists', async () => {
-    await expect(deleteWorkout(db, 999)).rejects.toThrow(
-      "Cette séance n'existe plus.",
-    );
+  it('keeps an exercise archived since the session', async () => {
+    await addToDay(db, '2026-11-05', [strength(curl, [10, 40])]);
+    await archiveExercise(db, curl);
+
+    await expect(
+      saveDay(db, '2026-11-05', [strength(curl, [11, 40])]),
+    ).resolves.toMatchObject({ items: [{ sets: [{ reps: 11 }] }] });
+  });
+
+  it('refuses an exercise twice and changes nothing', async () => {
+    const before = await addToDay(db, '2026-11-05', LEG_DAY());
+
+    await expect(
+      saveDay(db, '2026-11-05', [
+        strength(press, [8, 100]),
+        strength(press, [6, 110]),
+      ]),
+    ).rejects.toThrow("Un exercice n'apparaît qu'une fois par séance.");
+    expect(await getDay(db, '2026-11-05')).toEqual(before);
+  });
+
+  it('refuses a broken set and changes nothing', async () => {
+    const before = await addToDay(db, '2026-11-05', LEG_DAY());
+
+    await expect(
+      saveDay(db, '2026-11-05', [strength(press, [0, 1])]),
+    ).rejects.toThrow(DataError);
+    expect(await getDay(db, '2026-11-05')).toEqual(before);
   });
 });
 
 describe('lastPerformance', () => {
   it('gives what was done on the exercise the last time', async () => {
-    await createWorkout(db, session('2026-11-01', strength(press, [8, 90])));
-    await createWorkout(
-      db,
-      session('2026-11-05', strength(press, [8, 100], [8, 100])),
-    );
-    await createWorkout(db, session('2026-11-03', strength(press, [8, 95])));
+    await addToDay(db, '2026-11-01', [strength(press, [8, 90])]);
+    await addToDay(db, '2026-11-05', [strength(press, [8, 100], [8, 100])]);
+    await addToDay(db, '2026-11-03', [strength(press, [8, 95])]);
 
     const last = await lastPerformance(db, press);
 
@@ -352,7 +313,7 @@ describe('lastPerformance', () => {
   });
 
   it('gives the duration, speed and incline of a treadmill', async () => {
-    await createWorkout(db, LEG_DAY());
+    await addToDay(db, '2026-11-05', LEG_DAY());
 
     expect(await lastPerformance(db, treadmill)).toMatchObject({
       durationMinutes: 20,
@@ -361,14 +322,11 @@ describe('lastPerformance', () => {
     });
   });
 
-  it('leaves out the session being edited', async () => {
-    await createWorkout(db, session('2026-11-01', strength(press, [8, 90])));
-    const edited = await createWorkout(
-      db,
-      session('2026-11-05', strength(press, [8, 100])),
-    );
+  it('leaves out the day being logged', async () => {
+    await addToDay(db, '2026-11-01', [strength(press, [8, 90])]);
+    await addToDay(db, '2026-11-05', [strength(press, [8, 100])]);
 
-    const last = await lastPerformance(db, press, edited.id);
+    const last = await lastPerformance(db, press, '2026-11-05');
 
     expect(last?.sets).toEqual([{ reps: 8, weightKg: 90 }]);
   });

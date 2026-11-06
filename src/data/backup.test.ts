@@ -16,7 +16,7 @@ import { archiveFoodItem, createFoodItem } from './foodItems';
 import { createMeal } from './meals';
 import { updateProfile } from './profile';
 import { logWeight } from './weights';
-import { createWorkout, listWorkouts } from './workouts';
+import { addToDay, listWorkouts } from './workouts';
 import { createTemplate, listTemplates } from './workoutTemplates';
 
 const NOW = new Date('2026-11-05T09:00:00.000Z');
@@ -83,26 +83,21 @@ async function filledDatabase() {
       },
     ],
   });
-  await createWorkout(db, {
-    performedOn: '2026-11-04',
-    name: 'Jambes',
-    durationMinutes: 50,
-    items: [
-      {
-        exerciseId: idOf('Presse à cuisses'),
-        sets: [
-          { reps: 10, weightKg: 90 },
-          { reps: 8, weightKg: 100 },
-        ],
-      },
-      {
-        exerciseId: idOf('Tapis de course'),
-        durationMinutes: 20,
-        speedKmh: 5,
-        inclinePercent: 12,
-      },
-    ],
-  });
+  await addToDay(db, '2026-11-04', [
+    {
+      exerciseId: idOf('Presse à cuisses'),
+      sets: [
+        { reps: 10, weightKg: 90 },
+        { reps: 8, weightKg: 100 },
+      ],
+    },
+    {
+      exerciseId: idOf('Tapis de course'),
+      durationMinutes: 20,
+      speedKmh: 5,
+      inclinePercent: 12,
+    },
+  ]);
   return db;
 }
 
@@ -133,7 +128,6 @@ describe('backup', () => {
     expect(backup.workout).toHaveLength(1);
     expect(backup.workout_exercise).toHaveLength(2);
     expect(backup.workout_set).toHaveLength(2);
-    expect(backup.workout?.[0].name).toBe('Jambes');
     expect(backup.workout_template).toHaveLength(1);
     expect(backup.workout_template_exercise).toHaveLength(1);
   });
