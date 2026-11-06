@@ -1,36 +1,49 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  oneRepMax,
   strengthExercisesOf,
   strengthProgress,
   summarizeWorkouts,
+  treadmillClimb,
+  treadmillKm,
+  weeklySessions,
 } from './progress';
 import type { Workout, WorkoutItem } from './types';
 
-const press = (...weights: number[]): WorkoutItem => ({
+const press = (...sets: [number, number][]): WorkoutItem => ({
   id: 1,
   exerciseId: 1,
   exerciseName: 'Presse à cuisses',
   kind: 'STRENGTH',
   met: null,
-  sets: weights.map((weightKg) => ({ reps: 10, weightKg })),
+  sets: sets.map(([reps, weightKg]) => ({ reps, weightKg })),
   durationMinutes: null,
   speedKmh: null,
   inclinePercent: null,
 });
+
+const WALK: WorkoutItem = {
+  ...press(),
+  exerciseId: 2,
+  exerciseName: 'Tapis de course',
+  kind: 'TREADMILL',
+  durationMinutes: 45,
+  speedKmh: 4,
+  inclinePercent: 10,
+};
 
 const ROWER: WorkoutItem = {
   ...press(),
   exerciseId: 3,
   exerciseName: 'Rameur',
   kind: 'CARDIO',
-  met: 7,
   durationMinutes: 10,
 };
 
 const CURL: WorkoutItem = {
-  ...press(30),
-  exerciseId: 2,
+  ...press([10, 30]),
+  exerciseId: 4,
   exerciseName: 'Curl biceps machine',
 };
 
@@ -40,14 +53,32 @@ const session = (
   ...items: WorkoutItem[]
 ): Workout => ({ id: 1, performedOn, name: null, durationMinutes, items });
 
+describe('treadmill', () => {
+  it('walks 3 km and climbs 300 m in 45 min at 4 km/h and 10 %', () => {
+    expect(treadmillKm(WALK)).toBe(3);
+    expect(treadmillClimb(WALK)).toBeCloseTo(300);
+  });
+
+  it('gives nothing for another exercise', () => {
+    expect(treadmillKm(ROWER)).toBe(0);
+  });
+});
+
 describe('summarizeWorkouts', () => {
-  it('counts the sessions and the minutes of those with a duration', () => {
+  it('sums up the sessions, their volume and their cardio', () => {
     expect(
       summarizeWorkouts([
-        session('2026-11-03', 45, press(80)),
-        session('2026-11-05', null, ROWER),
+        session('2026-11-03', 55, press([12, 100], [10, 110])),
+        session('2026-11-05', null, WALK, ROWER),
       ]),
-    ).toEqual({ sessions: 2, minutes: 45 });
+    ).toEqual({
+      sessions: 2,
+      minutes: 55,
+      volumeKg: 2300,
+      cardioMinutes: 55,
+      distanceKm: 3,
+      climbMeters: 300,
+    });
   });
 });
 
@@ -55,35 +86,85 @@ describe('strengthExercisesOf', () => {
   it('lists each strength exercise once, sorted by name', () => {
     expect(
       strengthExercisesOf([
-        session('2026-11-03', 45, press(80), ROWER),
-        session('2026-11-05', 45, CURL, press(85)),
+        session('2026-11-03', 45, press([10, 80]), ROWER),
+        session('2026-11-05', 45, CURL, press([10, 85])),
       ]),
     ).toEqual([
-      { id: 2, name: 'Curl biceps machine' },
+      { id: 4, name: 'Curl biceps machine' },
       { id: 1, name: 'Presse à cuisses' },
     ]);
   });
 });
 
+describe('oneRepMax', () => {
+  it('estimates the load of a single repetition', () => {
+    expect(oneRepMax({ reps: 10, weightKg: 90 })).toBe(120);
+    expect(oneRepMax({ reps: 1, weightKg: 130 })).toBe(130);
+  });
+});
+
 describe('strengthProgress', () => {
+  const WORKOUTS = [
+    session('2026-11-05', 45, press([12, 80], [10, 90], [8, 85])),
+    session('2026-11-01', 45, press([10, 70], [8, 75])),
+    session('2026-11-05', 30, press([1, 95])),
+    session('2026-11-03', 45, CURL),
+  ];
+
   it('gives the heaviest load of each day, oldest first', () => {
-    expect(
-      strengthProgress(
-        [
-          session('2026-11-05', 45, press(80, 90, 85)),
-          session('2026-11-01', 45, press(70, 75)),
-          session('2026-11-05', 30, press(95)),
-          session('2026-11-03', 45, CURL),
-        ],
-        1,
-      ),
-    ).toEqual([
-      { day: '2026-11-01', maxWeightKg: 75 },
-      { day: '2026-11-05', maxWeightKg: 95 },
+    expect(strengthProgress(WORKOUTS, 1)).toEqual([
+      { day: '2026-11-01', value: 75 },
+      { day: '2026-11-05', value: 95 },
+    ]);
+  });
+
+  it('gives the best estimated one-rep max of each day', () => {
+    // 10 × 90 = 120 beats 1 × 95 and 12 × 80 = 112.
+    expect(strengthProgress(WORKOUTS, 1, 'oneRepMax')).toEqual([
+      { day: '2026-11-01', value: 95 },
+      { day: '2026-11-05', value: 120 },
+    ]);
+  });
+
+  it('adds up the volume of each day', () => {
+    expect(strengthProgress(WORKOUTS, 1, 'volume')).toEqual([
+      { day: '2026-11-01', value: 1300 },
+      { day: '2026-11-05', value: 2635 },
     ]);
   });
 
   it('gives nothing for an exercise not done', () => {
     expect(strengthProgress([session('2026-11-03', 45, CURL)], 1)).toEqual([]);
+  });
+});
+
+describe('weeklySessions', () => {
+  it('counts the sessions of each week, Monday first, empty weeks included', () => {
+    expect(
+      weeklySessions(
+        [
+          session('2026-11-02', 55, press([10, 80])),
+          session('2026-11-04', 45, WALK),
+          session('2026-11-08', 45, WALK, press([10, 80])),
+          session('2026-10-20', 45, ROWER),
+        ],
+        '2026-10-21',
+        '2026-11-08',
+      ),
+    ).toEqual([
+      { weekStart: '2026-10-19', strength: 0, cardio: 1 },
+      { weekStart: '2026-10-26', strength: 0, cardio: 0 },
+      { weekStart: '2026-11-02', strength: 2, cardio: 1 },
+    ]);
+  });
+
+  it('leaves out the sessions outside the weeks', () => {
+    expect(
+      weeklySessions(
+        [session('2026-11-20', 45, WALK)],
+        '2026-11-02',
+        '2026-11-08',
+      ),
+    ).toEqual([{ weekStart: '2026-11-02', strength: 0, cardio: 0 }]);
   });
 });
