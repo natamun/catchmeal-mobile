@@ -51,19 +51,21 @@ export function WeightVariation({ days, isLoading = false }: Props) {
 
   return (
     <SummaryCard title="Variation de poids">
-      <div className="flex items-end gap-2">
-        <span className="text-4xl font-bold text-theme-800">
-          {sign}
-          {formatKg(Math.abs(change))}
-        </span>
-        <span className="mb-1 text-theme-500">kg</span>
+      <div className="flex items-end justify-between gap-3">
+        <div className="flex items-end gap-2">
+          <span className="text-4xl font-bold text-theme-800">
+            {sign}
+            {formatKg(Math.abs(change))}
+          </span>
+          <span className="mb-1 text-theme-500">kg</span>
+        </div>
+        <p className="mb-1 flex items-center gap-1 text-right text-sm text-theme-600">
+          <TrendIcon className="h-4 w-4 shrink-0" />
+          {stable
+            ? `Stable à ${formatKg(last)} kg`
+            : `${formatKg(first)} → ${formatKg(last)} kg`}
+        </p>
       </div>
-      <p className="mt-1 flex items-center gap-1 text-sm text-theme-600">
-        <TrendIcon className="h-4 w-4 shrink-0" />
-        {stable
-          ? `Stable à ${formatKg(last)} kg`
-          : `De ${formatKg(first)} à ${formatKg(last)} kg`}
-      </p>
     </SummaryCard>
   );
 }
