@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Copy, Share2 } from 'lucide-react';
 
 import { copyText, shareText } from '../../native/shareText';
-import { getMeasuredExpenditure } from '../profile/api';
+import { getMeasuredExpenditure, getWeightHistory } from '../profile/api';
 import { useProfile } from '../profile/profileContext';
 import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { SummaryCard } from '../ui/SummaryCard';
@@ -34,8 +34,20 @@ export function AiContextCard({ from, to, days, isLoading = false }: Props) {
   ) => {
     setIsBusy(true);
     try {
-      const measured = await getMeasuredExpenditure().catch(() => null);
-      await send(buildAiContext({ from, to, days, profile, measured }));
+      const [measured, history] = await Promise.all([
+        getMeasuredExpenditure().catch(() => null),
+        getWeightHistory().catch(() => []),
+      ]);
+      await send(
+        buildAiContext({
+          from,
+          to,
+          days,
+          profile,
+          measured,
+          latestWeighIn: history[0] ?? null,
+        }),
+      );
     } catch {
       showToast(failure);
     } finally {

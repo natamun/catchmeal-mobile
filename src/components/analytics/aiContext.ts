@@ -32,6 +32,8 @@ export interface AiContextInput {
   days: DashboardDay[];
   profile: Profile;
   measured: MeasuredExpenditure | null;
+  /** The latest weigh-in of all, so the weight is known even without one in the period. */
+  latestWeighIn: { weight: number; loggedAt: string } | null;
   today?: Date;
 }
 
@@ -84,7 +86,10 @@ const average = (values: number[]) =>
 const cell = (value: number | null, format = (n: number) => String(n)) =>
   value === null ? NONE : format(Math.round(value * 10) / 10);
 
-function profileLines(profile: Profile) {
+function profileLines(
+  profile: Profile,
+  latestWeighIn: AiContextInput['latestWeighIn'],
+) {
   const person = [
     profile.gender && labelOf(GENDER_OPTIONS, profile.gender),
     profile.birthDate && `${getAge(profile.birthDate)} ans`,
@@ -99,6 +104,8 @@ function profileLines(profile: Profile) {
 
   const lines = [
     person.length > 0 && `- ${person.join(', ')}`,
+    latestWeighIn &&
+      `- Dernière pesée : ${formatKg(latestWeighIn.weight)} kg, le ${longDate(toDateKey(new Date(latestWeighIn.loggedAt)))}`,
     activity && `- Activité : ${activity}`,
     goal.length > 0 && `- Objectif : ${goal.join(', ')}`,
   ].filter((line): line is string => Boolean(line));
@@ -214,7 +221,7 @@ function weeklyTable(
 
 /**
  * A summary of a period to paste into an AI chat: the profile (age, never the
- * birth date), the goals set, the measured expenditure, the period's averages
+ * birth date) with the latest weigh-in, the goals set, the measured expenditure, the period's averages
  * and measures, then the detail, day by day up to 31 days and week by week
  * beyond. Today's meals are left out of the averages: the day is not over.
  * It ends on "Ma question :" for the question to be typed after it.
@@ -225,6 +232,7 @@ export function buildAiContext({
   days,
   profile,
   measured,
+  latestWeighIn,
   today = new Date(),
 }: AiContextInput) {
   const todayKey = toDateKey(today);
@@ -263,7 +271,7 @@ export function buildAiContext({
     'Voici mes données de suivi nutritionnel, tirées de mon app. Analyse-les et réponds à ma question à la fin.',
     '',
     '## Profil',
-    ...profileLines(profile),
+    ...profileLines(profile, latestWeighIn),
     '',
     '## Objectifs que je me suis fixés (par jour)',
     goalsLine(profile),
