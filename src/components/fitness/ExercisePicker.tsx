@@ -1,6 +1,5 @@
 import { useId, useRef, useState } from 'react';
 import * as Popover from '@radix-ui/react-popover';
-import { Plus } from 'lucide-react';
 
 import { failureMessage } from '../../utils/failureMessage';
 import { DropdownPanel } from '../ui/DropdownPanel';
@@ -8,14 +7,9 @@ import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
 import { useToast } from '../ui/toastContext';
 import { createExercise } from './api';
+import { CreateExerciseRow } from './CreateExerciseRow';
 import { isSameName, matchesSearch } from './search';
 import type { Exercise, ExerciseKind } from './types';
-
-const NEW_KINDS: { kind: ExerciseKind; label: string }[] = [
-  { kind: 'STRENGTH', label: 'Muscu' },
-  { kind: 'TREADMILL', label: 'Tapis' },
-  { kind: 'CARDIO', label: 'Cardio' },
-];
 
 const ROW_CLASS =
   'w-full cursor-pointer border-t border-theme-100 px-4 py-2.5 text-left text-sm text-theme-800 transition-colors first:border-t-0 hover:bg-theme-50';
@@ -86,26 +80,13 @@ export function ExercisePicker({ exercises, dialogNode, onPick }: Props) {
       </Popover.Anchor>
       <DropdownPanel container={dialogNode} matchAnchorWidth>
         {canCreate && (
-          <div className="flex flex-col gap-2 border-b border-theme-100 bg-theme-50 px-4 py-2.5">
-            <span className="truncate text-sm text-theme-700">
-              Créer « {typed} »
-            </span>
-            <div className="flex gap-2">
-              {NEW_KINDS.map(({ kind, label }) => (
-                <button
-                  key={kind}
-                  type="button"
-                  disabled={isCreating}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => void create(kind)}
-                  className="flex flex-1 cursor-pointer items-center justify-center gap-1 rounded-lg border border-theme-200 bg-surface py-2 text-sm font-medium text-theme-700 transition-colors hover:bg-theme-100 disabled:opacity-60"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <CreateExerciseRow
+            name={typed}
+            onCreate={(kind) => void create(kind)}
+            disabled={isCreating}
+            keepFocus
+            className="border-theme-100 px-4 py-2.5"
+          />
         )}
         {results.map((exercise) => (
           <button

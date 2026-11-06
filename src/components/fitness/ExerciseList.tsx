@@ -1,10 +1,11 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { ChevronRight, Plus, Search } from 'lucide-react';
+import { ChevronRight, Search } from 'lucide-react';
 
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { Input } from '../ui/Input';
 import { ListCard, ListCardEmpty, ListCardLoading } from '../ui/ListCard';
 import { LoadError } from '../ui/LoadError';
+import { CreateExerciseRow } from './CreateExerciseRow';
 import { describeValues } from './format';
 import { isSameName, matchesSearch } from './search';
 import type { Exercise, ExerciseKind, WorkoutItem } from './types';
@@ -12,12 +13,6 @@ import type { Exercise, ExerciseKind, WorkoutItem } from './types';
 const SECTIONS: { label: string; kinds: readonly ExerciseKind[] }[] = [
   { label: 'Musculation', kinds: ['STRENGTH'] },
   { label: 'Cardio', kinds: ['TREADMILL', 'CARDIO'] },
-];
-
-const NEW_KINDS: { kind: ExerciseKind; label: string }[] = [
-  { kind: 'STRENGTH', label: 'Muscu' },
-  { kind: 'TREADMILL', label: 'Tapis' },
-  { kind: 'CARDIO', label: 'Cardio' },
 ];
 
 interface Props {
@@ -104,27 +99,14 @@ export function ExerciseList({
       {loadError && <LoadError message={loadError} onRetry={onRetry} />}
 
       {canCreate && (
-        <div className="flex flex-col gap-2 border-b border-theme-200 bg-theme-50 px-5 py-3">
-          <span className="truncate text-sm text-theme-700">
-            Créer « {typed} »
-          </span>
-          <div className="flex gap-2">
-            {NEW_KINDS.map(({ kind, label }) => (
-              <button
-                key={kind}
-                type="button"
-                onClick={() => {
-                  onCreate(typed, kind);
-                  setQuery('');
-                }}
-                className="flex flex-1 cursor-pointer items-center justify-center gap-1 rounded-lg border border-theme-200 bg-surface py-2 text-sm font-medium text-theme-700 transition-colors hover:bg-theme-100"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <CreateExerciseRow
+          name={typed}
+          onCreate={(kind) => {
+            onCreate(typed, kind);
+            setQuery('');
+          }}
+          className="border-theme-200 px-5 py-3"
+        />
       )}
 
       {!isLoading && !loadError && active.length === 0 && !canCreate && (
