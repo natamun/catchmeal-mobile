@@ -1,7 +1,11 @@
 import { weightTrend, type MeasuredExpenditure } from '../../data/energy';
 import { startOfDay, toDateKey } from '../../utils/dateKey';
 import { formatKg, formatMinutes } from '../../utils/format';
-import { summarizeWorkouts } from '../fitness/progress';
+import {
+  strengthExercisesOf,
+  strengthProgress,
+  summarizeWorkouts,
+} from '../fitness/progress';
 import type { Workout, WorkoutItem } from '../fitness/types';
 import type { Profile } from '../profile/api';
 import { getAge } from '../profile/bmr';
@@ -249,7 +253,8 @@ function describeItem(item: WorkoutItem) {
 
 /**
  * The training of the period: how many days of sessions, the volume lifted
- * and the cardio, then one row per session up to 31 days, or per week beyond.
+ * and the cardio, then one row per session up to 31 days, or beyond, the
+ * sessions per week and how the heaviest load of each exercise moved.
  * Their calories are not given: a measured expenditure already holds the
  * training, the AI is told so.
  */
@@ -297,6 +302,21 @@ function sportLines(
       ),
     );
     return lines;
+  }
+
+  const progress = strengthExercisesOf(workouts).flatMap(({ id, name }) => {
+    const points = strengthProgress(workouts, id);
+    return points.length < 2
+      ? []
+      : [
+          `  - ${name} : ${formatKg(points[0].value)} → ${formatKg(points.at(-1)!.value)} kg`,
+        ];
+  });
+  if (progress.length > 0) {
+    lines.push(
+      '- Charge max, de la première à la dernière séance de la période :',
+      ...progress,
+    );
   }
 
   lines.push('', '| Semaine | Séances |', '|---|---|');
