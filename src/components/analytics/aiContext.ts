@@ -1,6 +1,7 @@
 import { weightTrend, type MeasuredExpenditure } from '../../data/energy';
 import { startOfDay, toDateKey } from '../../utils/dateKey';
 import { formatKg, formatMinutes } from '../../utils/format';
+import { summarizeWorkouts } from '../fitness/progress';
 import type { Workout, WorkoutItem } from '../fitness/types';
 import type { Profile } from '../profile/api';
 import { getAge } from '../profile/bmr';
@@ -267,9 +268,20 @@ function sportLines(
     list.reduce((sum, { durationMinutes }) => sum + (durationMinutes ?? 0), 0);
 
   const minutes = minutesOf(workouts);
+  const totals = summarizeWorkouts(workouts);
   const lines = [
     `- Séances : ${workouts.length}${minutes > 0 ? `, ${formatMinutes(minutes)} au total` : ''}`,
   ];
+  if (totals.volumeKg > 0) {
+    lines.push(
+      `- Volume soulevé (répétitions × charge) : ${formatKg(totals.volumeKg / 1000)} t`,
+    );
+  }
+  if (totals.distanceKm > 0) {
+    lines.push(
+      `- Tapis : ${formatKg(totals.distanceKm)} km, ${Math.round(totals.climbMeters)} m de dénivelé positif`,
+    );
+  }
   if (measured) {
     lines.push(
       '- Ma dépense mesurée plus haut inclut déjà ces séances : ne leur ajoute pas de calories',
@@ -279,13 +291,13 @@ function sportLines(
   if (isDaily) {
     lines.push(
       '',
-      '| Jour | Durée | Exercices |',
-      '|---|---|---|',
+      '| Jour | Séance | Durée | Exercices |',
+      '|---|---|---|---|',
       ...workouts.map((workout) => {
         const duration = workout.durationMinutes
           ? formatMinutes(workout.durationMinutes)
           : NONE;
-        return `| ${weekdayDate(workout.performedOn)} | ${duration} | ${inCell(workout.items.map(describeItem).join(' ; '))} |`;
+        return `| ${weekdayDate(workout.performedOn)} | ${inCell(workout.name ?? NONE)} | ${duration} | ${inCell(workout.items.map(describeItem).join(' ; '))} |`;
       }),
     );
     return lines;
