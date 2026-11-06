@@ -9,7 +9,7 @@ import { PATHS } from './routing/paths';
 const JournalAddPage = lazy(() => import('./pages/JournalAddPage'));
 
 /**
- * All the routes of the app. The app opens on the journal. The four tabs are
+ * All the routes of the app. The app opens on the journal. The tabs are
  * drawn by AppLayout, which keeps them mounted: their routes only exist so the
  * URL is known.
  */
@@ -20,6 +20,7 @@ function AppRoutes() {
       <Route element={<AppLayout />}>
         <Route path={PATHS.home} element={null} />
         <Route path={PATHS.food} element={null} />
+        <Route path={PATHS.fitness} element={null} />
         <Route path={PATHS.stats} element={null} />
         <Route path={PATHS.profile} element={null} />
         <Route path={PATHS.journalAdd} element={<JournalAddPage />} />

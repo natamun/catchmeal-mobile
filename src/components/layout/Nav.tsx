@@ -1,10 +1,17 @@
-import { Apple, ChartColumn, House, User, type LucideIcon } from 'lucide-react';
+import {
+  Apple,
+  ChartColumn,
+  Dumbbell,
+  House,
+  User,
+  type LucideIcon,
+} from 'lucide-react';
 import { NavLink } from 'react-router';
 
 import { PATHS } from '../../routing/paths';
 import { Brand } from '../ui/Brand';
 
-type Tab = 'home' | 'food' | 'stats' | 'profile';
+type Tab = 'home' | 'food' | 'fitness' | 'stats' | 'profile';
 
 interface TabDef {
   id: Tab;
@@ -21,6 +28,7 @@ interface NavItemProps {
 const TABS: TabDef[] = [
   { id: 'home', label: 'Accueil', icon: House },
   { id: 'food', label: 'Alimentation', shortLabel: 'Aliments', icon: Apple },
+  { id: 'fitness', label: 'Fitness', icon: Dumbbell },
   {
     id: 'stats',
     label: 'Statistiques',

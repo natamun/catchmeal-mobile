@@ -6,10 +6,14 @@ import { PATHS } from '../../routing/paths';
 import { ToastProvider } from '../ui/ToastProvider';
 import { Nav } from './Nav';
 
-/** The four tabs, kept mounted once opened so going back to one is instant. */
+/** The tabs, kept mounted once opened so going back to one is instant. */
 const TABS = [
   { path: PATHS.home, Page: lazy(() => import('../../pages/HomePage')) },
   { path: PATHS.food, Page: lazy(() => import('../../pages/FoodPage')) },
+  {
+    path: PATHS.fitness,
+    Page: lazy(() => import('../../pages/FitnessPage')),
+  },
   { path: PATHS.stats, Page: lazy(() => import('../../pages/StatsPage')) },
   { path: PATHS.profile, Page: lazy(() => import('../../pages/ProfilePage')) },
 ];
@@ -30,7 +34,7 @@ const LOADING = (
 );
 
 /**
- * Frame of every page: navigation, the pages and the toasts. The four tabs
+ * Frame of every page: navigation, the pages and the toasts. The tabs
  * sit side by side as a carousel and stay mounted: switching tab keeps each
  * one's data, state and scroll, and the app prepares them all right after it
  * opens. The tabs off screen cannot be focused or touched. Other pages
