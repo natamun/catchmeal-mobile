@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { listFoodItems } from '../components/food/api';
 import { FoodItemForm } from '../components/food/FoodItemForm';
 import { FoodItemList } from '../components/food/FoodItemList';
+import { preloadScanner } from '../components/food/preloadScanner';
 import type { FoodItem } from '../components/food/types';
 import { listMeals } from '../components/meal/api';
 import { MealForm } from '../components/meal/MealForm';
@@ -66,6 +67,12 @@ export default function FoodPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const version = useDataVersion();
+
+  // The scanner is slow to open the first time: prepare it once the app is up.
+  useEffect(() => {
+    const timer = setTimeout(preloadScanner, 2000);
+    return () => clearTimeout(timer);
+  }, []);
   const [foodsAttempt, setFoodsAttempt] = useState(0);
   const [meals, setMeals] = useState<Meal[]>([]);
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);

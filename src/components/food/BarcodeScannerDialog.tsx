@@ -7,25 +7,16 @@ import {
 } from 'react';
 import {
   createScannerError,
-  prepareZXingModule,
   Scanner,
   type IScannerError,
   type ScannerErrorKind,
 } from '@yudiel/react-qr-scanner';
 import { LoaderCircle } from 'lucide-react';
-import wasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url';
 
 import { BaseDialog } from '../ui/BaseDialog';
 import { findScannerCamera } from './scannerCamera';
 
-// The barcode decoder is WebAssembly. Vite bundles its .wasm file, and the
-// decoder must load it from there instead of a CDN.
-prepareZXingModule({
-  overrides: {
-    locateFile: (path: string, prefix: string) =>
-      path.endsWith('.wasm') ? wasmUrl : prefix + path,
-  },
-});
+import './zxingDecoder';
 
 type ScannerProps = ComponentProps<typeof Scanner>;
 
@@ -105,8 +96,8 @@ export default function BarcodeScannerDialog({
   const constraints = useMemo(
     (): MediaTrackConstraints => ({
       deviceId: cameraId,
-      width: { ideal: 1920 },
-      height: { ideal: 1080 },
+      width: { ideal: 1280 },
+      height: { ideal: 720 },
       advanced: [CONTINUOUS_FOCUS],
     }),
     [cameraId],
