@@ -11,7 +11,7 @@ import {
   type TooltipContentProps,
 } from 'recharts';
 
-import { formatWeekday } from '../../utils/format';
+import { formatKg, formatWeekday } from '../../utils/format';
 import type { DateRange } from '../ui/CalendarButton';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { SummaryCard } from '../ui/SummaryCard';
@@ -27,12 +27,10 @@ import {
   Y_TICK,
 } from './chartStyle';
 import { ChartTooltip } from './ChartTooltip';
+import { measureScale } from './measureScale';
 import type { DashboardDay } from './types';
 
 const TITLE = 'Évolution';
-const SCALE_MARGIN = 1;
-const MAX_INTERVALS = 8;
-const SCALE_STEPS = [1, 2, 5, 10, 20];
 const MAX_DOTS = 31;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const [LINE_COLOR] = SERIES_COLORS;
@@ -47,30 +45,6 @@ const MEASURES: { value: MeasureKey; label: string; unit: string }[] = [
   { value: 'bodyFat', label: 'Masse grasse', unit: '%' },
   { value: 'bodyWater', label: 'Eau corporelle', unit: '%' },
 ];
-
-/**
- * Round graduations around the values, with 1 unit of margin and at most 8
- * intervals.
- */
-function measureScale(values: number[]) {
-  const low = Math.max(0, Math.floor(Math.min(...values)) - SCALE_MARGIN);
-  const high = Math.ceil(Math.max(...values)) + SCALE_MARGIN;
-  const step =
-    SCALE_STEPS.find(
-      (candidate) => (high - low) / candidate <= MAX_INTERVALS,
-    ) ?? SCALE_STEPS[SCALE_STEPS.length - 1];
-  const bottom = Math.floor(low / step) * step;
-  const top = Math.ceil(high / step) * step;
-
-  return {
-    bottom,
-    top,
-    ticks: Array.from(
-      { length: (top - bottom) / step + 1 },
-      (_, index) => bottom + index * step,
-    ),
-  };
-}
 
 /** Date on the axis, as DD-MM. */
 function formatTick(time: number) {
@@ -176,6 +150,7 @@ export function MeasureChart({
             ticks={scale.ticks}
             domain={[scale.bottom, scale.top]}
             tick={Y_TICK}
+            tickFormatter={formatKg}
           />
           <Tooltip
             cursor={false}
