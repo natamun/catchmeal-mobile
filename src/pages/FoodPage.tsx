@@ -11,11 +11,10 @@ import { MealList } from '../components/meal/MealList';
 import type { Meal } from '../components/meal/types';
 import { AddCircleButton } from '../components/ui/AddCircleButton';
 import { EditIconButton } from '../components/ui/EditIconButton';
+import { InfoBubble } from '../components/ui/InfoBubble';
 import { PillTabs } from '../components/ui/PillTabs';
 import { MACROS } from '../constants/macros';
 import { useDataVersion } from '../hooks/useDataVersion';
-import { useDelayedUnmount } from '../hooks/useDelayedUnmount';
-import { useSupportsHover } from '../hooks/useSupportsHover';
 
 type Tab = 'food' | 'meal';
 
@@ -24,36 +23,22 @@ const TAB_OPTIONS: { value: Tab; label: string }[] = [
   { value: 'meal', label: 'Repas' },
 ];
 
-/**
- * Legend of the macro dots: shown on hover with a mouse, on tap on touch
- * screens.
- */
-function LegendBubble({ show }: { show: boolean }) {
-  const displayed = useDelayedUnmount(show, 100);
-
-  if (!displayed) {
-    return null;
-  }
-
-  return (
-    <div
-      className={`absolute top-full right-0 z-10 mt-1.5 ${show ? 'animate-fade-in-up' : 'animate-fade-out'}`}
-    >
-      <div className="absolute -top-1 right-4 h-2 w-2 rotate-45 border-t border-l border-theme-200 bg-surface" />
-      <div className="flex flex-col items-start gap-1.5 rounded-lg border border-theme-200 bg-surface px-3 py-2 text-xs whitespace-nowrap text-theme-700 shadow-sm min-[420px]:flex-row min-[420px]:items-center min-[420px]:gap-3">
-        <div className="flex items-center gap-3">
-          {MACROS.map(({ label, color }) => (
-            <span key={label} className="flex items-center gap-1.5">
-              <span className={`h-1.5 w-1.5 rounded-full ${color}`} />
-              {label}
-            </span>
-          ))}
-        </div>
-        <span className="text-theme-400">Valeurs en grammes</span>
+/** Legend of the macro dots shown on every line. */
+const MACRO_LEGEND = (
+  <InfoBubble bubbleClassName="whitespace-nowrap">
+    <div className="flex flex-col items-start gap-1.5 min-[420px]:flex-row min-[420px]:items-center min-[420px]:gap-3">
+      <div className="flex items-center gap-3">
+        {MACROS.map(({ label, color }) => (
+          <span key={label} className="flex items-center gap-1.5">
+            <span className={`h-1.5 w-1.5 rounded-full ${color}`} />
+            {label}
+          </span>
+        ))}
       </div>
+      <span className="text-theme-400">Valeurs en grammes</span>
     </div>
-  );
-}
+  </InfoBubble>
+);
 
 /**
  * Food page with two tabs, the food library and the library meals, each with
@@ -61,7 +46,6 @@ function LegendBubble({ show }: { show: boolean }) {
  */
 export default function FoodPage() {
   const [activeTab, setActiveTab] = useState<Tab>('food');
-  const [showLegend, setShowLegend] = useState(false);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [editingItem, setEditingItem] = useState<FoodItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,24 +65,6 @@ export default function FoodPage() {
   const [mealsAttempt, setMealsAttempt] = useState(0);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const mealDialogRef = useRef<HTMLDialogElement>(null);
-  const legendRef = useRef<HTMLDivElement>(null);
-  const supportsHover = useSupportsHover();
-
-  useEffect(() => {
-    if (supportsHover || !showLegend) {
-      return;
-    }
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        event.target instanceof Node &&
-        !legendRef.current?.contains(event.target)
-      ) {
-        setShowLegend(false);
-      }
-    };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [supportsHover, showLegend]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -151,21 +117,7 @@ export default function FoodPage() {
           value={activeTab}
           onChange={setActiveTab}
         />
-        <div
-          ref={legendRef}
-          className="relative"
-          onMouseEnter={() => supportsHover && setShowLegend(true)}
-          onMouseLeave={() => supportsHover && setShowLegend(false)}
-        >
-          <button
-            type="button"
-            onClick={() => !supportsHover && setShowLegend((prev) => !prev)}
-            className="tap-area relative flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-theme-200 text-xs font-bold text-theme-500 transition-colors hover:bg-theme-50"
-          >
-            ?
-          </button>
-          <LegendBubble show={showLegend} />
-        </div>
+        {MACRO_LEGEND}
       </div>
 
       <FoodItemForm
