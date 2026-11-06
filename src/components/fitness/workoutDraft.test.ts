@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Exercise, WorkoutItem } from './types';
+import type { Exercise, TemplateItem, WorkoutItem } from './types';
 import {
   draftFor,
+  draftFromTemplate,
   draftsOf,
   draftToInput,
   type ItemDraft,
@@ -100,6 +101,42 @@ describe('draftFor', () => {
   });
 });
 
+describe('draftFromTemplate', () => {
+  const templateItem = (values: Partial<TemplateItem>): TemplateItem => ({
+    id: 1,
+    exerciseId: 2,
+    exerciseName: 'Tapis',
+    kind: 'TREADMILL',
+    durationMinutes: null,
+    speedKmh: null,
+    inclinePercent: null,
+    ...values,
+  });
+
+  it('takes the values the favorite sets, the rest from the last time', () => {
+    const draft = draftFromTemplate(
+      templateItem({ durationMinutes: 45, speedKmh: 4 }),
+      lastTime({
+        kind: 'TREADMILL',
+        durationMinutes: 30,
+        speedKmh: 5,
+        inclinePercent: 12,
+      }),
+    );
+
+    expect(draft).toMatchObject({ duration: '45', speed: '4', incline: '12' });
+  });
+
+  it('starts a strength exercise from its last sets', () => {
+    const draft = draftFromTemplate(
+      templateItem({ exerciseId: 1, exerciseName: 'Presse', kind: 'STRENGTH' }),
+      lastTime({ sets: [{ reps: 10, weightKg: 90 }] }),
+    );
+
+    expect(draft.sets).toEqual([{ reps: '10', weight: '90' }]);
+  });
+});
+
 describe('draftsOf', () => {
   it('turns a saved session back into lines', () => {
     const drafts = draftsOf({
@@ -116,7 +153,6 @@ describe('draftsOf', () => {
         exerciseId: 1,
         name: 'Presse à cuisses',
         kind: 'STRENGTH',
-        met: null,
         sets: [{ reps: '8', weight: '100' }],
         duration: '',
         speed: '',
@@ -128,15 +164,21 @@ describe('draftsOf', () => {
 
 describe('draftToInput', () => {
   it('reads the typed session, commas included', () => {
-    const result = draftToInput('2026-11-05', '60', [
-      strengthDraft(['8', '82,5'], ['10', '0']),
-      walkDraft('20', '5', '12'),
-      { ...draftFor(ROWER, null, 'c'), duration: '10' },
-    ]);
+    const result = draftToInput({
+      performedOn: '2026-11-05',
+      name: '  Jambes ',
+      duration: '60',
+      items: [
+        strengthDraft(['8', '82,5'], ['10', '0']),
+        walkDraft('20', '5', '12'),
+        { ...draftFor(ROWER, null, 'c'), duration: '10' },
+      ],
+    });
 
     expect(result).toEqual({
       input: {
         performedOn: '2026-11-05',
+        name: 'Jambes',
         durationMinutes: 60,
         items: [
           {
@@ -159,10 +201,19 @@ describe('draftToInput', () => {
   });
 
   it('leaves the session duration out when empty and a flat treadmill', () => {
-    const result = draftToInput('2026-11-05', ' ', [walkDraft('30', '6', '')]);
+    const result = draftToInput({
+      performedOn: '2026-11-05',
+      name: ' ',
+      duration: ' ',
+      items: [walkDraft('30', '6', '')],
+    });
 
     expect(result).toMatchObject({
-      input: { durationMinutes: null, items: [{ inclinePercent: 0 }] },
+      input: {
+        name: null,
+        durationMinutes: null,
+        items: [{ inclinePercent: 0 }],
+      },
     });
   });
 
@@ -254,6 +305,8 @@ describe('draftToInput', () => {
       'Tapis, inclinaison : entre 0 et 30',
     ],
   ])('refuses %s', (_, day, duration, items, message) => {
-    expect(draftToInput(day, duration, items)).toEqual({ error: message });
+    expect(
+      draftToInput({ performedOn: day, name: '', duration, items }),
+    ).toEqual({ error: message });
   });
 });
