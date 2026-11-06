@@ -262,12 +262,18 @@ describe('buildAiContext', () => {
     });
 
     it('sums up the sessions of the period, without calories', () => {
-      const text = build({ workouts: [LEG_DAY], weighIns: WEIGH_INS });
+      const text = build({
+        workouts: [{ ...LEG_DAY, name: 'Jambes' }],
+        weighIns: WEIGH_INS,
+      });
 
       expect(text).toContain('- Séances : 1, 1 h au total');
       expect(text).toContain(
-        '| mar. 03/11 | 1 h | Presse à cuisses : 8×100, 10×92,5 kg ; Tapis de course : 20 min à 5 km/h, pente 12 % |',
+        '| mar. 03/11 | Jambes | 1 h | Presse à cuisses : 8×100, 10×92,5 kg ; Tapis de course : 20 min à 5 km/h, pente 12 % |',
       );
+      // 8 × 100 + 10 × 92.5 = 1725 kg; 20 min at 5 km/h = 1.7 km, 12 % of it.
+      expect(text).toContain('- Volume soulevé (répétitions × charge) : 1,7 t');
+      expect(text).toContain('- Tapis : 1,7 km, 200 m de dénivelé positif');
       const sport = text.slice(
         text.indexOf('## Sport'),
         text.indexOf('## Détail'),
