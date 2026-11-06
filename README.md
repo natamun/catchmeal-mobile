@@ -19,7 +19,7 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 - **Barcode scanning**: the camera reads EAN and UPC codes, and [Open Food Facts](https://world.openfoodfacts.org) fills the food form.
 - **Body composition**: weigh-ins with body fat, fat-free mass, body water and muscle mass.
 - **Goals**: daily calories and macros recommended from a goal (lose fat, lose weight, maintain, build muscle) and a weekly pace, never under the BMR. The daily expenditure is measured from the last four weeks of journal and weigh-ins, or estimated (Mifflin-St Jeor or Katch-McArdle) until there is enough data. Past goals are kept for the stats.
-- **Training logbook**: sessions logged from the journal, from a favorite session (a named set of exercises) or from scratch: sets of repetitions at a load for strength, duration, speed and incline for the treadmill, duration for other cardio. Each exercise starts from what was done on it the last time, an exercise can be created right from its search, and saving tells the new records. Each exercise opens its own logbook: records, estimated one-rep max, progress and last sessions. The exercise library starts with the usual gym machines.
+- **Training logbook**: kept like the food journal. One session a day: its "+" opens the training library, where exercises and favorite sessions (named sets of exercises) are picked, then the values are checked, started from the last time, before they join the day; each exercise appears once a day. Strength holds sets of repetitions at a load, the treadmill a duration, speed and slope, other cardio a duration. An exercise can be created right from its search, and saving tells the new records. The library recalls the last values of every exercise, also inside the favorites, and each exercise opens its own logbook: records, estimated one-rep max, progress and last sessions. It starts with the usual gym machines.
 - **Statistics**: calorie, macro and body composition charts over a chosen period; for the training, the sessions per week, the volume lifted, the treadmill distance and climb, and the progress of each strength exercise (heaviest load, estimated one-rep max or volume); and a summary of the period to paste into an AI chat.
 - **Weigh-in reminder**: an optional notification every Sunday morning.
 - **Backup and restore**: all the data in one JSON file, shared through Android (Drive, e-mail, Files) and restored all or nothing.
@@ -100,9 +100,7 @@ erDiagram
     }
     workout {
         int id PK
-        text performed_on "local day"
-        text name "the favorite it came from"
-        int duration_minutes
+        text performed_on "local day, one session a day"
     }
     workout_exercise {
         int id PK
@@ -145,7 +143,7 @@ erDiagram
 
 A meal line stores the calories and macros computed when the meal is saved, so editing or archiving a food later leaves past meals unchanged.
 
-Training sessions are a logbook: their calories are neither estimated nor added to the goals, because the measured expenditure already holds the training.
+Training sessions are a logbook: their calories are neither estimated nor added to the goals, because the measured expenditure already holds the training. The `name` and `duration_minutes` columns of `workout` are left empty since the sessions became one a day.
 
 ## Building and installing
 
