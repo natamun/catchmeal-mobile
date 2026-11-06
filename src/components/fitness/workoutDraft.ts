@@ -2,6 +2,7 @@ import { hasTooManyDecimals, parseDecimal } from '../../utils/decimals';
 import type {
   Exercise,
   ExerciseKind,
+  TemplateItem,
   Workout,
   WorkoutInput,
   WorkoutItem,
@@ -20,7 +21,6 @@ export interface ItemDraft {
   exerciseId: number;
   name: string;
   kind: ExerciseKind;
-  met: number | null;
   sets: SetDraft[];
   duration: string;
   speed: string;
@@ -30,7 +30,7 @@ export interface ItemDraft {
 export type DraftResult = { input: WorkoutInput } | { error: string };
 
 /** A number as the fields show it, with a comma; empty for null. */
-const asText = (value: number | null | undefined) =>
+export const asText = (value: number | null | undefined) =>
   value === null || value === undefined ? '' : String(value).replace('.', ',');
 
 const EMPTY_SET: SetDraft = { reps: '', weight: '' };
@@ -40,7 +40,7 @@ const EMPTY_SET: SetDraft = { reps: '', weight: '' };
  * it the last time, so the next session starts from there.
  */
 export function draftFor(
-  exercise: Pick<Exercise, 'id' | 'name' | 'kind' | 'met'>,
+  exercise: Pick<Exercise, 'id' | 'name' | 'kind'>,
   last: WorkoutItem | null,
   key: string = crypto.randomUUID(),
 ): ItemDraft {
@@ -53,7 +53,6 @@ export function draftFor(
     exerciseId: exercise.id,
     name: exercise.name,
     kind: exercise.kind,
-    met: exercise.met,
     sets:
       exercise.kind === 'STRENGTH' ? (sets?.length ? sets : [EMPTY_SET]) : [],
     duration: asText(last?.durationMinutes),
@@ -66,22 +65,46 @@ export function draftFor(
 export function draftsOf(workout: Workout): ItemDraft[] {
   return workout.items.map((item) =>
     draftFor(
-      {
-        id: item.exerciseId,
-        name: item.exerciseName,
-        kind: item.kind,
-        met: item.met,
-      },
+      { id: item.exerciseId, name: item.exerciseName, kind: item.kind },
       item,
       String(item.id),
     ),
   );
 }
 
-/** Thrown inside draftToInput to stop at the first mistake. */
-class DraftError extends Error {}
+/**
+ * The line of an exercise of a favorite: a cardio one takes the favorite's
+ * duration, speed and incline where it sets them, the rest comes from the
+ * last time, like a strength one.
+ */
+export function draftFromTemplate(
+  item: TemplateItem,
+  last: WorkoutItem | null,
+  key?: string,
+): ItemDraft {
+  const draft = draftFor(
+    { id: item.exerciseId, name: item.exerciseName, kind: item.kind },
+    last,
+    key,
+  );
+  return {
+    ...draft,
+    duration:
+      item.durationMinutes === null
+        ? draft.duration
+        : asText(item.durationMinutes),
+    speed: item.speedKmh === null ? draft.speed : asText(item.speedKmh),
+    incline:
+      item.inclinePercent === null
+        ? draft.incline
+        : asText(item.inclinePercent),
+  };
+}
 
-interface Range {
+/** Thrown inside draftToInput to stop at the first mistake. */
+export class DraftError extends Error {}
+
+export interface Range {
   min: number;
   max: number;
   /** True when the minimum itself is refused (a duration of 0). */
@@ -90,7 +113,7 @@ interface Range {
 }
 
 /** Reads a typed number within a range; `label` names it in the message. */
-function readNumber(text: string, label: string, range: Range) {
+export function readNumber(text: string, label: string, range: Range) {
   const value = parseDecimal(text);
   if (value === null) throw new DraftError(`${label} : valeur requise`);
   const isBelow = range.exclusive ? value <= range.min : value < range.min;
@@ -160,17 +183,24 @@ function itemInput(item: ItemDraft): WorkoutItemInput {
  * The session to save from what was typed, or the first mistake found, as a
  * message naming the exercise and the set.
  */
-export function draftToInput(
-  performedOn: string,
-  duration: string,
-  items: ItemDraft[],
-): DraftResult {
+export function draftToInput({
+  performedOn,
+  name,
+  duration,
+  items,
+}: {
+  performedOn: string;
+  name: string;
+  duration: string;
+  items: ItemDraft[];
+}): DraftResult {
   try {
     if (performedOn === '') throw new DraftError('Date requise');
     if (items.length === 0) throw new DraftError('Ajoute au moins un exercice');
     return {
       input: {
         performedOn,
+        name: name.trim() === '' ? null : name.trim(),
         durationMinutes:
           duration.trim() === ''
             ? null

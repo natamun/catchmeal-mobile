@@ -249,7 +249,7 @@ function WorkoutForm({
 
   const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const result = draftToInput(performedOn, duration, items);
+    const result = draftToInput({ performedOn, name: '', duration, items });
     if ('error' in result) {
       setError(result.error);
       return;
