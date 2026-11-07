@@ -21,6 +21,7 @@ import {
   draftsToInput,
   draftTotals,
   mealToItems,
+  newFoodDraft,
   type MealItemDraft,
 } from './draft';
 import { DraftItemList } from './DraftItemList';
@@ -109,15 +110,7 @@ export function MealForm({ dialogRef, foodItems, editingMeal }: MealFormProps) {
   };
 
   const addItem = (foodItem: FoodItem) => {
-    setItems([
-      ...items,
-      {
-        id: crypto.randomUUID(),
-        kind: 'food',
-        foodItem,
-        quantity: foodItem.baseQuantity,
-      },
-    ]);
+    setItems([...items, newFoodDraft(foodItem)]);
     setSearch('');
   };
 
@@ -125,14 +118,8 @@ export function MealForm({ dialogRef, foodItems, editingMeal }: MealFormProps) {
     setItems(items.filter((item) => item.id !== id));
   };
 
-  const adjustQuantity = (id: string, delta: number) => {
-    setItems(
-      items.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item,
-      ),
-    );
+  const replaceItem = (updated: MealItemDraft) => {
+    setItems(items.map((item) => (item.id === updated.id ? updated : item)));
   };
 
   const addQuickItem = () => {
@@ -355,7 +342,7 @@ export function MealForm({ dialogRef, foodItems, editingMeal }: MealFormProps) {
           {items.length > 0 && (
             <DraftItemList
               items={items}
-              onAdjust={adjustQuantity}
+              onChange={replaceItem}
               onRemove={removeItem}
               className="border-t border-theme-100 pt-5"
             />

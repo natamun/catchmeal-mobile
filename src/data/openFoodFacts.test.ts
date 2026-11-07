@@ -83,6 +83,8 @@ describe('lookup', () => {
       protein: 6.3,
       carbs: 57.5,
       fat: 30.9,
+      portionQuantity: null,
+      portionName: null,
     });
   });
 
@@ -111,8 +113,37 @@ describe('lookup', () => {
       protein: null,
       carbs: 10.6,
       fat: null,
+      portionQuantity: null,
+      portionName: null,
     });
   });
+
+  it.each<[string, string, number | null, string | null]>([
+    ['one named piece', '1 biscuit (12,5 g)', 12.5, 'biscuit'],
+    ['a weight alone', '30 g', 30, null],
+    ['several pieces', '2 biscuits (25 g)', null, null],
+  ])(
+    'reads a serving of %s as a portion or not',
+    async (_, size, weight, name) => {
+      const lookup = createOffLookup(
+        answering({
+          status: 200,
+          data: {
+            code: '3017760000109',
+            product: {
+              serving_size: size,
+              serving_quantity: weight ? String(weight) : '25',
+            },
+          },
+        }),
+      );
+
+      expect(await lookup('3017760000109')).toMatchObject({
+        portionQuantity: weight,
+        portionName: name,
+      });
+    },
+  );
 
   it('answers null for an unknown product', async () => {
     const lookup = createOffLookup(answering({ status: 404, data: {} }));

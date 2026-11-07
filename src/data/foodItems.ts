@@ -8,6 +8,7 @@ import { DataError } from './errors';
 import {
   checkChoice,
   checkNumber,
+  checkOptionalNumber,
   checkOptionalText,
   checkText,
 } from './validation';
@@ -29,11 +30,13 @@ interface FoodItemRow {
   protein: number;
   carbs: number;
   fat: number;
+  portion_quantity: number | null;
+  portion_name: string | null;
   archived: number;
 }
 
 const COLUMNS =
-  'id, name, brand, barcode, base_quantity, base_unit, kcal, protein, carbs, fat, archived';
+  'id, name, brand, barcode, base_quantity, base_unit, kcal, protein, carbs, fat, portion_quantity, portion_name, archived';
 
 function toFoodItem(row: FoodItemRow): FoodItem {
   return {
@@ -47,13 +50,17 @@ function toFoodItem(row: FoodItemRow): FoodItem {
     protein: row.protein,
     carbs: row.carbs,
     fat: row.fat,
+    portionQuantity: row.portion_quantity,
+    portionName: row.portion_name,
     archived: row.archived === 1,
   };
 }
 
 /**
  * Checks a food before saving it and returns it cleaned: name and brand
- * trimmed, an empty brand or barcode stored as null. Throws a DataError.
+ * trimmed, an empty brand or barcode stored as null. A portion needs its
+ * weight, and only a food in g or ml has one: a food by the piece is counted
+ * by the piece already. Throws a DataError.
  */
 function validateFoodItem(input: FoodItemInput): FoodItemInput {
   const barcode = checkOptionalText(input.barcode, 'code-barres', 14);
@@ -61,6 +68,15 @@ function validateFoodItem(input: FoodItemInput): FoodItemInput {
     throw new DataError('Valeur invalide : code-barres.');
   }
   const amount = { min: 0 };
+  const baseUnit = checkChoice(input.baseUnit, 'unité', QUANTITY_UNITS);
+  const portionQuantity = checkOptionalNumber(
+    input.portionQuantity,
+    'poids de la portion',
+    { min: 0, exclusive: true, max: 5000 },
+  );
+  if (portionQuantity !== null && baseUnit === 'PIECE') {
+    throw new DataError('Un aliment à la pièce ne prend pas de portion.');
+  }
 
   return {
     name: checkText(input.name, 'nom', 120),
@@ -70,11 +86,16 @@ function validateFoodItem(input: FoodItemInput): FoodItemInput {
       min: 0,
       exclusive: true,
     }),
-    baseUnit: checkChoice(input.baseUnit, 'unité', QUANTITY_UNITS),
+    baseUnit,
     kcal: checkNumber(input.kcal, 'calories', amount),
     protein: checkNumber(input.protein, 'protéines', amount),
     carbs: checkNumber(input.carbs, 'glucides', amount),
     fat: checkNumber(input.fat, 'lipides', amount),
+    portionQuantity,
+    portionName:
+      portionQuantity === null
+        ? null
+        : checkOptionalText(input.portionName, 'nom de la portion', 30),
   };
 }
 
@@ -103,8 +124,8 @@ export async function listFoodItems(db: Executor) {
 export async function createFoodItem(db: Executor, input: FoodItemInput) {
   const food = validateFoodItem(input);
   const { lastId } = await db.run(
-    `INSERT INTO food_item (name, brand, barcode, base_quantity, base_unit, kcal, protein, carbs, fat)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO food_item (name, brand, barcode, base_quantity, base_unit, kcal, protein, carbs, fat, portion_quantity, portion_name)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       food.name,
       food.brand,
@@ -115,6 +136,8 @@ export async function createFoodItem(db: Executor, input: FoodItemInput) {
       food.protein,
       food.carbs,
       food.fat,
+      food.portionQuantity,
+      food.portionName,
     ],
   );
   return (await findFoodItem(db, lastId))!;
@@ -133,7 +156,8 @@ export async function updateFoodItem(
   const { changes } = await db.run(
     `UPDATE food_item
      SET name = ?, brand = ?, barcode = ?, base_quantity = ?, base_unit = ?,
-         kcal = ?, protein = ?, carbs = ?, fat = ?
+         kcal = ?, protein = ?, carbs = ?, fat = ?,
+         portion_quantity = ?, portion_name = ?
      WHERE id = ? AND archived = 0`,
     [
       food.name,
@@ -145,6 +169,8 @@ export async function updateFoodItem(
       food.protein,
       food.carbs,
       food.fat,
+      food.portionQuantity,
+      food.portionName,
       id,
     ],
   );

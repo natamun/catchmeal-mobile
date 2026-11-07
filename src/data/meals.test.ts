@@ -26,6 +26,8 @@ beforeEach(async () => {
     protein: 0.3,
     carbs: 14,
     fat: 0.2,
+    portionQuantity: null,
+    portionName: null,
   });
   yogurt = await createFoodItem(db, {
     name: 'Yogourt',
@@ -37,6 +39,8 @@ beforeEach(async () => {
     protein: 5,
     carbs: 16,
     fat: 3.5,
+    portionQuantity: null,
+    portionName: null,
   });
 });
 

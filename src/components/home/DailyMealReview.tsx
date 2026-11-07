@@ -39,13 +39,9 @@ export function DailyMealReview({
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const adjustQuantity = (id: string, delta: number) => {
+  const replaceItem = (updated: MealItemDraft) => {
     setItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item,
-      ),
+      prev.map((item) => (item.id === updated.id ? updated : item)),
     );
   };
 
@@ -86,7 +82,7 @@ export function DailyMealReview({
       {items.length > 0 ? (
         <DraftItemList
           items={items}
-          onAdjust={adjustQuantity}
+          onChange={replaceItem}
           onRemove={removeItem}
         />
       ) : (

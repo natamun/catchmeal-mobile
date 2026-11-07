@@ -9,8 +9,9 @@ export const UNIT_LABELS: Record<QuantityUnit, string> = {
 
 /**
  * A food of the user's library. kcal and macros are given for baseQuantity of
- * baseUnit (e.g. per 100 g). An archived food is hidden from the lists but kept
- * for the meals that use it.
+ * baseUnit (e.g. per 100 g). A food in g or ml can have a portion, such as a
+ * biscuit of 12 g, to be logged by the piece. An archived food is hidden from
+ * the lists but kept for the meals that use it.
  */
 export interface FoodItem {
   id: number;
@@ -23,6 +24,10 @@ export interface FoodItem {
   protein: number;
   carbs: number;
   fat: number;
+  /** The weight of one portion in baseUnit, null without a portion. */
+  portionQuantity: number | null;
+  /** Its name, such as "biscuit"; null says "portion". */
+  portionName: string | null;
   archived: boolean;
 }
 
@@ -42,4 +47,7 @@ export interface OffProduct {
   protein: number | null;
   carbs: number | null;
   fat: number | null;
+  /** The portion of one piece, when their serving is one. */
+  portionQuantity: number | null;
+  portionName: string | null;
 }

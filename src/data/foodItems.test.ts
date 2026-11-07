@@ -29,6 +29,8 @@ const APPLE: FoodItemInput = {
   protein: 0.3,
   carbs: 14,
   fat: 0.2,
+  portionQuantity: null,
+  portionName: null,
 };
 
 describe('createFoodItem', () => {
@@ -52,6 +54,33 @@ describe('createFoodItem', () => {
     expect(food.barcode).toBe('7610200337467');
   });
 
+  it('saves a portion with its name trimmed, and none without its weight', async () => {
+    const biscuits = await createFoodItem(db, {
+      ...APPLE,
+      name: 'Biscuits',
+      portionQuantity: 12,
+      portionName: '  biscuit ',
+    });
+    const cereals = await createFoodItem(db, {
+      ...APPLE,
+      name: 'Céréales',
+      portionQuantity: 30,
+      portionName: '  ',
+    });
+    const rice = await createFoodItem(db, {
+      ...APPLE,
+      name: 'Riz',
+      portionName: 'bol',
+    });
+
+    expect(biscuits).toMatchObject({
+      portionQuantity: 12,
+      portionName: 'biscuit',
+    });
+    expect(cereals).toMatchObject({ portionQuantity: 30, portionName: null });
+    expect(rice).toMatchObject({ portionQuantity: null, portionName: null });
+  });
+
   it.each<[string, Partial<FoodItemInput>]>([
     ['an empty name', { name: '  ' }],
     ['a name over 120 characters', { name: 'a'.repeat(121) }],
@@ -64,6 +93,16 @@ describe('createFoodItem', () => {
     ['negative carbs', { carbs: -2 }],
     ['negative fat', { fat: -3 }],
     ['3 decimals', { kcal: 52.123 }],
+    ['a portion of 0 g', { portionQuantity: 0 }],
+    ['a portion over 5000 g', { portionQuantity: 5001 }],
+    [
+      'a portion name over 30 characters',
+      { portionQuantity: 12, portionName: 'x'.repeat(31) },
+    ],
+    [
+      'a portion of a food by the piece',
+      { baseUnit: 'PIECE', baseQuantity: 1, portionQuantity: 12 },
+    ],
     ['a value that is not a number', { kcal: NaN }],
     [
       'an unknown unit',

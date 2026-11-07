@@ -351,6 +351,24 @@ describe('migration 8', () => {
   });
 });
 
+describe('migration 9', () => {
+  it('keeps the foods, without a portion', async () => {
+    const old = openMemoryDatabase();
+    await migrate(old, MIGRATIONS.slice(0, 8));
+    await old.run(
+      "INSERT INTO food_item (name, base_quantity, base_unit, kcal, protein, carbs, fat) VALUES ('Pomme', 100, 'GRAM', 52, 0.3, 14, 0.2)",
+    );
+
+    await migrate(old);
+
+    expect(
+      await old.query(
+        'SELECT name, portion_quantity, portion_name FROM food_item',
+      ),
+    ).toEqual([{ name: 'Pomme', portion_quantity: null, portion_name: null }]);
+  });
+});
+
 describe('workout', () => {
   async function addWorkout() {
     await addExercises(db);
@@ -493,6 +511,8 @@ describe('food_item', () => {
     ['a barcode longer than 14 digits', { barcode: '123456789012345' }],
     ['an archived flag other than 0 or 1', { archived: 2 }],
     ['text in a number column', { kcal: 'beaucoup' }],
+    ['a portion of 0 g', { portion_quantity: 0 }],
+    ['a blank portion name', { portion_quantity: 12, portion_name: '  ' }],
   ])('refuses %s', async (_, override) => {
     await expect(insert('food_item', { ...FOOD, ...override })).rejects.toThrow(
       REFUSED,

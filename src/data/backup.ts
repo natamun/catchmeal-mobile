@@ -7,7 +7,7 @@ const APP = 'CatCHMeal';
  * Version of the file layout. A newer app keeps reading older files; an older
  * app refuses a newer file instead of guessing.
  */
-export const BACKUP_FORMAT = 4;
+export const BACKUP_FORMAT = 5;
 
 /** The format that added the fitness tables. */
 const FITNESS_FORMAT = 2;
@@ -42,6 +42,8 @@ const TABLES = {
     'protein',
     'carbs',
     'fat',
+    'portion_quantity',
+    'portion_name',
     'archived',
   ],
   meal: ['id', 'name', 'type_meal', 'logged_at', 'source_meal_id'],

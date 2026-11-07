@@ -4,7 +4,7 @@ import type { OffProduct } from '../components/food/types';
 const API_URL = 'https://world.openfoodfacts.org';
 // `quantity` must stay: API v3.4 only returns product_quantity_unit with it.
 const FIELDS =
-  'code,product_name,product_name_fr,brands,quantity,product_quantity_unit,nutriments';
+  'code,product_name,product_name_fr,brands,quantity,product_quantity_unit,serving_size,serving_quantity,nutriments';
 /** Open Food Facts asks every app to name itself and give a contact. */
 export const USER_AGENT = 'CatCHMeal/1.0 (catchmeal07@gmail.com)';
 const FOUND_TTL_MS = 24 * 60 * 60 * 1000;
@@ -47,6 +47,8 @@ interface OffResponse {
     product_name_fr?: unknown;
     brands?: unknown;
     product_quantity_unit?: unknown;
+    serving_size?: unknown;
+    serving_quantity?: unknown;
     nutriments?: Record<string, unknown>;
   };
 }
@@ -74,9 +76,38 @@ export function normalizeBarcode(raw: string) {
   return significant.padStart(significant.length <= 8 ? 8 : 13, '0');
 }
 
+/** "1 biscuit (12 g)" gives "biscuit"; "2 biscuits (25 g)" gives nothing. */
+const ONE_PIECE = /^1\s+([^\d(=:]+?)\s*(?:[(=:]|$)/;
+/** "30 g" or "250ml": a serving given by its weight alone. */
+const WEIGHT_ONLY = /^\d+(?:[.,]\d+)?\s*(?:g|ml)\b/i;
+
+/**
+ * Their serving as a portion of the food, when it is one piece: "1 biscuit
+ * (12 g)" becomes a biscuit of 12 g, "30 g" a portion of 30 g. A serving of
+ * several pieces is left out: one piece would only be guessed.
+ */
+function toPortion(size: unknown, quantity: unknown) {
+  const weight = toAmount(quantity);
+  const text = toText(size);
+  const none = { portionQuantity: null, portionName: null };
+  if (!weight || !text) return none;
+  const piece = ONE_PIECE.exec(text);
+  if (piece) {
+    const name = piece[1].trim().toLowerCase();
+    return {
+      portionQuantity: weight,
+      portionName: name.length <= 30 ? name : null,
+    };
+  }
+  return WEIGHT_ONLY.test(text)
+    ? { portionQuantity: weight, portionName: null }
+    : none;
+}
+
 /**
  * The product as the food form needs it: values per 100 g, or per 100 ml for a
- * drink, and kcal computed from kJ when only kJ is known.
+ * drink, kcal computed from kJ when only kJ is known, and their serving as a
+ * portion when it is one piece.
  */
 function toProduct(barcode: string, body: OffResponse): OffProduct {
   const product = body.product ?? {};
@@ -98,6 +129,7 @@ function toProduct(barcode: string, body: OffResponse): OffProduct {
     protein: toAmount(nutriments.proteins_100g),
     carbs: toAmount(nutriments.carbohydrates_100g),
     fat: toAmount(nutriments.fat_100g),
+    ...toPortion(product.serving_size, product.serving_quantity),
   };
 }
 

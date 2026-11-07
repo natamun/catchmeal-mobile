@@ -19,7 +19,12 @@ import { PillTabs } from '../ui/PillTabs';
 import { useToast } from '../ui/toastContext';
 import { createFoodItem, deleteFoodItem, updateFoodItem } from './api';
 import { BarcodeField } from './BarcodeField';
-import type { FoodItem, OffProduct, QuantityUnit } from './types';
+import {
+  UNIT_LABELS,
+  type FoodItem,
+  type OffProduct,
+  type QuantityUnit,
+} from './types';
 
 interface FoodItemFormState {
   barcode: string;
@@ -31,6 +36,9 @@ interface FoodItemFormState {
   protein: string;
   carbs: string;
   fat: string;
+  /** Both empty for no portion. */
+  portionName: string;
+  portionQuantity: string;
 }
 
 const EMPTY_FORM: FoodItemFormState = {
@@ -43,7 +51,13 @@ const EMPTY_FORM: FoodItemFormState = {
   protein: '',
   carbs: '',
   fat: '',
+  portionName: '',
+  portionQuantity: '',
 };
+
+/** The limits the database keeps for a portion. */
+const MAX_PORTION = 5000;
+const MAX_PORTION_NAME = 30;
 
 const UNIT_OPTIONS = [
   { value: 'GRAM', label: 'g' },
@@ -63,7 +77,19 @@ function itemToForm(item: FoodItem): FoodItemFormState {
     protein: String(item.protein),
     carbs: String(item.carbs),
     fat: String(item.fat),
+    portionName: item.portionName ?? '',
+    portionQuantity:
+      item.portionQuantity === null ? '' : String(item.portionQuantity),
   };
+}
+
+/** The portion to save: none for a food by the piece, or without a weight. */
+function portionOf(form: FoodItemFormState) {
+  const portionQuantity =
+    form.baseUnit === 'PIECE' ? null : parseDecimal(form.portionQuantity);
+  return portionQuantity === null
+    ? { portionQuantity: null, portionName: null }
+    : { portionQuantity, portionName: form.portionName.trim() || null };
 }
 
 /**
@@ -90,12 +116,15 @@ function productToForm(product: OffProduct): FoodItemFormState {
     protein: toField(product.protein),
     carbs: toField(product.carbs),
     fat: toField(product.fat),
+    portionName: product.portionName ?? '',
+    portionQuantity: toField(product.portionQuantity),
   };
 }
 
 /**
  * Name required, name and brand within the saved limits, base quantity above
- * 0, macros 0 or more, 2 decimals at most. The barcode is optional.
+ * 0, macros 0 or more, 2 decimals at most. The barcode and the portion are
+ * optional, but a portion named needs its weight.
  */
 function validateForm(
   form: FoodItemFormState,
@@ -131,6 +160,23 @@ function validateForm(
       errors[field] = 'Minimum 0';
     } else if (hasTooManyDecimals(form[field])) {
       errors[field] = TOO_MANY_DECIMALS;
+    }
+  }
+
+  if (form.baseUnit !== 'PIECE') {
+    const portion = parseDecimal(form.portionQuantity);
+    if (form.portionQuantity.trim() === '') {
+      if (form.portionName.trim() !== '')
+        errors.portionQuantity = 'Poids requis';
+    } else if (portion === null || Number.isNaN(portion) || portion <= 0) {
+      errors.portionQuantity = 'Supérieur à 0';
+    } else if (portion > MAX_PORTION) {
+      errors.portionQuantity = `${MAX_PORTION} au plus`;
+    } else if (hasTooManyDecimals(form.portionQuantity)) {
+      errors.portionQuantity = TOO_MANY_DECIMALS;
+    }
+    if (form.portionName.trim().length > MAX_PORTION_NAME) {
+      errors.portionName = maxLengthMessage(MAX_PORTION_NAME);
     }
   }
 
@@ -235,6 +281,7 @@ export function FoodItemForm({
         protein: parseDecimal(form.protein) ?? 0,
         carbs: parseDecimal(form.carbs) ?? 0,
         fat: parseDecimal(form.fat) ?? 0,
+        ...portionOf(form),
       };
       if (editingItem) {
         await updateFoodItem(editingItem.id, input);
@@ -397,6 +444,52 @@ export function FoodItemForm({
               ))}
             </div>
           </div>
+
+          {form.baseUnit !== 'PIECE' && (
+            <div className="relative flex flex-col gap-1.5">
+              <label htmlFor="food-portion-name" className={LABEL_CLASS}>
+                Portion
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  id="food-portion-name"
+                  type="text"
+                  placeholder="Ex : biscuit"
+                  maxLength={MAX_PORTION_NAME}
+                  value={form.portionName}
+                  onChange={(e) => handleChange('portionName', e.target.value)}
+                  onFocus={() => handleFocus('portionName')}
+                  onBlur={() => handleBlur('portionName')}
+                  data-invalid={isInvalid('portionName')}
+                />
+                <div className="relative w-32 shrink-0">
+                  <Input
+                    id="food-portion-quantity"
+                    type="text"
+                    inputMode="decimal"
+                    aria-label="Poids de la portion"
+                    placeholder="Ex : 12"
+                    value={form.portionQuantity}
+                    onChange={(e) =>
+                      handleChange('portionQuantity', e.target.value)
+                    }
+                    onFocus={() => handleFocus('portionQuantity')}
+                    onBlur={() => handleBlur('portionQuantity')}
+                    data-invalid={isInvalid('portionQuantity')}
+                    className="pr-11"
+                  />
+                  <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-base text-theme-500">
+                    {UNIT_LABELS[form.baseUnit]}
+                  </span>
+                </div>
+              </div>
+              <FieldError
+                message={
+                  errorMessage('portionQuantity') ?? errorMessage('portionName')
+                }
+              />
+            </div>
+          )}
 
           {error && <p className="text-sm text-red-500">{error}</p>}
 

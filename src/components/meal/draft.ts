@@ -1,14 +1,22 @@
 import { MAX_DECIMALS, roundDecimals } from '../../utils/decimals';
+import { wholePortions } from '../food/portion';
 import type { FoodItem } from '../food/types';
 import type { Meal, MealItemInput } from './types';
 
 /**
  * An item of a meal being edited: a food of the library with a quantity, or a
- * quick add (calories and macros typed by hand). `id` is only a local key for
- * React lists.
+ * quick add (calories and macros typed by hand). The quantity of a food is in
+ * its base unit; `inPortions` shows it as a number of portions instead, for a
+ * food that has one. `id` is only a local key for React lists.
  */
 export type MealItemDraft =
-  | { id: string; kind: 'food'; foodItem: FoodItem; quantity: number }
+  | {
+      id: string;
+      kind: 'food';
+      foodItem: FoodItem;
+      quantity: number;
+      inPortions: boolean;
+    }
   | {
       id: string;
       kind: 'quick';
@@ -18,6 +26,49 @@ export type MealItemDraft =
       carbs: number;
       fat: number;
     };
+
+/**
+ * A food just added to a meal: one portion when it has one, its base quantity
+ * otherwise.
+ */
+export function newFoodDraft(foodItem: FoodItem): MealItemDraft {
+  return {
+    id: crypto.randomUUID(),
+    kind: 'food',
+    foodItem,
+    quantity: foodItem.portionQuantity ?? foodItem.baseQuantity,
+    inPortions: foodItem.portionQuantity !== null,
+  };
+}
+
+/**
+ * Changes the quantity of a food by `delta` of the unit it is shown in, a
+ * portion or the base unit, never under one of them.
+ */
+export function adjustDraft(item: MealItemDraft, delta: number): MealItemDraft {
+  if (item.kind !== 'food') return item;
+  const portion = item.inPortions ? item.foodItem.portionQuantity : null;
+  if (portion === null) {
+    return { ...item, quantity: Math.max(1, item.quantity + delta) };
+  }
+  const count = Math.max(1, Math.round(item.quantity / portion) + delta);
+  return { ...item, quantity: count * portion };
+}
+
+/**
+ * Shows a food in portions or in its base unit. Into portions, the quantity
+ * becomes the nearest whole number of them, one at least.
+ */
+export function showInPortions(
+  item: MealItemDraft,
+  inPortions: boolean,
+): MealItemDraft {
+  const portion = item.kind === 'food' ? item.foodItem.portionQuantity : null;
+  if (item.kind !== 'food' || portion === null) return item;
+  if (!inPortions) return { ...item, inPortions: false };
+  const count = Math.max(1, Math.round(item.quantity / portion));
+  return { ...item, inPortions: true, quantity: count * portion };
+}
 
 /**
  * Turns a saved meal back into editable drafts. An item whose food can't be
@@ -53,6 +104,7 @@ export function mealToItems(
       kind: 'food',
       foodItem,
       quantity: item.quantity,
+      inPortions: wholePortions(foodItem, item.quantity) !== null,
     });
   }
 
@@ -75,11 +127,15 @@ function mergeDrafts(
         (item) =>
           item.kind === 'food' && item.foodItem.id === draft.foodItem.id,
       );
-      if (index !== -1) {
-        const existing = merged[index];
+      const existing = merged[index];
+      if (index !== -1 && existing.kind === 'food') {
+        const quantity = existing.quantity + draft.quantity;
         merged[index] = {
           ...existing,
-          quantity: existing.quantity + draft.quantity,
+          quantity,
+          inPortions:
+            existing.inPortions &&
+            wholePortions(existing.foodItem, quantity) !== null,
         };
         continue;
       }
@@ -99,12 +155,7 @@ export function buildDrafts(
   meals: Meal[],
   allFoodItems: FoodItem[],
 ): MealItemDraft[] {
-  let drafts = foods.map((foodItem): MealItemDraft => ({
-    id: crypto.randomUUID(),
-    kind: 'food',
-    foodItem,
-    quantity: foodItem.baseQuantity,
-  }));
+  let drafts = foods.map(newFoodDraft);
 
   for (const meal of meals) {
     drafts = mergeDrafts(drafts, mealToItems(meal, allFoodItems));

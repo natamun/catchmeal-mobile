@@ -13,7 +13,7 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 ## Features
 
 - **Journal**: meals logged per day in four sections (breakfast, lunch, dinner, snack), with calorie and macro progress.
-- **Food library**: foods with their values per 100 g, 100 ml or per piece, archived instead of deleted so past meals keep their data.
+- **Food library**: foods with their values per 100 g, 100 ml or per piece, archived instead of deleted so past meals keep their data. A food in g or ml can have a portion, such as a biscuit of 12 g, filled from Open Food Facts when their serving is one piece: it is then logged by the piece ("4 biscuits") and saved in grams.
 - **Meal library**: meals saved once and logged again in one go.
 - **Quick add**: calories and macros logged without a food.
 - **Barcode scanning**: the camera reads EAN and UPC codes, and [Open Food Facts](https://world.openfoodfacts.org) fills the food form.
@@ -64,6 +64,7 @@ erDiagram
         real base_quantity
         text base_unit
         real kcal
+        real portion_quantity "one piece, in g or ml"
         int archived
     }
     meal {

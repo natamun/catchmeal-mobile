@@ -40,6 +40,8 @@ async function filledDatabase() {
     protein: 0.3,
     carbs: 14,
     fat: 0.2,
+    portionQuantity: 150,
+    portionName: 'pomme',
   });
   const old = await createFoodItem(db, { ...apple, name: 'Vieux pain' });
   await createMeal(db, {
@@ -186,6 +188,24 @@ describe('backup', () => {
     expect(summary.workouts).toBe(0);
   });
 
+  it('restores the foods of a file from before the portions without one', async () => {
+    const old = structuredClone(backup);
+    old.format = 4;
+    for (const food of old.food_item) {
+      delete food.portion_quantity;
+      delete food.portion_name;
+    }
+    const target = await freshDatabase();
+
+    await restoreBackup(target, parseBackup(asText(old)));
+
+    expect(
+      await target.query(
+        'SELECT DISTINCT portion_quantity, portion_name FROM food_item',
+      ),
+    ).toEqual([{ portion_quantity: null, portion_name: null }]);
+  });
+
   it('turns the lean mass alert on when restoring a file from before it', async () => {
     const old = structuredClone(backup);
     old.format = 3;
@@ -227,6 +247,8 @@ describe('backup', () => {
       protein: 0,
       carbs: 0,
       fat: 0,
+      portionQuantity: null,
+      portionName: null,
     });
 
     await restoreBackup(target, parseBackup(asText(backup)));

@@ -241,6 +241,15 @@ ALTER TABLE profile ADD COLUMN target_body_fat REAL CHECK (target_body_fat > 0 A
 ALTER TABLE profile ADD COLUMN lean_loss_alert INTEGER NOT NULL DEFAULT 1 CHECK (lean_loss_alert IN (0, 1));
 `;
 
+/**
+ * A portion for the foods in g or ml, such as a biscuit of 12 g, to log them
+ * by the piece: its weight and an optional name.
+ */
+const FOOD_PORTION_V9 = `
+ALTER TABLE food_item ADD COLUMN portion_quantity REAL CHECK (portion_quantity > 0);
+ALTER TABLE food_item ADD COLUMN portion_name TEXT CHECK (portion_name IS NULL OR length(trim(portion_name)) > 0);
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: SCHEMA_V1 },
@@ -251,6 +260,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 6, sql: TEMPLATES_V6 },
   { version: 7, sql: ONE_SESSION_A_DAY_V7 },
   { version: 8, sql: COMPOSITION_GOALS_V8 },
+  { version: 9, sql: FOOD_PORTION_V9 },
 ];
 
 /**
