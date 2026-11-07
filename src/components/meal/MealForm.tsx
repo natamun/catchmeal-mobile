@@ -26,7 +26,7 @@ import {
 import { DraftItemList } from './DraftItemList';
 import {
   EMPTY_QUICK_ADD_FORM,
-  QUICK_ADD_FIELDS,
+  NUTRITION_FIELDS,
   validateQuickAddForm,
 } from './quickMealAdd';
 import type { Meal, MealInput } from './types';
@@ -276,7 +276,7 @@ export function MealForm({ dialogRef, foodItems, editingMeal }: MealFormProps) {
                     >
                       <div className="flex flex-col gap-3">
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                          {QUICK_ADD_FIELDS.map(({ field, label }) => (
+                          {NUTRITION_FIELDS.map(({ field, label }) => (
                             <div
                               key={field}
                               className="relative flex flex-col gap-1"

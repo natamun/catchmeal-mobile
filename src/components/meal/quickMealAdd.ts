@@ -7,14 +7,15 @@ import {
 export type QuickAddField = 'kcal' | 'protein' | 'carbs' | 'fat';
 
 /**
- * Fields of a quick add: calories and macros typed by hand, without a food of
- * the library.
+ * The calories and macros typed by hand, for a food or a quick add, in the
+ * order of the nutrition labels: two by two, kcal and fat, then carbs and
+ * protein.
  */
-export const QUICK_ADD_FIELDS: { field: QuickAddField; label: string }[] = [
+export const NUTRITION_FIELDS: { field: QuickAddField; label: string }[] = [
   { field: 'kcal', label: 'Kcal' },
-  { field: 'protein', label: 'Protéines (g)' },
-  { field: 'carbs', label: 'Glucides (g)' },
   { field: 'fat', label: 'Lipides (g)' },
+  { field: 'carbs', label: 'Glucides (g)' },
+  { field: 'protein', label: 'Protéines (g)' },
 ];
 
 export const EMPTY_QUICK_ADD_FORM: Record<QuickAddField, string> = {
@@ -30,7 +31,7 @@ export function validateQuickAddForm(
 ): Partial<Record<QuickAddField, string>> {
   const errors: Partial<Record<QuickAddField, string>> = {};
 
-  for (const { field } of QUICK_ADD_FIELDS) {
+  for (const { field } of NUTRITION_FIELDS) {
     const value = parseDecimal(form[field]);
     if (value === null || Number.isNaN(value) || value < 0) {
       errors[field] = 'Minimum 0';

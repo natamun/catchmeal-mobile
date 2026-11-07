@@ -9,7 +9,7 @@ import { failureMessage } from '../../utils/failureMessage';
 import { createMeal } from '../meal/api';
 import {
   EMPTY_QUICK_ADD_FORM,
-  QUICK_ADD_FIELDS,
+  NUTRITION_FIELDS,
   validateQuickAddForm,
 } from '../meal/quickMealAdd';
 import { MEAL_TYPE_LABELS, type MealType } from '../meal/types';
@@ -168,7 +168,7 @@ export function QuickAddDialog({
         </Popover.Root>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {QUICK_ADD_FIELDS.map(({ field, label }) => (
+          {NUTRITION_FIELDS.map(({ field, label }) => (
             <div key={field} className="relative flex flex-col gap-1">
               <label
                 htmlFor={`quick-add-${field}`}

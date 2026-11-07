@@ -8,6 +8,7 @@ import {
 } from '../../utils/decimals';
 import { failureMessage } from '../../utils/failureMessage';
 import { MAX_LENGTH, maxLengthMessage } from '../../utils/validation';
+import { NUTRITION_FIELDS } from '../meal/quickMealAdd';
 import { BaseDialog } from '../ui/BaseDialog';
 import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
@@ -48,13 +49,6 @@ const UNIT_OPTIONS = [
   { value: 'GRAM', label: 'g' },
   { value: 'MILLILITER', label: 'ml' },
   { value: 'PIECE', label: 'pièce' },
-] as const;
-
-const MACRO_FIELDS = [
-  { field: 'kcal', label: 'Kcal' },
-  { field: 'protein', label: 'Protéines (g)' },
-  { field: 'carbs', label: 'Glucides (g)' },
-  { field: 'fat', label: 'Lipides (g)' },
 ] as const;
 
 /** Fills the form with the food being edited. */
@@ -379,7 +373,7 @@ export function FoodItemForm({
           <div className="flex flex-col gap-1.5">
             <p className={LABEL_CLASS}>Valeurs nutritionnelles</p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {MACRO_FIELDS.map(({ field, label }) => (
+              {NUTRITION_FIELDS.map(({ field, label }) => (
                 <div key={field} className="relative flex flex-col gap-1">
                   <label
                     htmlFor={`food-${field}`}
