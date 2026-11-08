@@ -369,6 +369,20 @@ describe('migration 9', () => {
   });
 });
 
+describe('migration 10', () => {
+  it('keeps the profile, without a pace', async () => {
+    const old = openMemoryDatabase();
+    await migrate(old, MIGRATIONS.slice(0, 9));
+    await old.run("UPDATE profile SET goal_type = 'LOSE_FAT' WHERE id = 1");
+
+    await migrate(old);
+
+    expect(await old.query('SELECT goal_type, goal_pace FROM profile')).toEqual(
+      [{ goal_type: 'LOSE_FAT', goal_pace: null }],
+    );
+  });
+});
+
 describe('workout', () => {
   async function addWorkout() {
     await addExercises(db);
@@ -486,6 +500,7 @@ describe('profile', () => {
     ['a decimal calorie goal', { daily_calorie_goal: 2200.5 }],
     ['a target body fat of 100 %', { target_body_fat: 100 }],
     ['an alert neither 0 nor 1', { lean_loss_alert: 2 }],
+    ['a pace over 5 % a week', { goal_pace: 6 }],
   ])('refuses %s', async (_, changes) => {
     await expect(updateProfile(changes)).rejects.toThrow(REFUSED);
   });

@@ -72,6 +72,7 @@ async function filledDatabase() {
     birthDate: '1990-04-12',
     activityLevel: 'LIGHTLY_ACTIVE',
     targetBodyFat: 15,
+    goalPace: 0.25,
     leanLossAlert: false,
   });
   const { press, treadmill } = await addTestExercises(db);

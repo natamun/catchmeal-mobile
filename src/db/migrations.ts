@@ -250,6 +250,14 @@ ALTER TABLE food_item ADD COLUMN portion_quantity REAL CHECK (portion_quantity >
 ALTER TABLE food_item ADD COLUMN portion_name TEXT CHECK (portion_name IS NULL OR length(trim(portion_name)) > 0);
 `;
 
+/**
+ * The weekly pace picked for the goal, in % of the body weight, kept so the
+ * recommendation and the AI summary stay on it.
+ */
+const GOAL_PACE_V10 = `
+ALTER TABLE profile ADD COLUMN goal_pace REAL CHECK (goal_pace >= 0 AND goal_pace <= 5);
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: SCHEMA_V1 },
@@ -261,6 +269,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 7, sql: ONE_SESSION_A_DAY_V7 },
   { version: 8, sql: COMPOSITION_GOALS_V8 },
   { version: 9, sql: FOOD_PORTION_V9 },
+  { version: 10, sql: GOAL_PACE_V10 },
 ];
 
 /**

@@ -9,9 +9,13 @@ import {
   latestComposition,
   type CompositionAlert,
 } from '../../data/composition';
-import type { MeasuredExpenditure } from '../../data/energy';
+import {
+  measureHoldsGoalStart,
+  type MeasuredExpenditure,
+} from '../../data/energy';
 import {
   estimateReachDate,
+  goalPaceOf,
   PACES,
   proteinRule,
   recommendGoals,
@@ -24,9 +28,11 @@ import { SelectDropdown } from '../ui/SelectDropdown';
 import { Skeleton } from '../ui/Skeleton';
 import { StatTile } from '../ui/StatTile';
 import { SummaryCard } from '../ui/SummaryCard';
+import { useToast } from '../ui/toastContext';
 import {
   getGoalStart,
   getMeasuredExpenditure,
+  updateProfile,
   type Profile,
   type WeightEntry,
 } from './api';
@@ -34,6 +40,7 @@ import { calculateBMR, calculateTDEE } from './bmr';
 import { bodyFatLevel } from './bodyFatLevels';
 import { GOAL_TYPE_OPTIONS } from './goalTypes';
 import { formatMeasure } from './measures';
+import { useProfile } from './profileContext';
 
 interface Props {
   profile: Profile;
@@ -80,7 +87,8 @@ const formatDay = (date: Date) =>
  * mass moved since the goal began, with an alert when they go against it.
  */
 export function GoalsCard({ profile, history, onReady }: Props) {
-  const [paceChoice, setPaceChoice] = useState<string | null>(null);
+  const { updateProfile: keepProfile } = useProfile();
+  const showToast = useToast();
   // undefined while they are read; null when there is not enough journal,
   // or no goal yet.
   const [measured, setMeasured] = useState<MeasuredExpenditure | null>();
@@ -136,10 +144,19 @@ export function GoalsCard({ profile, history, onReady }: Props) {
     (profile.goalType as GoalType | null) ??
     (latestWeight ? suggestGoalType(latestWeight, targetWeight) : 'MAINTAIN');
   const paces = PACES[goalType];
-  const pace =
-    paceChoice !== null && paces.includes(Number(paceChoice))
-      ? Number(paceChoice)
-      : paces[0];
+  const pace = goalPaceOf(goalType, profile.goalPace);
+
+  // Shown at once, then saved: the profile goes back if the save fails.
+  const savePace = async (value: string) => {
+    const before = profile.goalPace;
+    keepProfile({ goalPace: Number(value) });
+    try {
+      await updateProfile({ goalPace: Number(value) });
+    } catch {
+      keepProfile({ goalPace: before });
+      showToast("Impossible d'enregistrer le rythme");
+    }
+  };
 
   const recommendation =
     latestWeight && bmr && expenditure
@@ -237,7 +254,7 @@ export function GoalsCard({ profile, history, onReady }: Props) {
           value: String(option),
           label: formatPace(option),
         }))}
-        onChange={setPaceChoice}
+        onChange={(value) => void savePace(value)}
         container={document.body}
         className="min-w-0 flex-1 whitespace-nowrap"
       />
@@ -247,6 +264,20 @@ export function GoalsCard({ profile, history, onReady }: Props) {
     ? `Dépense mesurée sur ${measured.loggedDays} jours : ${formatMeasure(measured.kcal, 'kcal')}`
     : expenditure
       ? `Dépense estimée : ${formatMeasure(expenditure, 'kcal')}, mesurée après 2 semaines de journal`
+      : null;
+
+  const goalBegan =
+    since ?? (history?.length ? new Date(history.at(-1)!.loggedAt) : null);
+  const waterNote =
+    measured &&
+    goalBegan &&
+    goalType !== 'MAINTAIN' &&
+    measureHoldsGoalStart(goalBegan)
+      ? `Début d'objectif : l'eau et le glycogène ${
+          goalType === 'GAIN_MUSCLE' ? 'repris' : 'perdus'
+        } les 2 premières semaines font paraître la dépense plus ${
+          goalType === 'GAIN_MUSCLE' ? 'basse' : 'haute'
+        } qu'elle n'est.`
       : null;
 
   const protein = proteinRule(goalType, fatFreeMass);
@@ -300,6 +331,7 @@ export function GoalsCard({ profile, history, onReady }: Props) {
       {expenditureText && (
         <p className="text-xs text-theme-600">{expenditureText}</p>
       )}
+      {waterNote && <p className="text-xs text-theme-600">{waterNote}</p>}
       {proteinText && <p className="text-xs text-theme-600">{proteinText}</p>}
       {limitNote && <p className="text-xs text-theme-600">{limitNote}</p>}
       {alert && (

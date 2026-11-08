@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  aimedWeeklyKg,
   estimateReachDate,
+  goalPaceOf,
   goalStartOf,
   recommendGoals,
   suggestGoalType,
@@ -130,5 +132,21 @@ describe('goalStartOf', () => {
 
   it('gives nothing before any goal', () => {
     expect(goalStartOf([])).toBeNull();
+  });
+});
+
+describe('goalPaceOf', () => {
+  it('keeps the pace saved when the goal offers it, else its default', () => {
+    expect(goalPaceOf('LOSE_FAT', 0.25)).toBe(0.25);
+    expect(goalPaceOf('LOSE_FAT', 1)).toBe(0.5);
+    expect(goalPaceOf('GAIN_MUSCLE', null)).toBe(0.25);
+  });
+});
+
+describe('aimedWeeklyKg', () => {
+  it('loses, gains or holds the share of the weight the pace says', () => {
+    expect(aimedWeeklyKg('LOSE_FAT', 0.5, 80)).toBeCloseTo(-0.4);
+    expect(aimedWeeklyKg('GAIN_MUSCLE', 0.25, 80)).toBeCloseTo(0.2);
+    expect(aimedWeeklyKg('MAINTAIN', 0, 80)).toBe(0);
   });
 });

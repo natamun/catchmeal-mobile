@@ -45,6 +45,7 @@ describe('getProfile', () => {
       birthDate: null,
       activityLevel: null,
       goalType: null,
+      goalPace: null,
       theme: null,
       leanLossAlert: true,
     });
@@ -75,13 +76,18 @@ describe('updateProfile', () => {
     expect((await updateProfile(db, { theme: 'nord' })).theme).toBe('nord');
   });
 
-  it('saves the target body fat and turns the lean mass alert off', async () => {
+  it('saves the target body fat, the pace and turns the lean mass alert off', async () => {
     const profile = await updateProfile(db, {
       targetBodyFat: 14,
+      goalPace: 0.25,
       leanLossAlert: false,
     });
 
-    expect(profile).toMatchObject({ targetBodyFat: 14, leanLossAlert: false });
+    expect(profile).toMatchObject({
+      targetBodyFat: 14,
+      goalPace: 0.25,
+      leanLossAlert: false,
+    });
     expect(await getProfile(db)).toEqual(profile);
   });
 
@@ -99,6 +105,8 @@ describe('updateProfile', () => {
     ['a height with 3 decimals', { height: 178.123 }],
     ['a target weight over 500 kg', { targetWeight: 501 }],
     ['a target body fat of 2 %', { targetBodyFat: 2 }],
+    ['a negative pace', { goalPace: -0.5 }],
+    ['a pace over 5 % a week', { goalPace: 5.5 }],
     ['a target body fat over 60 %', { targetBodyFat: 61 }],
     ['a target body fat with decimals', { targetBodyFat: 14.5 }],
     [

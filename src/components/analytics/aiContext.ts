@@ -6,8 +6,18 @@ import {
   latestComposition,
   type CompositionEntry,
 } from '../../data/composition';
-import { weightTrend, type MeasuredExpenditure } from '../../data/energy';
-import { proteinRule, suggestGoalType, type GoalType } from '../../data/goals';
+import {
+  measureHoldsGoalStart,
+  weightTrend,
+  type MeasuredExpenditure,
+} from '../../data/energy';
+import {
+  aimedWeeklyKg,
+  goalPaceOf,
+  proteinRule,
+  suggestGoalType,
+  type GoalType,
+} from '../../data/goals';
 import { endOfDay, startOfDay, toDateKey } from '../../utils/dateKey';
 import { formatKg, formatMinutes } from '../../utils/format';
 import {
@@ -17,7 +27,7 @@ import {
 } from '../fitness/progress';
 import type { Workout, WorkoutItem } from '../fitness/types';
 import type { Profile } from '../profile/api';
-import { getAge } from '../profile/bmr';
+import { calculateBMR, calculateTDEE, getAge } from '../profile/bmr';
 import { GOAL_TYPE_OPTIONS } from '../profile/goalTypes';
 import { ACTIVITY_OPTIONS, GENDER_OPTIONS } from '../profile/profileOptions';
 import type { DashboardDay } from './types';
@@ -114,6 +124,8 @@ interface BodyNow {
   measuredEntry: CompositionEntry | null;
   fatFreeMass: number | null;
   goalType: GoalType;
+  /** When the current goal began, else the first weigh-in. */
+  goalBegan: Date | null;
   alert: ReturnType<typeof compositionAlert>;
 }
 
@@ -133,12 +145,17 @@ function profileLines(profile: Profile, body: BodyNow) {
   const activity =
     profile.activityLevel && labelOf(ACTIVITY_OPTIONS, profile.activityLevel);
   const target = effectiveTargetWeight(profile, fatFreeMass);
+  const pace = goalPaceOf(body.goalType, profile.goalPace);
   const goal = [
     profile.goalType && labelOf(GOAL_TYPE_OPTIONS, profile.goalType),
     profile.targetBodyFat !== null && fatFreeMass !== null && target !== null
       ? `masse grasse cible ${profile.targetBodyFat} %, soit environ ${formatKg(target)} kg en gardant ma masse maigre`
       : profile.targetWeight &&
         `poids cible ${formatKg(profile.targetWeight)} kg`,
+    profile.goalType &&
+      latestWeighIn &&
+      body.goalType !== 'MAINTAIN' &&
+      `rythme visé ${pace.toLocaleString('fr-FR')} % du poids par semaine, soit environ ${signed(aimedWeeklyKg(body.goalType, pace, latestWeighIn.weight))} kg par semaine`,
   ].filter(Boolean);
   const composition =
     measuredEntry && fatFreeMass !== null
@@ -191,10 +208,70 @@ function compositionLine(
     : null;
 }
 
-function expenditureLine(measured: MeasuredExpenditure | null) {
-  return measured
-    ? `- ${measured.kcal} kcal par jour, mesurée sur les 4 dernières semaines d'après mon journal et mes pesées (${measured.loggedDays} jours loggés, ${measured.weighIns} pesées)`
-    : '- Pas encore mesurable : il faut au moins 14 jours de journal et 3 pesées étalées sur 2 semaines, dans les 4 dernières semaines';
+/** How the app measures the expenditure, for the AI not to redo it. */
+const EXPENDITURE_METHOD =
+  "- Méthode de l'app : moyenne des calories loggées, moins la tendance du poids (régression sur les pesées) × 7700 kcal par kg, sur les 4 dernières semaines";
+
+/**
+ * The measured expenditure and how it is measured; before there is enough
+ * data, the estimate the goals start from. A measure that holds the first
+ * two weeks of the goal is flagged: water and glycogen skew it.
+ */
+function expenditureLines(
+  measured: MeasuredExpenditure | null,
+  profile: Profile,
+  body: BodyNow,
+  today: Date,
+) {
+  if (measured) {
+    const lines = [
+      `- ${measured.kcal} kcal par jour, mesurée sur les 4 dernières semaines d'après mon journal et mes pesées (${measured.loggedDays} jours loggés, ${measured.weighIns} pesées)`,
+      EXPENDITURE_METHOD,
+    ];
+    if (
+      body.goalBegan &&
+      body.goalType !== 'MAINTAIN' &&
+      measureHoldsGoalStart(body.goalBegan, today)
+    ) {
+      lines.push(
+        `- Attention : la mesure couvre les 2 premières semaines de mon objectif (début le ${longDate(toDateKey(body.goalBegan))}), où l'eau et le glycogène ${
+          body.goalType === 'GAIN_MUSCLE'
+            ? 'repris la font paraître plus basse'
+            : 'perdus la font paraître plus haute'
+        } qu'elle n'est`,
+      );
+    }
+    return lines;
+  }
+
+  const { latestWeighIn, fatFreeMass } = body;
+  const { height, birthDate, gender, activityLevel } = profile;
+  const estimate =
+    latestWeighIn && height && birthDate && gender && activityLevel
+      ? calculateTDEE(
+          calculateBMR(
+            latestWeighIn.weight,
+            height,
+            birthDate,
+            gender,
+            fatFreeMass,
+          ),
+          activityLevel,
+        )
+      : null;
+  return [
+    '- Pas encore mesurable : il faut au moins 14 jours de journal et 3 pesées étalées sur 2 semaines, dans les 4 dernières semaines',
+    EXPENDITURE_METHOD,
+    ...(estimate === null
+      ? []
+      : [
+          `- En attendant, l'app l'estime à ${estimate} kcal par jour : métabolisme de base (${
+            fatFreeMass === null
+              ? 'Mifflin-St Jeor'
+              : 'Katch-McArdle, depuis ma masse maigre'
+          }) × mon niveau d'activité`,
+        ]),
+  ];
 }
 
 /** Kg per week over the weigh-ins of the period, or null with too few. */
@@ -425,6 +502,15 @@ export function buildAiContext({
     measuredEntry,
     fatFreeMass,
     goalType,
+    goalBegan: goalStart
+      ? new Date(goalStart)
+      : allWeighIns.length > 0
+        ? new Date(
+            allWeighIns.reduce((first, entry) =>
+              entry.loggedAt < first.loggedAt ? entry : first,
+            ).loggedAt,
+          )
+        : null,
     alert: compositionAlert(
       allWeighIns,
       {
@@ -480,7 +566,7 @@ export function buildAiContext({
     ...goalsLines(profile, body),
     '',
     "## Dépense mesurée par l'app",
-    expenditureLine(measured),
+    ...expenditureLines(measured, profile, body, today),
     '',
     `## Période du ${longDate(from)} au ${longDate(to)} (${calendar.length} jours)`,
     ...period,

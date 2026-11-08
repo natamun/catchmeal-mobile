@@ -39,6 +39,7 @@ interface ProfileRow {
   birth_date: string | null;
   activity_level: string | null;
   goal_type: string | null;
+  goal_pace: number | null;
   theme: string | null;
   lean_loss_alert: number;
 }
@@ -62,6 +63,12 @@ const NUMBER_FIELDS = [
     column: 'target_body_fat',
     label: 'masse grasse cible',
     rule: { min: 3, max: 60, integer: true },
+  },
+  {
+    field: 'goalPace',
+    column: 'goal_pace',
+    label: 'rythme',
+    rule: { min: 0, max: 5 },
   },
   {
     field: 'dailyCalorieGoal',
@@ -90,7 +97,7 @@ const NUMBER_FIELDS = [
 ] as const;
 
 const PROFILE_COLUMNS =
-  'height, target_weight, target_body_fat, daily_calorie_goal, daily_protein_goal, daily_carbs_goal, daily_fat_goal, gender, birth_date, activity_level, goal_type, theme, lean_loss_alert';
+  'height, target_weight, target_body_fat, daily_calorie_goal, daily_protein_goal, daily_carbs_goal, daily_fat_goal, gender, birth_date, activity_level, goal_type, goal_pace, theme, lean_loss_alert';
 
 function toProfile(row: ProfileRow): Profile {
   return {
@@ -105,6 +112,7 @@ function toProfile(row: ProfileRow): Profile {
     birthDate: row.birth_date,
     activityLevel: row.activity_level,
     goalType: row.goal_type,
+    goalPace: row.goal_pace,
     theme: row.theme,
     leanLossAlert: row.lean_loss_alert === 1,
   };

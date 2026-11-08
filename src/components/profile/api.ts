@@ -19,6 +19,8 @@ export interface Profile {
   birthDate: string | null;
   activityLevel: string | null;
   goalType: string | null;
+  /** Weekly pace picked for the goal, in % of the body weight. */
+  goalPace: number | null;
   theme: string | null;
   /** Whether losing weight warns when the fat-free mass falls too fast. */
   leanLossAlert: boolean;
@@ -40,6 +42,7 @@ export interface UpdateProfileInput {
   birthDate?: string | null;
   activityLevel?: string | null;
   goalType?: string | null;
+  goalPace?: number | null;
   theme?: string | null;
   leanLossAlert?: boolean;
 }

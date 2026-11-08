@@ -7,6 +7,7 @@ import { toDateKey } from '../utils/dateKey';
 import {
   estimateExpenditure,
   measureExpenditure,
+  measureHoldsGoalStart,
   type WeighIn,
 } from './energy';
 import { createMeal } from './meals';
@@ -134,5 +135,19 @@ describe('measureExpenditure', () => {
     for (let days = 28; days >= 1; days -= 3) await weighIn(days, 80);
 
     expect(await measureExpenditure(db, TODAY)).toBeNull();
+  });
+});
+
+describe('measureHoldsGoalStart', () => {
+  const today = new Date(2026, 10, 8, 12);
+  const daysAgo = (days: number) => new Date(2026, 10, 8 - days, 8);
+
+  it('flags a measure that holds the first two weeks of the goal', () => {
+    expect(measureHoldsGoalStart(daysAgo(20), today)).toBe(true);
+    expect(measureHoldsGoalStart(daysAgo(41), today)).toBe(true);
+  });
+
+  it('trusts a measure that starts once the two weeks are over', () => {
+    expect(measureHoldsGoalStart(daysAgo(43), today)).toBe(false);
   });
 });

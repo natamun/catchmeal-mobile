@@ -12,6 +12,26 @@ export const PACES: Record<GoalType, readonly number[]> = {
   GAIN_MUSCLE: [0.25, 0.1, 0.5],
 };
 
+/** The pace of a goal: the one saved when the goal offers it, else its default. */
+export function goalPaceOf(goalType: GoalType, saved: number | null) {
+  const paces = PACES[goalType];
+  return saved !== null && paces.includes(saved) ? saved : paces[0];
+}
+
+/**
+ * The weekly change of weight a pace aims at, in kg: negative when losing,
+ * none to maintain.
+ */
+export function aimedWeeklyKg(
+  goalType: GoalType,
+  pace: number,
+  weight: number,
+) {
+  const kg = (weight * pace) / 100;
+  if (goalType === 'GAIN_MUSCLE') return kg;
+  return goalType === 'MAINTAIN' ? 0 : -kg;
+}
+
 /**
  * Protein in g per kg: of the fat-free mass when the scale tells it, since
  * fat needs none; of the body weight otherwise. More when losing fat or

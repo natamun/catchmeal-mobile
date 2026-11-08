@@ -20,6 +20,7 @@ const PROFILE: Profile = {
   goalType: 'LOSE_FAT',
   theme: null,
   targetBodyFat: null,
+  goalPace: null,
   leanLossAlert: true,
 };
 
@@ -36,6 +37,7 @@ const EMPTY_PROFILE: Profile = {
   goalType: null,
   theme: null,
   targetBodyFat: null,
+  goalPace: null,
   leanLossAlert: true,
 };
 
@@ -189,8 +191,49 @@ describe('buildAiContext', () => {
     expect(text).toContain('(24 jours loggés, 8 pesées)');
   });
 
-  it('says when the expenditure cannot be measured yet', () => {
-    expect(build()).toContain('- Pas encore mesurable');
+  it('says when the expenditure cannot be measured yet, with the estimate', () => {
+    const text = build({
+      weighIns: [weighIn(80, new Date(2026, 10, 1, 8).toISOString())],
+    });
+
+    expect(text).toContain('- Pas encore mesurable');
+    expect(text).toMatch(
+      /- En attendant, l'app l'estime à \d+ kcal par jour : métabolisme de base \(Mifflin-St Jeor\) × mon niveau d'activité/,
+    );
+  });
+
+  it('tells how the app measures the expenditure', () => {
+    const method =
+      "- Méthode de l'app : moyenne des calories loggées, moins la tendance du poids (régression sur les pesées) × 7700 kcal par kg, sur les 4 dernières semaines";
+
+    expect(build()).toContain(method);
+    expect(
+      build({ measured: { kcal: 2450, loggedDays: 24, weighIns: 8 } }),
+    ).toContain(method);
+  });
+
+  it('warns when the measure holds the first two weeks of the goal', () => {
+    const measured = { kcal: 2900, loggedDays: 20, weighIns: 3 };
+    const warning =
+      "- Attention : la mesure couvre les 2 premières semaines de mon objectif (début le 20 oct. 2026), où l'eau et le glycogène perdus la font paraître plus haute qu'elle n'est";
+
+    expect(
+      build({ measured, goalStart: new Date(2026, 9, 20, 8).toISOString() }),
+    ).toContain(warning);
+    expect(
+      build({ measured, goalStart: new Date(2026, 8, 1, 8).toISOString() }),
+    ).not.toContain('Attention');
+  });
+
+  it('gives the pace aimed at in % and in kg a week', () => {
+    const text = build({
+      profile: { ...PROFILE, goalPace: 0.25 },
+      weighIns: [weighIn(80, new Date(2026, 10, 1, 8).toISOString())],
+    });
+
+    expect(text).toContain(
+      '- Objectif : Perdre du gras, poids cible 72 kg, rythme visé 0,25 % du poids par semaine, soit environ −0,2 kg par semaine',
+    );
   });
 
   it('averages the logged days only, leaving today out', () => {
@@ -245,8 +288,8 @@ describe('buildAiContext', () => {
         day('2026-11-03', { weight: 76.6 }),
       ],
     });
-    expect(fewWeighIns).not.toContain('tendance');
-    expect(shortSpan).not.toContain('tendance');
+    expect(fewWeighIns).not.toContain('kg par semaine');
+    expect(shortSpan).not.toContain('kg par semaine');
   });
 
   it('flags a single measure as such', () => {

@@ -24,6 +24,23 @@ export interface MeasuredExpenditure {
   weighIns: number;
 }
 
+/** A new goal first moves water and glycogen with the fat: two weeks of it. */
+const SETTLING_DAYS = 14;
+
+/**
+ * Whether the four weeks measured hold the first two weeks of a goal. The
+ * weight then moves by more than the fat: water and glycogen go first, so
+ * the measure comes out too high while losing, too low while gaining.
+ */
+export function measureHoldsGoalStart(goalStart: Date, today = new Date()) {
+  const first = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() - WINDOW_DAYS,
+  );
+  return goalStart.getTime() + SETTLING_DAYS * DAY_MS > first.getTime();
+}
+
 /** Slope of the weight in kg per day, by least squares over the weigh-ins. */
 export function weightTrend(weighIns: WeighIn[]) {
   return slopePerDay(
