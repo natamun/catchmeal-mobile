@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import { installedVersion } from '../../native/appInfo';
 import {
   disableReminder,
   enableReminder,
@@ -13,13 +14,26 @@ import { useToast } from '../ui/toastContext';
 
 /**
  * Settings card of the profile page: the weekly weigh-in reminder, whose
- * switch shows what Android has scheduled, and the alert about the fat-free
- * mass lost while losing weight.
+ * switch shows what Android has scheduled, the alert about the fat-free mass
+ * lost while losing weight, and the version installed.
  */
 export function SettingsCard() {
   const showToast = useToast();
   const { profile, updateProfile: keepProfile } = useProfile();
   const [isAlertBusy, setIsAlertBusy] = useState(false);
+  const [version, setVersion] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    installedVersion()
+      .then((installed) => {
+        if (!cancelled) setVersion(installed);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   // null while it is read.
   const [isOn, setIsOn] = useState<boolean | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -99,6 +113,11 @@ export function SettingsCard() {
           disabled={isAlertBusy}
         />
       </div>
+      {version && (
+        <p className="mt-4 text-center text-xs text-theme-400">
+          Version {version}
+        </p>
+      )}
     </SummaryCard>
   );
 }
