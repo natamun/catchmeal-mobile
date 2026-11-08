@@ -5,6 +5,7 @@ apply plugin: 'com.android.application'
 def appVersion = new groovy.json.JsonSlurper().parse(rootProject.file('../package.json')).version
 def (major, minor, patch) = appVersion.tokenize('.').collect { it.toInteger() }
 
+
 android {
     namespace = "io.github.natamun.catchmeal"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -22,6 +23,11 @@ android {
         }
     }
     buildTypes {
+        // The development builds are another app, "CatCHMeal dev", with its
+        // own data: testing never touches the real app beside it.
+        debug {
+            applicationIdSuffix '.debug'
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

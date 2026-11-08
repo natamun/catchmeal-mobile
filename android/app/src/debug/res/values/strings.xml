@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The development app's name, under the same icon as the real one. -->
+<resources>
+    <string name="app_name">CatCHMeal dev</string>
+    <string name="title_activity_main">CatCHMeal dev</string>
+</resources>

@@ -36,13 +36,12 @@ check: formatCheck lintCheck build test
 
 #-----	Phone (connected with adb)	-----#
 
-# Builds the app and installs it on the phone, working without the computer.
+# Builds the development app, "CatCHMeal dev", and installs it on the phone
+# beside the real one, with its own data.
 phone: build hasPhone
 	$(CAP) run android --target $(PHONE)
 
-# Builds the app into an APK file to copy to the phone and open there, without
-# adb. Signed with the same debug key as `make phone`, so either updates the
-# other and keeps the data.
+# The development app as an APK file, to copy to the phone and open there.
 APK = android/app/build/outputs/apk/debug/app-debug.apk
 
 apk: build
