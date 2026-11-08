@@ -5,8 +5,8 @@ CAP = npx cap
 # `make live DEV_PORT=5180`.
 DEV_PORT ?= 5174
 VERSION = $(shell node -p "require('./package.json').version")
-# The release key, kept off the repository (see Releases in the README).
-KEYSTORE = $(HOME)/.android/catchmeal-release.jks
+# The release key, ignored by git (see Releases in the README).
+KEYSTORE = catchmeal-release.jks
 RELEASE_APK = release/catchmeal-$(VERSION).apk
 # First phone in `adb devices`, so Capacitor does not ask which device to use.
 PHONE = $(shell adb devices 2>/dev/null | awk 'NR > 1 && $$2 == "device" { print $$1; exit }')

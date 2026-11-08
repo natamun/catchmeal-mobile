@@ -133,7 +133,7 @@ npm ci
 ## Data and backup
 
 > [!WARNING]
-> Uninstalling the app deletes its data: save a backup regularly from the profile page, and share one to a Drive for a copy off the phone. Android also refuses an update signed with another key, so keep a copy of the release key and its password (`~/.android/catchmeal-release.jks` and `.password`) somewhere safe, such as a password manager.
+> Uninstalling the app deletes its data: save a backup regularly from the profile page, and share one to a Drive for a copy off the phone. Android also refuses an update signed with another key, so keep a copy of the release key and its password (`catchmeal-release.jks` and `.password`, at the root) off the computer, such as in a password manager. Git ignores them, but `git clean -fdx` would delete them.
 
 ## Development
 
@@ -156,11 +156,11 @@ In live development, the phone loads the code from the computer through the USB 
 
 The version lives in `package.json` alone, in the form major.minor.patch. The settings card shows the one installed, and Android's version number is derived from it (1.2.3 gives 10203), so each version updates the one before.
 
-The real app is signed with a release key kept off the repository: the keystore at `~/.android/catchmeal-release.jks`, its password in `.password` at the root, both ignored by git. To create your own:
+The real app is signed with a release key kept off the repository: `catchmeal-release.jks` and its password in `.password`, both at the root and ignored by git. To create your own:
 
 ```bash
 python3 -c "import secrets; print(secrets.token_urlsafe(32), end='')" > .password
-keytool -genkeypair -keystore ~/.android/catchmeal-release.jks -storetype PKCS12 \
+keytool -genkeypair -keystore catchmeal-release.jks -storetype PKCS12 \
   -alias catchmeal -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=CatCHMeal" \
   -storepass:file .password -keypass:file .password
 ```

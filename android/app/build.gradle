@@ -5,10 +5,10 @@ apply plugin: 'com.android.application'
 def appVersion = new groovy.json.JsonSlurper().parse(rootProject.file('../package.json')).version
 def (major, minor, patch) = appVersion.tokenize('.').collect { it.toInteger() }
 
-// The release key stays off the repository: the keystore beside Android's
-// debug one, its password in .password at the root, ignored by git. Without
-// them, a release build comes out unsigned.
-def releaseKeystore = file("${System.getProperty('user.home')}/.android/catchmeal-release.jks")
+// The release key stays off the repository: catchmeal-release.jks and its
+// password in .password, both at the root and ignored by git. Without them, a
+// release build comes out unsigned.
+def releaseKeystore = rootProject.file('../catchmeal-release.jks')
 def releasePassword = rootProject.file('../.password')
 def hasReleaseKey = releaseKeystore.exists() && releasePassword.exists()
 
