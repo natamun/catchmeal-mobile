@@ -64,7 +64,7 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 ### And also
 
 - **Weigh-in reminder**: an optional notification every Sunday morning.
-- **Backup and restore**: all the data in one JSON file, shared through Android (Drive, e-mail, Files) and restored all or nothing.
+- **Backup and restore**: all the data in one JSON file, saved on the phone in Documents/CatCHMeal or shared through Android (Drive, e-mail), and restored all or nothing.
 - **Twelve color themes** from known palettes (Graphite, Nord, Dracula, Gruvbox, Catppuccin, Rosé Pine, Tokyo Night, Monokai, Solarized dark and light, navy and coral, Klein and cream), each with two accents.
 
 ## Technical stack
@@ -133,7 +133,7 @@ npm ci
 ## Data and backup
 
 > [!WARNING]
-> Uninstalling the app deletes its data: export a backup regularly from the profile page. Android also refuses an update signed with another key, so keep a copy of the release key and its password (`~/.android/catchmeal-release.jks` and `.password`) somewhere safe, such as a password manager.
+> Uninstalling the app deletes its data: save a backup regularly from the profile page, and share one to a Drive for a copy off the phone. Android also refuses an update signed with another key, so keep a copy of the release key and its password (`~/.android/catchmeal-release.jks` and `.password`) somewhere safe, such as a password manager.
 
 ## Development
 

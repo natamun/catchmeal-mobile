@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Download, Upload } from 'lucide-react';
+import { Save, Share2, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
 import type { Backup } from '../../data/backup';
@@ -10,7 +10,7 @@ import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { SummaryCard } from '../ui/SummaryCard';
 import { useToast } from '../ui/toastContext';
-import { exportData, readBackupFile, restoreData } from './api';
+import { readBackupFile, restoreData, saveData, shareData } from './api';
 
 function formatBackupDate(isoDate: string) {
   return new Date(isoDate).toLocaleDateString('fr-FR', {
@@ -22,7 +22,8 @@ function formatBackupDate(isoDate: string) {
 
 /**
  * Backup card of the profile page. The data only lives on this phone:
- * "Exporter" writes it to a file shared through Android (Drive, e-mail...),
+ * "Enregistrer" saves it to a file in Documents/CatCHMeal, "Partager" hands
+ * that file to Android (Drive, e-mail...) for a copy off the phone, and
  * "Restaurer" reads such a file back and replaces everything, after a
  * confirmation.
  */
@@ -36,13 +37,25 @@ export function BackupCard() {
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleExport = async () => {
+  const handleSave = async () => {
     setError(null);
     setIsBusy(true);
     try {
-      await exportData();
+      showToast(`Sauvegarde enregistrée dans ${await saveData()}`, Save);
     } catch (err: unknown) {
-      setError(failureMessage(err, "L'export a échoué, réessayez."));
+      setError(failureMessage(err, "L'enregistrement a échoué, réessayez."));
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleShare = async () => {
+    setError(null);
+    setIsBusy(true);
+    try {
+      await shareData();
+    } catch (err: unknown) {
+      setError(failureMessage(err, 'Le partage a échoué, réessayez.'));
     } finally {
       setIsBusy(false);
     }
@@ -80,24 +93,34 @@ export function BackupCard() {
   return (
     <SummaryCard title="Sauvegarde">
       <p className="text-sm text-theme-600">
-        Les données restent uniquement sur ce téléphone. Exportez-les
-        régulièrement pour pouvoir les retrouver sur un autre appareil.
+        Les données restent uniquement sur ce téléphone. Enregistrez une
+        sauvegarde régulièrement, et partagez-la sur un Drive pour en garder une
+        copie ailleurs.
       </p>
-      <div className="mt-4 flex gap-3">
+      <div className="mt-4 grid grid-cols-2 gap-3">
         <button
           type="button"
-          onClick={() => void handleExport()}
+          onClick={() => void handleSave()}
           disabled={isBusy}
           className={SECONDARY_BUTTON_CLASS}
         >
-          <Download className="h-4 w-4" />
-          Exporter
+          <Save className="h-4 w-4" />
+          Enregistrer
+        </button>
+        <button
+          type="button"
+          onClick={() => void handleShare()}
+          disabled={isBusy}
+          className={SECONDARY_BUTTON_CLASS}
+        >
+          <Share2 className="h-4 w-4" />
+          Partager
         </button>
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isBusy}
-          className={SECONDARY_BUTTON_CLASS}
+          className={`col-span-2 ${SECONDARY_BUTTON_CLASS}`}
         >
           <Upload className="h-4 w-4" />
           Restaurer
