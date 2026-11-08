@@ -20,7 +20,7 @@
 <p align="center">
   <a href="#features">Features</a> ·
   <a href="#install">Install</a> ·
-  <a href="./DEVELOPMENT.md">Development</a>
+  <a href="./CONTRIBUTING.md">Development</a>
 </p>
 
 ---
@@ -75,11 +75,11 @@ The app is not on the Play Store. It runs on Android 7 or newer.
 > [!NOTE]
 > Your data lives only on the phone, and uninstalling the app deletes it. Save a backup now and then from the profile page, and share one to a Drive.
 
-To build it from the code instead, see [DEVELOPMENT.md](./DEVELOPMENT.md).
+To build it from the code instead, see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Built with
 
-React 19, TypeScript, Vite, Tailwind CSS and Recharts for the interface; Capacitor 8 for Android; SQLite on the phone; zxing-wasm for the barcodes; Vitest for the tests. How to build, develop and publish it, and how the data is stored: [DEVELOPMENT.md](./DEVELOPMENT.md).
+React 19, TypeScript, Vite, Tailwind CSS and Recharts for the interface; Capacitor 8 for Android; SQLite on the phone; zxing-wasm for the barcodes; Vitest for the tests. How to build, develop and publish it, and how the data is stored: [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Credits
 

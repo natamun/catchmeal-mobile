@@ -5,7 +5,7 @@ CAP = npx cap
 # `make live DEV_PORT=5180`.
 DEV_PORT ?= 5174
 VERSION = $(shell node -p "require('./package.json').version")
-# The release key, ignored by git (see Releases in DEVELOPMENT.md).
+# The release key, ignored by git (see Releases in CONTRIBUTING.md).
 KEYSTORE = catchmeal-release.jks
 RELEASE_APK = release/catchmeal-$(VERSION).apk
 # First phone in `adb devices`, so Capacitor does not ask which device to use.
@@ -70,7 +70,7 @@ installRelease: hasPhone
 	adb -s $(PHONE) install -r $(RELEASE_APK)
 
 hasKey:
-	@test -f $(KEYSTORE) -a -f .password || { echo "No release key: see Releases in DEVELOPMENT.md"; exit 1; }
+	@test -f $(KEYSTORE) -a -f .password || { echo "No release key: see Releases in CONTRIBUTING.md"; exit 1; }
 
 # Live development, in two terminals: `make dev` serves the code, then
 # `make live` installs an app that loads it through the USB cable and reloads
