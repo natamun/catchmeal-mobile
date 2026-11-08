@@ -58,22 +58,28 @@ In live development, the phone loads the code from the computer through the USB 
 
 Format: `type: short description in English`
 
-| Type        | When                                      |
-| ----------- | ------------------------------------------|
-| `feat:`     | new feature                               |
-| `fix:`      | bug fix                                   |
-| `ci:`       | pipeline, GitHub Actions                  |
-| `refactor:` | reorganization without changing behavior  |
-| `docs:`     | README, comments                          |
-| `test:`     | test scripts                              |
-| `chore:`    | Makefile, .gitignore, config              |
+| Type        | When                                                         |
+| ----------- | ------------------------------------------------------------ |
+| `feat:`     | new feature, or a feature that works differently             |
+| `fix:`      | bug fix                                                      |
+| `style:`    | look only: layout, sizes, spacing, icons, wording on screen  |
+| `perf:`     | faster or lighter, same behavior                             |
+| `refactor:` | reorganization without changing behavior                     |
+| `test:`     | tests added or corrected                                     |
+| `docs:`     | README, CONTRIBUTING, comments                               |
+| `build:`    | build and packaging: Makefile, Gradle, versions, signing, dependencies |
+| `ci:`       | pipeline, GitHub Actions                                     |
+| `chore:`    | other maintenance: .gitignore, tool config                   |
+| `revert:`   | undoes an earlier commit, named in the description           |
 
 Examples:
 
 ```
-feat: add user authentication
+feat: log a food by the portion, such as a biscuit of 12 g
 fix: handle null pointer on early exit
+style: enlarge the meal total to the field height
 refactor: extract parsing logic into separate class
+build: sign the release with a key kept off the repository
 docs: update README with installation steps
 ```
 
