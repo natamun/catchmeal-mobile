@@ -28,7 +28,7 @@ import { useChartTooltip } from './useChartTooltip';
 
 const MAX_DOTS = 31;
 const DAY_MS = 24 * 60 * 60 * 1000;
-const [LINE_COLOR] = SERIES_COLORS;
+const [LINE_COLOR, , TREND_COLOR] = SERIES_COLORS;
 
 /** One point of the line: a value at a moment (ms). */
 interface TimePoint {
@@ -49,15 +49,20 @@ interface Props {
   name: string;
   unit: string;
   period: DateRange;
+  /** The two ends of a trend line, drawn dashed under the values. */
+  trend?: TimePoint[];
 }
 
 /**
- * One value over the period as a line, zoomed on its values. Dots are hidden
- * beyond 31 points. Needs at least one point.
+ * One value over the period as a line, zoomed on its values, with its trend
+ * dashed when given. Dots are hidden beyond 31 points. Needs at least one
+ * point.
  */
-export function TimeLineChart({ points, name, unit, period }: Props) {
+export function TimeLineChart({ points, name, unit, period, trend }: Props) {
   const tooltipArea = useChartTooltip();
-  const scale = measureScale(points.map(({ value }) => value));
+  const scale = measureScale(
+    [...points, ...(trend ?? [])].map(({ value }) => value),
+  );
   const timeDomain =
     points.length === 1
       ? [points[0].time - DAY_MS, points[0].time + DAY_MS]
@@ -99,6 +104,20 @@ export function TimeLineChart({ points, name, unit, period }: Props) {
               />
             )}
           />
+          {trend && (
+            <Line
+              data={trend}
+              type="linear"
+              dataKey="value"
+              stroke={TREND_COLOR}
+              strokeWidth={2}
+              strokeDasharray="6 4"
+              dot={false}
+              activeDot={false}
+              tooltipType="none"
+              isAnimationActive={false}
+            />
+          )}
           <Line
             type="linear"
             dataKey="value"

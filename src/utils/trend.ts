@@ -14,3 +14,17 @@ export function slopePerDay(points: readonly { day: number; value: number }[]) {
   }
   return covariance / variance;
 }
+
+/**
+ * The straight line that fits values over time best (least squares): its
+ * slope per day, and its value on any day. Needs two different days at least.
+ */
+export function linearTrend(points: readonly { day: number; value: number }[]) {
+  const slope = slopePerDay(points);
+  const meanDay = points.reduce((sum, p) => sum + p.day, 0) / points.length;
+  const meanValue = points.reduce((sum, p) => sum + p.value, 0) / points.length;
+  return {
+    slope,
+    valueAt: (day: number) => meanValue + slope * (day - meanDay),
+  };
+}
