@@ -21,6 +21,7 @@
   <a href="#features">Features</a> ·
   <a href="#installing-on-an-android-phone">Install</a> ·
   <a href="#development">Development</a> ·
+  <a href="#releases">Releases</a> ·
   <a href="#data-model">Data model</a>
 </p>
 
@@ -88,11 +89,17 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 
 ## Installing on an Android phone
 
-The app is not on the Play Store: it is built from this repository on a computer, then installed on the phone, with a USB cable or as an APK file. It runs on Android 7 or newer.
+The app is not on the Play Store. It runs on Android 7 or newer.
 
-### 1. Prepare the computer
+### Download the APK
 
-The commands below work on Linux and macOS. On Windows, use them in [WSL](https://learn.microsoft.com/windows/wsl/install).
+1. On the phone, open the [latest release](https://github.com/natamun/catchmeal-mobile/releases/latest) and download `catchmeal-<version>.apk`.
+2. Open it from the notification or the **Files** app. Android asks to allow installing apps from this source: allow it, then install. If Play Protect warns about an unknown app, choose to install anyway.
+3. For a new version, download its APK and open it the same way: the app is updated in place and keeps its data.
+
+### Build it yourself
+
+**1. Prepare the computer.** The commands below work on Linux and macOS. On Windows, use them in [WSL](https://learn.microsoft.com/windows/wsl/install).
 
 - **Node.js 22 or newer**, from [nodejs.org](https://nodejs.org) or a version manager such as nvm.
 - **The Android SDK and JDK 21.** The simplest way is [Android Studio](https://developer.android.com/studio): its first launch installs the SDK, and it ships a JDK 21. Without it, for instance in WSL, install a JDK 21 (`sudo apt install openjdk-21-jdk`) and the [command-line tools](https://developer.android.com/studio#command-line-tools-only), then run `sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"`.
@@ -104,7 +111,7 @@ The commands below work on Linux and macOS. On Windows, use them in [WSL](https:
   export PATH="$ANDROID_HOME/platform-tools:$PATH"
   ```
 
-### 2. Get the project
+**2. Get the project.**
 
 ```bash
 git clone https://github.com/natamun/catchmeal-mobile.git
@@ -112,32 +119,21 @@ cd catchmeal-mobile
 npm ci
 ```
 
-### 3. Install the app
-
-**With a USB cable**
+**3. Connect the phone.**
 
 1. On the phone, turn on the developer options: in **Settings > About phone** (on a Samsung, **About phone > Software information**), tap **Build number** seven times.
 2. In **Settings > Developer options**, turn on **USB debugging**.
 3. Plug the phone into the computer and accept the **Allow USB debugging?** prompt. `adb devices` should now list it as `device`.
-4. Run `make phone`: it builds the app and installs it.
 
 > [!TIP]
 > On WSL, Windows keeps the USB devices: pass the phone to Linux with [usbipd-win](https://github.com/dorssel/usbipd-win), `usbipd attach --wsl --busid <BUSID> --auto-attach`.
 
-**Without a cable**
-
-1. Run `make apk`. The file is written to `android/app/build/outputs/apk/debug/app-debug.apk`.
-2. Send it to the phone, through Drive, e-mail or a USB file transfer.
-3. Open it from the **Files** app. Android asks to allow installing apps from this source: allow it, then install. If Play Protect warns about an unknown app, choose to install anyway.
-
-### Updating
-
-Pull the new code (`git pull`), then run `make phone` or install a new APK the same way: the app is updated in place and keeps its data.
+**4. Install.** `make phone` builds and installs the development app, named **CatCHMeal dev**: it sits beside the real app, with its own data, and `make apk` gives it as an APK file instead. To build the real app, create a release key first (see [Releases](#releases)), then run `make release` and `make installRelease`.
 
 ## Data and backup
 
 > [!WARNING]
-> Uninstalling the app deletes its data, and Android refuses an update signed with another key. The key is created on the computer at the first build (`~/.android/debug.keystore`): keep a copy of it, and put it back before building from another computer. Export a backup regularly from the profile page.
+> Uninstalling the app deletes its data: export a backup regularly from the profile page. Android also refuses an update signed with another key, so keep a copy of the release key and its password (`~/.android/catchmeal-release.jks` and `.password`) somewhere safe, such as a password manager.
 
 ## Development
 
@@ -146,11 +142,34 @@ Pull the new code (`git pull`), then run `make phone` or install a new APK the s
 | `make check` | Format check, lint, build and tests, like the CI |
 | `make format` | Formats the code |
 | `make lint` | Fixes what the linter can |
-| `make phone` | Builds the app and installs it on the phone |
-| `make apk` | Builds an APK to install without a cable |
+| `make phone` | Builds the development app and installs it on the phone |
+| `make apk` | Builds the development app as an APK |
 | `make dev` + `make live` | Live development, in two terminals |
+| `make release` | Builds the real app, signed, as `release/catchmeal-<version>.apk` |
+| `make installRelease` | Installs that APK on the phone, as an update |
 
-In live development, the phone loads the code from the computer through the USB cable and reloads on every change. Stop `make live` with Ctrl+C, then run `make phone` to install the normal app again. Both use port 5174, which `DEV_PORT=<port>` changes.
+The development app (`io.github.natamun.catchmeal.debug`) and the real one (`io.github.natamun.catchmeal`) are two apps side by side: testing never touches the real data.
+
+In live development, the phone loads the code from the computer through the USB cable and reloads on every change. Stop `make live` with Ctrl+C. Both use port 5174, which `DEV_PORT=<port>` changes.
+
+## Releases
+
+The version lives in `package.json` alone, in the form major.minor.patch. The settings card shows the one installed, and Android's version number is derived from it (1.2.3 gives 10203), so each version updates the one before.
+
+The real app is signed with a release key kept off the repository: the keystore at `~/.android/catchmeal-release.jks`, its password in `.password` at the root, both ignored by git. To create your own:
+
+```bash
+python3 -c "import secrets; print(secrets.token_urlsafe(32), end='')" > .password
+keytool -genkeypair -keystore ~/.android/catchmeal-release.jks -storetype PKCS12 \
+  -alias catchmeal -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=CatCHMeal" \
+  -storepass:file .password -keypass:file .password
+```
+
+For a new version:
+
+1. Raise the version: `npm version minor --no-git-tag-version` (or `patch` for a fix).
+2. Build it with `make release`, and update the phone with `make installRelease`.
+3. Publish it: push the commits, then create the GitHub release with its APK, `gh release create v<version> release/catchmeal-<version>.apk --title "CatCHMeal <version>" --notes "..."`.
 
 ## Data model
 
