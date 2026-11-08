@@ -11,3 +11,9 @@ dist
 .idea
 .DS_Store
 *.sw?
+
+# The release key and its password stay off the repository
+.password
+*.jks
+*.keystore
+release/

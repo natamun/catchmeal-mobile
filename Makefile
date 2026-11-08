@@ -4,6 +4,10 @@ CAP = npx cap
 # often holds. Give the same one to both: `make dev DEV_PORT=5180`, then
 # `make live DEV_PORT=5180`.
 DEV_PORT ?= 5174
+VERSION = $(shell node -p "require('./package.json').version")
+# The release key, kept off the repository (see Releases in the README).
+KEYSTORE = $(HOME)/.android/catchmeal-release.jks
+RELEASE_APK = release/catchmeal-$(VERSION).apk
 # First phone in `adb devices`, so Capacitor does not ask which device to use.
 PHONE = $(shell adb devices 2>/dev/null | awk 'NR > 1 && $$2 == "device" { print $$1; exit }')
 
@@ -49,6 +53,25 @@ apk: build
 	cd android && ./gradlew assembleDebug
 	@echo "APK ready: $(APK)"
 
+#-----	Release (signed with the release key)	-----#
+
+# Builds the real app, signed, as release/catchmeal-<version>.apk: the file of
+# the GitHub release, and the update of the phone's daily app.
+release: build hasKey
+	$(CAP) sync android
+	cd android && ./gradlew assembleRelease
+	@mkdir -p release
+	cp android/app/build/outputs/apk/release/app-release.apk $(RELEASE_APK)
+	@echo "Release ready: $(RELEASE_APK)"
+
+# Installs that APK on the phone, as an update that keeps the data.
+installRelease: hasPhone
+	@test -f $(RELEASE_APK) || { echo "No $(RELEASE_APK): run make release first"; exit 1; }
+	adb -s $(PHONE) install -r $(RELEASE_APK)
+
+hasKey:
+	@test -f $(KEYSTORE) -a -f .password || { echo "No release key: see Releases in the README"; exit 1; }
+
 # Live development, in two terminals: `make dev` serves the code, then
 # `make live` installs an app that loads it through the USB cable and reloads
 # on every change. Stop `make live` with Ctrl+C, then `make phone` to get the
@@ -63,4 +86,4 @@ hasPhone:
 	@test -n "$(PHONE)" || { echo "No phone found: check adb devices"; exit 1; }
 
 .PHONY: all format formatCheck lint lintCheck build test testVerbose check \
-	phone apk dev live hasPhone
+	phone apk release installRelease dev live hasPhone hasKey
