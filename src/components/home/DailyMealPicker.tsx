@@ -10,16 +10,20 @@ import { listMeals } from '../meal/api';
 import { buildDrafts, type MealItemDraft } from '../meal/draft';
 import { MealList } from '../meal/MealList';
 import { MEAL_TYPE_LABELS, type Meal, type MealType } from '../meal/types';
+import { listRecipes } from '../recipe/api';
+import { RecipeList } from '../recipe/RecipeList';
+import type { Recipe } from '../recipe/types';
 import { PillTabs } from '../ui/PillTabs';
 import { SelectToggle } from '../ui/SelectToggle';
 import { DailyMealReview } from './DailyMealReview';
 import { SelectionBar } from './SelectionBar';
 
-type PickerTab = 'food' | 'meal';
+type PickerTab = 'food' | 'meal' | 'recipe';
 
 const TAB_OPTIONS: { value: PickerTab; label: string }[] = [
   { value: 'food', label: 'Aliments' },
   { value: 'meal', label: 'Repas' },
+  { value: 'recipe', label: 'Recettes' },
 ];
 
 interface DailyMealPickerProps {
@@ -30,9 +34,9 @@ interface DailyMealPickerProps {
 }
 
 /**
- * Page content that adds foods and library meals to one section of the
- * journal, in two steps: select them in two tabs, then check the quantities
- * before saving.
+ * Page content that adds foods, library meals and recipes to one section of
+ * the journal, in two steps: select them in three tabs, then check the
+ * quantities before saving.
  */
 export function DailyMealPicker({
   mealType,
@@ -42,11 +46,13 @@ export function DailyMealPicker({
 }: DailyMealPickerProps) {
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [templates, setTemplates] = useState<Meal[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [tab, setTab] = useState<PickerTab>('food');
   const [selectedFoodIds, toggleFood] = useToggleSet<number>();
   const [selectedMealIds, toggleMeal] = useToggleSet<number>();
+  const [selectedRecipeIds, toggleRecipe] = useToggleSet<number>();
   const [review, setReview] = useState<{
     key: number;
     items: MealItemDraft[];
@@ -57,10 +63,12 @@ export function DailyMealPicker({
     Promise.all([
       listFoodItems(controller.signal),
       listMeals(false, controller.signal),
+      listRecipes(controller.signal),
     ])
-      .then(([foods, meals]) => {
+      .then(([foods, meals, library]) => {
         setFoodItems(foods);
         setTemplates(meals);
+        setRecipes(library);
       })
       .catch(() => {
         if (controller.signal.aborted) {
@@ -76,13 +84,17 @@ export function DailyMealPicker({
     return () => controller.abort();
   }, []);
 
-  const selectedCount = selectedFoodIds.size + selectedMealIds.size;
+  const selectedCount =
+    selectedFoodIds.size + selectedMealIds.size + selectedRecipeIds.size;
 
   const openReview = () => {
     const items = buildDrafts(
-      foodItems.filter((food) => selectedFoodIds.has(food.id)),
-      templates.filter((meal) => selectedMealIds.has(meal.id)),
-      foodItems,
+      {
+        foods: foodItems.filter((food) => selectedFoodIds.has(food.id)),
+        recipes: recipes.filter((recipe) => selectedRecipeIds.has(recipe.id)),
+        meals: templates.filter((meal) => selectedMealIds.has(meal.id)),
+      },
+      { foodItems, recipes },
     );
     setReview((prev) => ({ key: (prev?.key ?? 0) + 1, items }));
   };
@@ -136,7 +148,7 @@ export function DailyMealPicker({
               />
             )}
           />
-        ) : (
+        ) : tab === 'meal' ? (
           <MealList
             meals={templates}
             isLoading={isLoading}
@@ -145,6 +157,18 @@ export function DailyMealPicker({
               <SelectToggle
                 selected={selectedMealIds.has(meal.id)}
                 onToggle={() => toggleMeal(meal.id)}
+              />
+            )}
+          />
+        ) : (
+          <RecipeList
+            recipes={recipes}
+            isLoading={isLoading}
+            loadError={loadError}
+            renderAction={(recipe) => (
+              <SelectToggle
+                selected={selectedRecipeIds.has(recipe.id)}
+                onToggle={() => toggleRecipe(recipe.id)}
               />
             )}
           />

@@ -13,9 +13,14 @@ export interface SortOption {
   direction: 'asc' | 'desc';
 }
 
-/** Search text, macro ranges and sort chosen in a food or meal list. */
+/**
+ * Search text, macro ranges and sort chosen in a food, meal or recipe list,
+ * and for the recipes a category.
+ */
 export interface FilterCriteria {
   query: string;
+  /** The category kept, null for all. */
+  category: string | null;
   kcal: MacroFilter;
   protein: MacroFilter;
   carbs: MacroFilter;
@@ -23,9 +28,10 @@ export interface FilterCriteria {
   sort: SortOption;
 }
 
-/** No filter: unlimited ranges, sorted by name. */
+/** No filter: unlimited ranges, every category, sorted by name. */
 export const EMPTY_FILTER_CRITERIA: FilterCriteria = {
   query: '',
+  category: null,
   kcal: { min: -Infinity, max: Infinity },
   protein: { min: -Infinity, max: Infinity },
   carbs: { min: -Infinity, max: Infinity },

@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { roundDecimals } from '../../utils/decimals';
 import { DEFAULT_PORTION_NAME, portionLabel } from '../food/portion';
 import { UNIT_LABELS } from '../food/types';
+import { servingsLabel } from '../recipe/servings';
 import { QuantityStepper } from '../ui/QuantityStepper';
 import { adjustDraft, showInPortions, type MealItemDraft } from './draft';
 
@@ -60,8 +61,8 @@ interface DraftItemListProps {
 
 /**
  * Items of a meal being edited: a food with its quantity buttons on a line
- * of their own, counted in portions when it has some, or a quick add with
- * its calories. Each one can be removed.
+ * of their own, counted in portions when it has some, a recipe counted in
+ * servings, or a quick add with its calories. Each one can be removed.
  */
 export function DraftItemList({
   items,
@@ -72,6 +73,16 @@ export function DraftItemList({
   return (
     <ul className={`flex flex-col gap-2 ${className}`}>
       {items.map((item) => {
+        const removeButton = (
+          <button
+            type="button"
+            onClick={() => onRemove(item.id)}
+            className={REMOVE_CLASS}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        );
+
         if (item.kind === 'quick') {
           return (
             <li
@@ -79,13 +90,22 @@ export function DraftItemList({
               className={`${ROW_CLASS} min-h-12 items-center gap-3`}
             >
               <span className={NAME_CLASS}>{Math.round(item.kcal)} kcal</span>
-              <button
-                type="button"
-                onClick={() => onRemove(item.id)}
-                className={REMOVE_CLASS}
-              >
-                <X className="h-5 w-5" />
-              </button>
+              {removeButton}
+            </li>
+          );
+        }
+
+        if (item.kind === 'recipe') {
+          return (
+            <li key={item.id} className={`${ROW_CLASS} flex-col gap-2`}>
+              <div className="flex items-center gap-3">
+                <span className={NAME_CLASS}>{item.recipe.name}</span>
+                {removeButton}
+              </div>
+              <QuantityStepper
+                text={servingsLabel(item.quantity)}
+                onAdjust={(delta) => onChange(adjustDraft(item, delta))}
+              />
             </li>
           );
         }
@@ -94,6 +114,8 @@ export function DraftItemList({
         const unit = UNIT_LABELS[foodItem.baseUnit];
         const amount = `${roundDecimals(quantity, 1)}${unit}`;
         const portion = foodItem.portionQuantity;
+        const portionName = foodItem.portionName ?? DEFAULT_PORTION_NAME;
+        const byPortion = inPortions && portion !== null;
         return (
           <li key={item.id} className={`${ROW_CLASS} flex-col gap-2`}>
             <div className="flex items-center gap-3">
@@ -101,24 +123,16 @@ export function DraftItemList({
               {portion !== null && (
                 <UnitToggle
                   unit={unit}
-                  portion={foodItem.portionName ?? DEFAULT_PORTION_NAME}
+                  portion={portionName}
                   inPortions={inPortions}
                   onChange={(next) => onChange(showInPortions(item, next))}
                 />
               )}
-              <button
-                type="button"
-                onClick={() => onRemove(item.id)}
-                className={REMOVE_CLASS}
-              >
-                <X className="h-5 w-5" />
-              </button>
+              {removeButton}
             </div>
             <QuantityStepper
               text={
-                inPortions && portion !== null
-                  ? portionLabel(foodItem, quantity / portion)
-                  : amount
+                byPortion ? portionLabel(foodItem, quantity / portion) : amount
               }
               detail={inPortions ? amount : undefined}
               onAdjust={(delta) => onChange(adjustDraft(item, delta))}

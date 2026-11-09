@@ -4,6 +4,8 @@ import { listFoodItems } from '../components/food/api';
 import type { FoodItem } from '../components/food/types';
 import { listMealsOnDate } from '../components/meal/api';
 import type { Meal } from '../components/meal/types';
+import { listRecipes } from '../components/recipe/api';
+import type { Recipe } from '../components/recipe/types';
 import { toDateKey } from '../utils/dateKey';
 import { useDataVersion } from './useDataVersion';
 
@@ -21,13 +23,14 @@ function neighbourKey(dateKey: string, offset: number) {
 }
 
 /**
- * The journal of one day plus the food library. Each day is cached once loaded,
+ * The journal of one day plus the food and recipe libraries. Each day is cached once loaded,
  * and the days before and after are prefetched right after, so moving from day
  * to day is instant.
  */
 export function useDailyMeals(date: Date) {
   const dateKey = toDateKey(date);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [foodsError, setFoodsError] = useState<string | null>(null);
   const [foodsAttempt, setFoodsAttempt] = useState(0);
   const [days, setDays] = useState<Record<string, Meal[]>>({});
@@ -41,8 +44,14 @@ export function useDailyMeals(date: Date) {
 
   useEffect(() => {
     const controller = new AbortController();
-    listFoodItems(controller.signal)
-      .then(setFoodItems)
+    Promise.all([
+      listFoodItems(controller.signal),
+      listRecipes(controller.signal),
+    ])
+      .then(([foods, library]) => {
+        setFoodItems(foods);
+        setRecipes(library);
+      })
       .catch(() => {
         if (controller.signal.aborted) return;
         setFoodsError('Impossible de charger les aliments.');
@@ -117,6 +126,7 @@ export function useDailyMeals(date: Date) {
   return {
     meals: meals ?? NO_MEALS,
     foodItems,
+    recipes,
     isReady: meals !== undefined,
     isLoading: meals === undefined && dayError === undefined,
     loadError: dayError ?? foodsError,

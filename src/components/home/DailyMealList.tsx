@@ -8,6 +8,7 @@ import {
   type Meal,
   type MealType,
 } from '../meal/types';
+import type { Recipe } from '../recipe/types';
 import { AddCircleButton } from '../ui/AddCircleButton';
 import { EditIconButton } from '../ui/EditIconButton';
 import { ListCard } from '../ui/ListCard';
@@ -20,15 +21,38 @@ interface JournalRow {
 }
 
 /**
- * Rows of a section: the same food logged in several meals becomes one row with
- * its calories added up; each quick add keeps its own row.
+ * Rows of a section: the same food or recipe logged in several meals becomes
+ * one row with its calories added up; each quick add keeps its own row.
  */
-function rowsOf(sectionMeals: Meal[], foodItems: FoodItem[]): JournalRow[] {
+function rowsOf(
+  sectionMeals: Meal[],
+  foodItems: FoodItem[],
+  recipes: Recipe[],
+): JournalRow[] {
   const rows: JournalRow[] = [];
   const rowByFoodId = new Map<number, JournalRow>();
+  const rowByRecipeId = new Map<number, JournalRow>();
 
   for (const meal of sectionMeals) {
     for (const item of meal.items) {
+      if (item.recipeId !== null) {
+        const existing = rowByRecipeId.get(item.recipeId);
+        if (existing) {
+          existing.kcal += item.kcal;
+          continue;
+        }
+        const row: JournalRow = {
+          key: `recipe-${item.recipeId}`,
+          label:
+            recipes.find((recipe) => recipe.id === item.recipeId)?.name ??
+            'Recette inconnue',
+          kcal: item.kcal,
+        };
+        rowByRecipeId.set(item.recipeId, row);
+        rows.push(row);
+        continue;
+      }
+
       if (item.foodItemId === null) {
         rows.push({
           key: `${meal.id}-${item.id}`,
@@ -62,6 +86,7 @@ function rowsOf(sectionMeals: Meal[], foodItems: FoodItem[]): JournalRow[] {
 interface DailyMealListProps {
   meals: Meal[];
   foodItems: FoodItem[];
+  recipes: Recipe[];
   isLoading: boolean;
   loadError: string | null;
   onRetry: () => void;
@@ -76,6 +101,7 @@ interface DailyMealListProps {
 export function DailyMealList({
   meals,
   foodItems,
+  recipes,
   isLoading,
   loadError,
   onRetry,
@@ -103,6 +129,7 @@ export function DailyMealList({
               .filter((meal) => meal.typeMeal === mealType)
               .sort((a, b) => a.id - b.id),
             foodItems,
+            recipes,
           );
           const total = rows.reduce((sum, row) => sum + row.kcal, 0);
           const canEdit = editableMeals.some(

@@ -40,7 +40,7 @@ export interface Nutrition {
 }
 
 /** A food of the library in a recipe, its quantity in the food's base unit. */
-export interface RecipeIngredient {
+interface RecipeIngredient {
   id: number;
   foodItemId: number;
   quantity: number;

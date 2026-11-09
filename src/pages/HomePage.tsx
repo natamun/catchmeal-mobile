@@ -49,8 +49,16 @@ export default function HomePage() {
   const dateParam = searchParams.get('date');
   const selectedDate = useMemo(() => parseDateParam(dateParam), [dateParam]);
   const showToast = useToast();
-  const { meals, foodItems, isReady, isLoading, loadError, reload, retry } =
-    useDailyMeals(selectedDate);
+  const {
+    meals,
+    foodItems,
+    recipes,
+    isReady,
+    isLoading,
+    loadError,
+    reload,
+    retry,
+  } = useDailyMeals(selectedDate);
   const unavailable = !isReady && !isLoading;
   const [weightHistory, setWeightHistory] = useState<WeightEntry[] | null>(
     null,
@@ -95,7 +103,7 @@ export default function HomePage() {
     setSectionEdit((prev) => ({
       mealType,
       key: prev.key + 1,
-      items: buildDrafts([], sectionMeals, foodItems),
+      items: buildDrafts({ meals: sectionMeals }, { foodItems, recipes }),
       meals: sectionMeals,
     }));
     editDialogRef.current?.showModal();
@@ -160,6 +168,7 @@ export default function HomePage() {
             <DailyMealList
               meals={meals}
               foodItems={foodItems}
+              recipes={recipes}
               isLoading={isLoading}
               loadError={loadError}
               onRetry={retry}

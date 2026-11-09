@@ -15,6 +15,7 @@ import {
   type Macros,
   type SortOption,
 } from './macroFilter';
+import { SelectDropdown } from './SelectDropdown';
 
 type MacroDraft = Record<MacroKey, MacroFilter>;
 
@@ -106,21 +107,27 @@ function clampToBounds(filter: MacroFilter, bounds: MacroFilter): MacroFilter {
   };
 }
 
+const ALL_CATEGORIES = '';
+
 interface MacroSearchBarProps {
   items: Macros[];
   criteria: FilterCriteria;
   onFilterChange: (criteria: FilterCriteria) => void;
+  /** The categories to filter on, for a list that has some. */
+  categories?: { value: string; label: string }[];
 }
 
 /**
- * Search bar of the food and meal lists. The text filters right away; the
- * filter dialog (sort, one slider per macro) applies its choices only when
- * "Appliquer" is pressed. The filter icon is filled while a range is narrowed.
+ * Search bar of the food, meal and recipe lists. The text filters right
+ * away; the filter dialog (sort, category when the list has some, one slider
+ * per macro) applies its choices only when "Appliquer" is pressed. The filter
+ * icon is filled while a range is narrowed or a category kept.
  */
 export function MacroSearchBar({
   items,
   criteria,
   onFilterChange,
+  categories = [],
 }: MacroSearchBarProps) {
   const [draftMacros, setDraftMacros] = useState<MacroDraft>(
     EMPTY_FILTER_CRITERIA,
@@ -128,6 +135,7 @@ export function MacroSearchBar({
   const [draftSort, setDraftSort] = useState<SortOption>(
     EMPTY_FILTER_CRITERIA.sort,
   );
+  const [draftCategory, setDraftCategory] = useState<string | null>(null);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [dialogNode, setDialogNode] = useState<HTMLDialogElement | null>(null);
   const filterDialogRef = useRef<HTMLDialogElement>(null);
@@ -145,11 +153,13 @@ export function MacroSearchBar({
     [items],
   );
 
-  const hasActiveFilters = MACRO_FIELDS.some(
-    (field) =>
-      criteria[field.key].min > macroBounds[field.key].min ||
-      criteria[field.key].max < macroBounds[field.key].max,
-  );
+  const hasActiveFilters =
+    criteria.category !== null ||
+    MACRO_FIELDS.some(
+      (field) =>
+        criteria[field.key].min > macroBounds[field.key].min ||
+        criteria[field.key].max < macroBounds[field.key].max,
+    );
 
   const currentSortValue = `${draftSort.field}-${draftSort.direction}`;
 
@@ -161,6 +171,7 @@ export function MacroSearchBar({
       fat: clampToBounds(criteria.fat, macroBounds.fat),
     });
     setDraftSort(criteria.sort);
+    setDraftCategory(criteria.category);
     filterDialogRef.current?.showModal();
   };
 
@@ -180,12 +191,18 @@ export function MacroSearchBar({
   };
 
   const applyFilters = () => {
-    onFilterChange({ ...criteria, ...draftMacros, sort: draftSort });
+    onFilterChange({
+      ...criteria,
+      ...draftMacros,
+      sort: draftSort,
+      category: draftCategory,
+    });
     closeFilterDialog();
   };
 
-  const resetMacros = () => {
+  const resetFilters = () => {
     setDraftMacros(macroBounds);
+    setDraftCategory(null);
   };
 
   return (
@@ -249,6 +266,18 @@ export function MacroSearchBar({
             ))}
           </DropdownPanel>
         </Popover.Root>
+
+        {categories.length > 0 && (
+          <SelectDropdown
+            value={draftCategory ?? ALL_CATEGORIES}
+            options={[
+              { value: ALL_CATEGORIES, label: 'Toutes les catégories' },
+              ...categories,
+            ]}
+            onChange={(value) => setDraftCategory(value || null)}
+            container={dialogNode}
+          />
+        )}
 
         <div className="flex flex-col gap-3 border-t border-theme-100 pt-5">
           <div className="flex flex-col gap-5">
@@ -316,7 +345,7 @@ export function MacroSearchBar({
 
           <button
             type="button"
-            onClick={resetMacros}
+            onClick={resetFilters}
             className="cursor-pointer self-start text-xs font-medium text-theme-500 underline-offset-2 hover:underline"
           >
             Réinitialiser

@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import type { FoodItem } from '../food/types';
+import type { Recipe } from '../recipe/types';
 import {
   adjustDraft,
+  buildDrafts,
   draftsToInput,
   draftTotals,
   mealToItems,
   newFoodDraft,
+  newRecipeDraft,
   showInPortions,
 } from './draft';
 import type { Meal } from './types';
@@ -129,5 +132,84 @@ describe('a meal logged by the portion', () => {
     expect(mealToItems(meal(50), [BISCUITS])[0]).toMatchObject({
       inPortions: false,
     });
+  });
+});
+
+describe('a recipe line', () => {
+  const CURRY: Recipe = {
+    id: 7,
+    name: 'Curry de poulet',
+    servings: 4,
+    category: 'MAIN',
+    prepMinutes: null,
+    cooking: null,
+    notes: null,
+    ingredients: [],
+    steps: [],
+    totals: { kcal: 2000, protein: 200, carbs: 160, fat: 60 },
+    archived: false,
+  };
+
+  const logged: Meal = {
+    id: 1,
+    name: null,
+    typeMeal: 'DINNER',
+    loggedAt: '2026-11-09',
+    items: [
+      {
+        id: 1,
+        foodItemId: null,
+        recipeId: CURRY.id,
+        quantity: 1.5,
+        kcal: 750,
+        protein: 75,
+        carbs: 60,
+        fat: 22.5,
+      },
+    ],
+  };
+
+  it('starts at one serving and counts its share of the recipe', () => {
+    const draft = newRecipeDraft(CURRY);
+
+    expect(draft).toMatchObject({ kind: 'recipe', quantity: 1 });
+    expect(draftTotals([draft])).toEqual({
+      kcal: 500,
+      protein: 50,
+      carbs: 40,
+      fat: 15,
+    });
+    expect(draftsToInput([draft])).toEqual([{ recipeId: 7, quantity: 1 }]);
+  });
+
+  it('moves by half a serving, or by one, never under half', () => {
+    const one = newRecipeDraft(CURRY);
+
+    expect(adjustDraft(one, 1).quantity).toBe(1.5);
+    expect(adjustDraft(one, 10).quantity).toBe(2);
+    expect(adjustDraft(one, -1).quantity).toBe(0.5);
+    expect(adjustDraft(one, -10).quantity).toBe(0.5);
+  });
+
+  it('opens again from the journal, and is skipped once the recipe is gone', () => {
+    expect(mealToItems(logged, [], [CURRY])).toEqual([
+      {
+        id: expect.any(String) as string,
+        kind: 'recipe',
+        recipe: CURRY,
+        quantity: 1.5,
+      },
+    ]);
+    expect(mealToItems(logged, [], [])).toEqual([]);
+  });
+
+  it('adds up the servings of a recipe picked twice', () => {
+    const drafts = buildDrafts(
+      { recipes: [CURRY], meals: [logged] },
+      { foodItems: [], recipes: [CURRY] },
+    );
+
+    expect(drafts).toHaveLength(1);
+    expect(drafts[0].quantity).toBe(2.5);
   });
 });
