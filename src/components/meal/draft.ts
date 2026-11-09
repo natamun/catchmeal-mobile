@@ -78,6 +78,28 @@ export function adjustDraft(item: MealItemDraft, delta: number): MealItemDraft {
 }
 
 /**
+ * Sets the quantity typed, in the unit the item is shown in: a whole number
+ * of portions or the base unit, one of them at least, or servings of a
+ * recipe, half a serving at least. Anything but a number above 0 leaves the
+ * item as it was.
+ */
+export function setDraftQuantity(
+  item: MealItemDraft,
+  typed: number,
+): MealItemDraft {
+  if (!Number.isFinite(typed) || typed <= 0 || item.kind === 'quick') {
+    return item;
+  }
+  const rounded = roundDecimals(typed, MAX_DECIMALS);
+  if (item.kind === 'recipe') {
+    return { ...item, quantity: Math.max(HALF_SERVING, rounded) };
+  }
+  const portion = item.inPortions ? item.foodItem.portionQuantity : null;
+  if (portion === null) return { ...item, quantity: Math.max(1, rounded) };
+  return { ...item, quantity: Math.max(1, Math.round(typed)) * portion };
+}
+
+/**
  * Shows a food in portions or in its base unit. Into portions, the quantity
  * becomes the nearest whole number of them, one at least.
  */

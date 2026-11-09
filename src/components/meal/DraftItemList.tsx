@@ -1,11 +1,16 @@
 import { X } from 'lucide-react';
 
 import { roundDecimals } from '../../utils/decimals';
-import { DEFAULT_PORTION_NAME, portionLabel } from '../food/portion';
+import { DEFAULT_PORTION_NAME, pluralOf, portionLabel } from '../food/portion';
 import { UNIT_LABELS } from '../food/types';
 import { servingsLabel } from '../recipe/servings';
 import { QuantityStepper } from '../ui/QuantityStepper';
-import { adjustDraft, showInPortions, type MealItemDraft } from './draft';
+import {
+  adjustDraft,
+  setDraftQuantity,
+  showInPortions,
+  type MealItemDraft,
+} from './draft';
 
 const ROW_CLASS =
   'flex animate-fade-in-up rounded-xl border border-theme-200 px-3 py-2.5';
@@ -105,6 +110,11 @@ export function DraftItemList({
               <QuantityStepper
                 text={servingsLabel(item.quantity)}
                 onAdjust={(delta) => onChange(adjustDraft(item, delta))}
+                typing={{
+                  value: item.quantity,
+                  unit: 'portions',
+                  onType: (value) => onChange(setDraftQuantity(item, value)),
+                }}
               />
             </li>
           );
@@ -136,6 +146,11 @@ export function DraftItemList({
               }
               detail={inPortions ? amount : undefined}
               onAdjust={(delta) => onChange(adjustDraft(item, delta))}
+              typing={{
+                value: byPortion ? quantity / portion : quantity,
+                unit: byPortion ? pluralOf(portionName) : unit,
+                onType: (value) => onChange(setDraftQuantity(item, value)),
+              }}
             />
           </li>
         );

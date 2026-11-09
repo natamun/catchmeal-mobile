@@ -10,6 +10,7 @@ import {
   mealToItems,
   newFoodDraft,
   newRecipeDraft,
+  setDraftQuantity,
   showInPortions,
 } from './draft';
 import type { Meal } from './types';
@@ -211,5 +212,46 @@ describe('a recipe line', () => {
 
     expect(drafts).toHaveLength(1);
     expect(drafts[0].quantity).toBe(2.5);
+  });
+});
+
+describe('setDraftQuantity', () => {
+  const grams = { ...newFoodDraft(RICE), quantity: 100 };
+  const biscuits = newFoodDraft(BISCUITS);
+
+  it('takes the grams typed, rounded to 2 decimals, one at least', () => {
+    expect(setDraftQuantity(grams, 812.345).quantity).toBe(812.35);
+    expect(setDraftQuantity(grams, 0.4).quantity).toBe(1);
+  });
+
+  it('takes whole portions, one at least, saved in grams', () => {
+    expect(setDraftQuantity(biscuits, 4).quantity).toBe(48);
+    expect(setDraftQuantity(biscuits, 2.6).quantity).toBe(36);
+    expect(setDraftQuantity(biscuits, 0.2).quantity).toBe(12);
+  });
+
+  it('takes the servings of a recipe, half a serving at least', () => {
+    const line = newRecipeDraft({
+      id: 1,
+      name: 'Curry',
+      servings: 4,
+      category: null,
+      prepMinutes: null,
+      cooking: null,
+      notes: null,
+      ingredients: [],
+      steps: [],
+      totals: { kcal: 0, protein: 0, carbs: 0, fat: 0 },
+      archived: false,
+    });
+
+    expect(setDraftQuantity(line, 2.25).quantity).toBe(2.25);
+    expect(setDraftQuantity(line, 0.1).quantity).toBe(0.5);
+  });
+
+  it('keeps the quantity when the text is not a number above 0', () => {
+    for (const typed of [0, -3, Number.NaN]) {
+      expect(setDraftQuantity(grams, typed)).toBe(grams);
+    }
   });
 });
