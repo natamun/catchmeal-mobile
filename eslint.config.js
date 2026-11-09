@@ -27,6 +27,15 @@ export default defineConfig([
     rules: {
       eqeqeq: 'error',
       'no-console': ['error', { allow: ['warn', 'error'] }],
+      'no-restricted-syntax': [
+        'error',
+        {
+          // `onDone?.(await save())` skips save() when onDone is missing.
+          selector: 'CallExpression[optional=true] AwaitExpression',
+          message:
+            'An optional call skips its arguments when the function is missing: await before the call.',
+        },
+      ],
     },
   },
 ]);
