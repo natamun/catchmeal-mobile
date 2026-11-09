@@ -112,6 +112,9 @@ describe('migrate', () => {
       'meal',
       'meal_item',
       'profile',
+      'recipe',
+      'recipe_ingredient',
+      'recipe_step',
       'weight_log',
       'workout',
       'workout_exercise',
@@ -380,6 +383,111 @@ describe('migration 10', () => {
     expect(await old.query('SELECT goal_type, goal_pace FROM profile')).toEqual(
       [{ goal_type: 'LOSE_FAT', goal_pace: null }],
     );
+  });
+});
+
+describe('migration 11', () => {
+  it('keeps the meal lines, without a recipe', async () => {
+    const old = openMemoryDatabase();
+    await migrate(old, MIGRATIONS.slice(0, 10));
+    await old.run(
+      "INSERT INTO meal (type_meal, logged_at) VALUES ('LUNCH', '2026-11-05')",
+    );
+    await old.run(
+      'INSERT INTO meal_item (meal_id, quantity, kcal, protein, carbs, fat) VALUES (1, 1, 250, 10, 30, 8)',
+    );
+
+    await migrate(old);
+
+    expect(
+      await old.query('SELECT kcal, food_item_id, recipe_id FROM meal_item'),
+    ).toEqual([{ kcal: 250, food_item_id: null, recipe_id: null }]);
+  });
+});
+
+describe('recipe', () => {
+  async function addRecipe() {
+    const { lastId: foodId } = await insert('food_item', FOOD);
+    const { lastId: recipeId } = await insert('recipe', {
+      name: 'Curry de poulet',
+      servings: 4,
+    });
+    await insert('recipe_ingredient', {
+      recipe_id: recipeId,
+      food_item_id: foodId,
+      position: 0,
+      quantity: 800,
+    });
+    await insert('recipe_step', {
+      recipe_id: recipeId,
+      position: 0,
+      instruction: 'Couper le poulet.',
+    });
+    return { foodId, recipeId };
+  }
+
+  it('deletes the ingredients and steps of a recipe with it', async () => {
+    const { recipeId } = await addRecipe();
+
+    await db.run('DELETE FROM recipe WHERE id = ?', [recipeId]);
+
+    expect(await count('recipe_ingredient')).toBe(0);
+    expect(await count('recipe_step')).toBe(0);
+  });
+
+  it('refuses a recipe that breaks a rule', async () => {
+    const rows: Row[] = [
+      { name: '  ', servings: 4 },
+      { name: 'Curry', servings: 0 },
+      { name: 'Curry', servings: 4, category: 'BRUNCH' },
+      { name: 'Curry', servings: 4, prep_minutes: 0 },
+      { name: 'Curry', servings: 4, notes: ' ' },
+    ];
+    for (const row of rows) {
+      await expect(insert('recipe', row)).rejects.toThrow(REFUSED);
+    }
+  });
+
+  it('refuses an ingredient of a missing food and a blank step', async () => {
+    const { recipeId } = await addRecipe();
+
+    await expect(
+      insert('recipe_ingredient', {
+        recipe_id: recipeId,
+        food_item_id: 999,
+        position: 1,
+        quantity: 10,
+      }),
+    ).rejects.toThrow(REFUSED);
+    await expect(
+      insert('recipe_step', {
+        recipe_id: recipeId,
+        position: 1,
+        instruction: ' ',
+      }),
+    ).rejects.toThrow(REFUSED);
+  });
+
+  it('refuses a journal line that is both a food and a recipe', async () => {
+    const { foodId, recipeId } = await addRecipe();
+    const { lastId: mealId } = await insert('meal', LOGGED_MEAL);
+    const line = {
+      meal_id: mealId,
+      quantity: 1,
+      kcal: 255,
+      protein: 49,
+      carbs: 0,
+      fat: 4,
+    };
+
+    await insert('meal_item', { ...line, recipe_id: recipeId });
+    await expect(
+      insert('meal_item', {
+        ...line,
+        recipe_id: recipeId,
+        food_item_id: foodId,
+      }),
+    ).rejects.toThrow(REFUSED);
   });
 });
 

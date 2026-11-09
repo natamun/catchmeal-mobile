@@ -258,6 +258,49 @@ const GOAL_PACE_V10 = `
 ALTER TABLE profile ADD COLUMN goal_pace REAL CHECK (goal_pace >= 0 AND goal_pace <= 5);
 `;
 
+/**
+ * Recipes: a name, a number of servings, an optional category and
+ * preparation time, the ingredients taken from the food library, the steps in
+ * order and free notes. A journal line can be servings of a recipe, its values
+ * stored like a food's. An archived recipe is hidden but kept for the meals
+ * that logged it.
+ */
+const RECIPES_V11 = `
+CREATE TABLE recipe (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+  servings INTEGER NOT NULL CHECK (servings > 0),
+  category TEXT CHECK (category IN ('BREAKFAST', 'STARTER', 'MAIN', 'SIDE', 'DESSERT', 'SNACK', 'SAUCE', 'DRINK')),
+  prep_minutes INTEGER CHECK (prep_minutes > 0),
+  notes TEXT CHECK (notes IS NULL OR length(trim(notes)) > 0),
+  archived INTEGER NOT NULL DEFAULT 0 CHECK (archived IN (0, 1))
+) STRICT;
+
+CREATE TABLE recipe_ingredient (
+  id INTEGER PRIMARY KEY,
+  recipe_id INTEGER NOT NULL REFERENCES recipe (id) ON DELETE CASCADE,
+  food_item_id INTEGER NOT NULL REFERENCES food_item (id),
+  position INTEGER NOT NULL CHECK (position >= 0),
+  quantity REAL NOT NULL CHECK (quantity > 0)
+) STRICT;
+
+CREATE INDEX recipe_ingredient_recipe ON recipe_ingredient (recipe_id);
+CREATE INDEX recipe_ingredient_food_item ON recipe_ingredient (food_item_id);
+
+CREATE TABLE recipe_step (
+  id INTEGER PRIMARY KEY,
+  recipe_id INTEGER NOT NULL REFERENCES recipe (id) ON DELETE CASCADE,
+  position INTEGER NOT NULL CHECK (position >= 0),
+  instruction TEXT NOT NULL CHECK (length(trim(instruction)) > 0)
+) STRICT;
+
+CREATE INDEX recipe_step_recipe ON recipe_step (recipe_id);
+
+ALTER TABLE meal_item ADD COLUMN recipe_id INTEGER REFERENCES recipe (id) CHECK (recipe_id IS NULL OR food_item_id IS NULL);
+
+CREATE INDEX meal_item_recipe ON meal_item (recipe_id);
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: SCHEMA_V1 },
@@ -270,6 +313,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 8, sql: COMPOSITION_GOALS_V8 },
   { version: 9, sql: FOOD_PORTION_V9 },
   { version: 10, sql: GOAL_PACE_V10 },
+  { version: 11, sql: RECIPES_V11 },
 ];
 
 /**
