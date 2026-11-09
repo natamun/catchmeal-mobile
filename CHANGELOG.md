@@ -2,6 +2,17 @@
 
 What changed in each version of CatCHMeal, the latest first. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the version numbers follow [Semantic Versioning](https://semver.org/).
 
+## [0.9.3] - 2026-11-09
+
+### Added
+
+- Cardio is logged in sets, like strength: each treadmill set has its own duration, speed and incline, and the other machines an optional resistance. The sessions logged so far become one set each.
+- A recipe can be sent to an AI chat, by copy or share, with your goal and daily targets, to get its opinion and an improved version.
+
+### Changed
+
+- A favorite session starts its cardio from the last time, like its strength, instead of holding its own duration, speed and incline.
+
 ## [0.9.2] - 2026-11-09
 
 ### Fixed
