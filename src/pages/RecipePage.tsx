@@ -32,6 +32,7 @@ import {
   type RecipeEditor,
 } from '../components/recipe/useRecipeEditor';
 import { EditIconButton } from '../components/ui/EditIconButton';
+import { useKeepAwake } from '../hooks/useKeepAwake';
 import { useList } from '../hooks/useList';
 import { useGoBack } from '../routing/navigation';
 import { PATHS } from '../routing/paths';
@@ -77,10 +78,11 @@ interface SheetProps {
 
 /**
  * The recipe to read while cooking, every part one under the other, the
- * quantities for the servings chosen.
+ * quantities for the servings chosen. The screen stays on meanwhile.
  */
 function RecipeSheet({ recipe, foodItems, onClose, onEdit }: SheetProps) {
   const [servings, setServings] = useState(recipe.servings);
+  useKeepAwake();
   return (
     <>
       <FlowHeader
