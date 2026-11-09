@@ -9,6 +9,7 @@ export const PATHS = {
   food: '/food',
   recipe: '/food/recipe/:recipeId',
   recipeEdit: '/food/recipe/:recipeId/edit',
+  shoppingAdd: '/food/shopping/add',
   fitness: '/fitness',
   stats: '/stats',
   profile: '/profile',

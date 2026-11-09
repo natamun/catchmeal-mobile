@@ -3,6 +3,8 @@ interface PillTabsProps<T extends string> {
   options: readonly { value: T; label: string }[];
   value: T | null;
   onChange: (value: T) => void;
+  /** Shares the whole width between the options. */
+  fill?: boolean;
   className?: string;
 }
 
@@ -15,6 +17,7 @@ export function PillTabs<T extends string>({
   options,
   value,
   onChange,
+  fill = false,
   className = '',
 }: PillTabsProps<T>) {
   return (
@@ -24,7 +27,7 @@ export function PillTabs<T extends string>({
       {options.map((option) => (
         <label
           key={option.value}
-          className="tap-area relative flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium text-theme-500 transition-colors has-checked:animate-pill-select has-checked:bg-theme-500 has-checked:text-on-accent"
+          className={`tap-area relative flex cursor-pointer items-center justify-center rounded-lg py-1.5 text-sm font-medium text-theme-500 transition-colors has-checked:animate-pill-select has-checked:bg-theme-500 has-checked:text-on-accent ${fill ? 'min-w-0 flex-1 px-1' : 'px-3'}`}
         >
           <input
             type="radio"

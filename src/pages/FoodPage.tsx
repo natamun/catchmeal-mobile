@@ -12,13 +12,14 @@ import { MealList } from '../components/meal/MealList';
 import type { Meal } from '../components/meal/types';
 import { listRecipes } from '../components/recipe/api';
 import { RecipeList } from '../components/recipe/RecipeList';
+import { ShoppingTab } from '../components/shopping/ShoppingTab';
 import { AddCircleButton } from '../components/ui/AddCircleButton';
 import { EditIconButton } from '../components/ui/EditIconButton';
 import { PillTabs } from '../components/ui/PillTabs';
 import { useList } from '../hooks/useList';
 import { recipePath } from '../routing/recipes';
 
-type Tab = 'food' | 'meal' | 'recipe';
+type Tab = 'food' | 'meal' | 'recipe' | 'shopping';
 
 /** The library meals, the journal left out. */
 const listLibraryMeals = (signal: AbortSignal) => listMeals(false, signal);
@@ -27,11 +28,13 @@ const TAB_OPTIONS: { value: Tab; label: string }[] = [
   { value: 'food', label: 'Aliments' },
   { value: 'meal', label: 'Repas' },
   { value: 'recipe', label: 'Recettes' },
+  { value: 'shopping', label: 'Courses' },
 ];
 
 /**
- * Food page with three tabs, the food library, the library meals and the
- * recipes, each with its create and edit dialog or page.
+ * Food page with four tabs: the food library, the library meals and the
+ * recipes, each with its create and edit dialog or page, and the shopping
+ * list.
  */
 export default function FoodPage() {
   const [activeTab, setActiveTab] = useState<Tab>('food');
@@ -67,7 +70,7 @@ export default function FoodPage() {
         options={TAB_OPTIONS}
         value={activeTab}
         onChange={setActiveTab}
-        className="self-start"
+        fill
       />
 
       <FoodItemForm
@@ -96,6 +99,8 @@ export default function FoodPage() {
               <EditIconButton onClick={() => openDialog(item)} />
             )}
           />
+        ) : activeTab === 'shopping' ? (
+          <ShoppingTab foodItems={foods.items} />
         ) : activeTab === 'recipe' ? (
           <RecipeList
             recipes={recipes.items}
