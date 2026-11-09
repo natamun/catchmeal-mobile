@@ -289,7 +289,10 @@ export function FoodItemForm({
       if (editingItem) {
         await updateFoodItem(editingItem.id, input);
       } else {
-        onCreated?.(await createFoodItem(input));
+        // Saved first: `onCreated?.(...)` alone would skip the saving when
+        // nobody listens, its argument included.
+        const created = await createFoodItem(input);
+        onCreated?.(created);
         setForm(EMPTY_FORM);
         setBarcodeFieldKey((key) => key + 1);
       }
