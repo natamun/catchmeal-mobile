@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Copy, LoaderCircle, Trash2 } from 'lucide-react';
+import { Copy, LoaderCircle, ShoppingCart, Trash2 } from 'lucide-react';
 import { useLocation, useMatch, useNavigate, useParams } from 'react-router';
 
 import { listFoodItems } from '../components/food/api';
@@ -25,13 +25,17 @@ import {
   StepRows,
   TextBlock,
 } from '../components/recipe/RecipeView';
-import { recipeMeta } from '../components/recipe/servings';
+import { recipeMeta, servingsLabel } from '../components/recipe/servings';
 import type { Recipe } from '../components/recipe/types';
 import {
   useRecipeEditor,
   type RecipeEditor,
 } from '../components/recipe/useRecipeEditor';
+import { addFoodsToShopping } from '../components/shopping/api';
+import { recipeToShopping } from '../components/shopping/lines';
+import { SECONDARY_BUTTON_CLASS } from '../components/ui/buttonStyle';
 import { EditIconButton } from '../components/ui/EditIconButton';
+import { useToast } from '../components/ui/toastContext';
 import { useKeepAwake } from '../hooks/useKeepAwake';
 import { useList } from '../hooks/useList';
 import { useGoBack } from '../routing/navigation';
@@ -85,7 +89,8 @@ interface SheetProps {
 
 /**
  * The recipe to read while cooking, every part one under the other, the
- * quantities for the servings chosen. The screen stays on meanwhile.
+ * quantities for the servings chosen, which also go to the shopping list.
+ * The screen stays on meanwhile.
  */
 function RecipeSheet({
   recipe,
@@ -95,7 +100,21 @@ function RecipeSheet({
   onCopy,
 }: SheetProps) {
   const [servings, setServings] = useState(recipe.servings);
+  const [isAdding, setIsAdding] = useState(false);
+  const showToast = useToast();
   useKeepAwake();
+
+  const addToShopping = async () => {
+    setIsAdding(true);
+    try {
+      await addFoodsToShopping(recipeToShopping(recipe, servings));
+      showToast(`Ajouté aux courses, pour ${servingsLabel(servings)}`);
+    } catch {
+      showToast('Ajout impossible, réessayez.');
+    } finally {
+      setIsAdding(false);
+    }
+  };
   return (
     <>
       <FlowHeader
@@ -134,6 +153,15 @@ function RecipeSheet({
           foodItems={foodItems}
           servings={servings}
         />
+        <button
+          type="button"
+          onClick={() => void addToShopping()}
+          disabled={isAdding}
+          className={`${SECONDARY_BUTTON_CLASS} flex-none self-start`}
+        >
+          <ShoppingCart className="h-4 w-4" />
+          Ajouter aux courses
+        </button>
       </RecipeCard>
       {recipe.cooking && (
         <RecipeCard title="Cuisson">
