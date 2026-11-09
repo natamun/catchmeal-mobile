@@ -7,6 +7,7 @@ import type { FoodItem } from '../components/food/types';
 import { useFlow } from '../components/layout/flowContext';
 import { FlowHeader } from '../components/layout/FlowHeader';
 import { listRecipes } from '../components/recipe/api';
+import { RecipeAiCard } from '../components/recipe/RecipeAiCard';
 import {
   CookingField,
   DeleteRecipeDialog,
@@ -89,8 +90,8 @@ interface SheetProps {
 
 /**
  * The recipe to read while cooking, every part one under the other, the
- * quantities for the servings chosen, which also go to the shopping list.
- * The screen stays on meanwhile.
+ * quantities for the servings chosen, which also go to the shopping list,
+ * and the recipe sent to an AI. The screen stays on meanwhile.
  */
 function RecipeSheet({
   recipe,
@@ -178,6 +179,7 @@ function RecipeSheet({
           <TextBlock>{recipe.notes}</TextBlock>
         </RecipeCard>
       )}
+      <RecipeAiCard recipe={recipe} foodItems={foodItems} />
     </>
   );
 }
