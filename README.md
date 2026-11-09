@@ -37,7 +37,7 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 - **Barcode scanning**: the camera reads the code, and [Open Food Facts](https://world.openfoodfacts.org) fills the food form.
 - **Food library**: values per 100 g, 100 ml or per piece, with an optional portion to log by the piece ("4 biscuits").
 - **Meal library and quick add**: meals saved once and logged again in one go, or calories and macros typed by hand.
-- **Recipes**: ingredients from the food library, cooking, numbered steps and notes, filtered by category. Each recipe shows its calories and macros per serving and its quantities for any number of servings, and the screen stays on while you cook. A recipe is logged by the serving.
+- **Recipes**: ingredients from the food library, cooking, numbered steps and notes, filtered by category. Each recipe shows its calories and macros per serving and its quantities for any number of servings, and the screen stays on while you cook. A recipe is logged by the serving, and can be sent to an AI chat with your goal to improve it.
 - **Shopping list**: foods, meals and recipes added for the servings you need, the same food added up into one line, and free items. You tick the list off in the shop and share it as text.
 
 ### Body and goals
@@ -50,8 +50,8 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 
 ### Training
 
-- **Logbook**, kept like the food journal: strength sets, treadmill and other cardio, one session a day.
-- **Training library**: your exercises and favorite sessions, each recalling its last values.
+- **Logbook**, kept like the food journal: strength and cardio in sets, each treadmill set at its own speed and incline, the other machines at their resistance, one session a day.
+- **Training library**: your exercises and favorite sessions, each starting from its last sets.
 - **Exercise sheet**: records, estimated one-rep max, progress curve and last sessions.
 
 ### Statistics

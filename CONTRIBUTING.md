@@ -217,15 +217,21 @@ erDiagram
         int workout_id FK
         int exercise_id FK
         int position
-        real duration_minutes "cardio"
-        real speed_kmh "treadmill"
-        real incline_percent "treadmill"
     }
     workout_set {
         int id PK
         int workout_exercise_id FK
         int reps
         real weight_kg
+    }
+    cardio_set {
+        int id PK
+        int workout_exercise_id FK
+        int position
+        real duration_minutes
+        real speed_kmh "treadmill"
+        real incline_percent "treadmill"
+        real resistance "other machines, optional"
     }
     workout_template {
         int id PK
@@ -236,9 +242,6 @@ erDiagram
         int template_id FK
         int exercise_id FK
         int position
-        real duration_minutes "cardio, optional"
-        real speed_kmh "treadmill, optional"
-        real incline_percent "treadmill, optional"
     }
 
     meal ||--o{ meal_item : "contains"
@@ -252,6 +255,7 @@ erDiagram
     workout ||--|{ workout_exercise : "contains"
     exercise ||--o{ workout_exercise : "done in"
     workout_exercise ||--o{ workout_set : "made of"
+    workout_exercise ||--o{ cardio_set : "made of"
     workout_template ||--|{ workout_template_exercise : "contains"
     exercise ||--o{ workout_template_exercise : "used in"
 ```
@@ -260,4 +264,4 @@ erDiagram
 - A recipe's calories and macros are not stored: they come from the current values of its foods. A deleted recipe is archived, like a food, so the meals that logged it keep its name.
 - The shopping list holds each food once: adding it again adds up the quantity, whatever recipe it is for.
 - Training sessions are a logbook: their calories are neither estimated nor added to the goals, because the measured expenditure already holds the training.
-- Three columns are left from earlier versions and no longer read: `met` in `exercise`, the effort once used to estimate those calories, and `name` and `duration_minutes` in `workout`, empty since the sessions became one a day.
+- Some columns are left from earlier versions, empty and no longer read: `met` in `exercise`, the effort once used to estimate those calories; `name` and `duration_minutes` in `workout`, since the sessions became one a day; and `duration_minutes`, `speed_kmh` and `incline_percent` in `workout_exercise` and `workout_template_exercise`, since cardio is logged in sets. A favorite holds no values: a session started from it begins with the sets of the last time.
