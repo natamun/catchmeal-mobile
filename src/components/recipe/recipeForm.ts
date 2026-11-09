@@ -91,6 +91,16 @@ export function recipeToForm(
   };
 }
 
+const COPY = ' (copie)';
+
+/** A new recipe filled from another, its name marked as a copy. */
+export function copyToForm(recipe: Recipe, foodItems: FoodItem[]): RecipeForm {
+  return {
+    ...recipeToForm(recipe, foodItems),
+    name: `${recipe.name.slice(0, RECIPE_LIMITS.name - COPY.length)}${COPY}`,
+  };
+}
+
 const writtenSteps = (steps: StepDraft[]) =>
   steps.map(({ text }) => text.trim()).filter((text) => text !== '');
 

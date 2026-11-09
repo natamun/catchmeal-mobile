@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { FoodItem } from '../food/types';
 import { newFoodDraft } from '../meal/draft';
 import {
+  copyToForm,
   emptyRecipeForm,
   formPerServing,
   formToInput,
@@ -122,6 +123,34 @@ describe('recipeToForm', () => {
         item.kind === 'food' ? item.inPortions : null,
       ),
     ).toEqual([true, false]);
+  });
+});
+
+describe('copyToForm', () => {
+  it('fills a new recipe from another, named as a copy within 120 characters', () => {
+    const recipe: Recipe = {
+      id: 3,
+      name: 'Tiramisu',
+      servings: 6,
+      category: 'DESSERT',
+      prepMinutes: 30,
+      cooking: null,
+      notes: 'Au frais 4 h.',
+      ingredients: [{ id: 1, foodItemId: 1, quantity: 48 }],
+      steps: ['Tremper.'],
+      totals: { kcal: 0, protein: 0, carbs: 0, fat: 0 },
+      archived: false,
+    };
+
+    expect(copyToForm(recipe, [BISCUIT])).toMatchObject({
+      name: 'Tiramisu (copie)',
+      servings: 6,
+      notes: 'Au frais 4 h.',
+      steps: [{ text: 'Tremper.' }],
+    });
+    expect(
+      copyToForm({ ...recipe, name: 'a'.repeat(120) }, [BISCUIT]).name,
+    ).toHaveLength(120);
   });
 });
 

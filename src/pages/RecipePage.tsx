@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import { LoaderCircle, Trash2 } from 'lucide-react';
-import { useMatch, useNavigate, useParams } from 'react-router';
+import { Copy, LoaderCircle, Trash2 } from 'lucide-react';
+import { useLocation, useMatch, useNavigate, useParams } from 'react-router';
 
 import { listFoodItems } from '../components/food/api';
 import type { FoodItem } from '../components/food/types';
@@ -41,8 +41,14 @@ import { recipeEditPath, recipePath } from '../routing/recipes';
 const HEADER_BUTTON_CLASS =
   'flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-theme-400 transition-colors hover:bg-theme-100';
 
+/** What the page is opened with: a new recipe can start as a copy. */
+interface RecipeState {
+  copyOf?: number;
+}
+
 interface PageProps {
   recipe: Recipe | null;
+  copyOf: Recipe | null;
   foodItems: FoodItem[];
   /** The page itself: the dropdowns render in it. */
   container: HTMLElement | null;
@@ -74,13 +80,20 @@ interface SheetProps {
   foodItems: FoodItem[];
   onClose: () => void;
   onEdit: () => void;
+  onCopy: () => void;
 }
 
 /**
  * The recipe to read while cooking, every part one under the other, the
  * quantities for the servings chosen. The screen stays on meanwhile.
  */
-function RecipeSheet({ recipe, foodItems, onClose, onEdit }: SheetProps) {
+function RecipeSheet({
+  recipe,
+  foodItems,
+  onClose,
+  onEdit,
+  onCopy,
+}: SheetProps) {
   const [servings, setServings] = useState(recipe.servings);
   useKeepAwake();
   return (
@@ -89,7 +102,19 @@ function RecipeSheet({ recipe, foodItems, onClose, onEdit }: SheetProps) {
         title={recipe.name}
         subtitle={recipeMeta(recipe) || 'Recette'}
         onClose={onClose}
-        action={<EditIconButton size="lg" onClick={onEdit} />}
+        action={
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={onCopy}
+              title="Dupliquer"
+              className={`${HEADER_BUTTON_CLASS} hover:text-theme-600`}
+            >
+              <Copy className="h-5 w-5" />
+            </button>
+            <EditIconButton size="lg" onClick={onEdit} />
+          </div>
+        }
       />
       <RecipeCard>
         <ServingNutrition recipe={recipe} />
@@ -132,18 +157,27 @@ function RecipeSheet({ recipe, foodItems, onClose, onEdit }: SheetProps) {
 /** The recipe to write, on its own page, every part stacked. */
 function EditRecipe({
   recipe,
+  copyOf,
   foodItems,
   container,
   onClose,
   onSaved,
   onDeleted,
 }: PageProps) {
-  const editor = useRecipeEditor({ recipe, foodItems, onSaved, onDeleted });
+  const editor = useRecipeEditor({
+    recipe,
+    copyOf,
+    foodItems,
+    onSaved,
+    onDeleted,
+  });
   return (
     <>
       <FlowHeader
         title={recipe ? 'Modifier la recette' : 'Nouvelle recette'}
-        subtitle={recipe?.name ?? 'Recettes'}
+        subtitle={
+          recipe?.name ?? (copyOf ? `Copie de ${copyOf.name}` : 'Recettes')
+        }
         onClose={onClose}
         action={<DeleteAction editor={editor} />}
       />
@@ -168,11 +202,13 @@ function EditRecipe({
 }
 
 /**
- * /food/recipe/:recipeId: a recipe to read, or "new" to write one, and
+ * /food/recipe/:recipeId: a recipe to read, or "new" to write one (a copy of
+ * another when the page is opened with `copyOf`), and
  * /food/recipe/:recipeId/edit to edit it. Slides in over the food page.
  */
 export default function RecipePage() {
   const { recipeId = '' } = useParams();
+  const { state } = useLocation() as { state: RecipeState | null };
   const isEditRoute = useMatch(PATHS.recipeEdit) !== null;
   const navigate = useNavigate();
   const flow = useFlow();
@@ -192,9 +228,13 @@ export default function RecipePage() {
     : (recipes.items.find((item) => item.id === id) ??
       (lastSaved?.id === id ? lastSaved : null));
 
+  const copyOf =
+    (isNew && recipes.items.find((item) => item.id === state?.copyOf)) || null;
+
   const close = () => flow.close(backToFood);
   const props = {
     recipe,
+    copyOf,
     foodItems: foods.items,
     container: node,
     onClose: close,
@@ -243,6 +283,11 @@ export default function RecipePage() {
         foodItems={foods.items}
         onClose={close}
         onEdit={() => void navigate(recipeEditPath(id))}
+        onCopy={() =>
+          void navigate(recipePath('new'), {
+            state: { copyOf: id } satisfies RecipeState,
+          })
+        }
       />
     );
   }

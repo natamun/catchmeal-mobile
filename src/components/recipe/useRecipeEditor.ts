@@ -5,6 +5,7 @@ import type { FoodItem } from '../food/types';
 import { useToast } from '../ui/toastContext';
 import { createRecipe, deleteRecipe, updateRecipe } from './api';
 import {
+  copyToForm,
   emptyRecipeForm,
   formToInput,
   recipeToForm,
@@ -16,6 +17,8 @@ import type { Recipe } from './types';
 interface EditorOptions {
   /** The recipe edited, null for a new one. */
   recipe: Recipe | null;
+  /** For a new recipe, the one it starts as a copy of. */
+  copyOf?: Recipe | null;
   /** The whole library, loaded: the form is filled from it once. */
   foodItems: FoodItem[];
   onSaved: (recipe: Recipe) => void;
@@ -29,13 +32,15 @@ interface EditorOptions {
  */
 export function useRecipeEditor({
   recipe,
+  copyOf,
   foodItems,
   onSaved,
   onDeleted,
 }: EditorOptions) {
-  const [form, setForm] = useState<RecipeForm>(() =>
-    recipe ? recipeToForm(recipe, foodItems) : emptyRecipeForm(),
-  );
+  const [form, setForm] = useState<RecipeForm>(() => {
+    if (recipe) return recipeToForm(recipe, foodItems);
+    return copyOf ? copyToForm(copyOf, foodItems) : emptyRecipeForm();
+  });
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
