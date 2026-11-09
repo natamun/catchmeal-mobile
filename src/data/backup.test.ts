@@ -16,6 +16,11 @@ import { archiveFoodItem, createFoodItem } from './foodItems';
 import { createMeal } from './meals';
 import { getProfile, updateProfile } from './profile';
 import { createRecipe, listRecipes } from './recipes';
+import {
+  addFoodsToShopping,
+  addLabelToShopping,
+  listShopping,
+} from './shopping';
 import { logWeight } from './weights';
 import { addToDay, listWorkouts } from './workouts';
 import { createTemplate, listTemplates } from './workoutTemplates';
@@ -65,6 +70,8 @@ async function filledDatabase() {
     ],
   });
   await archiveFoodItem(db, old.id);
+  await addFoodsToShopping(db, [{ foodItemId: apple.id, quantity: 800 }]);
+  await addLabelToShopping(db, 'Sacs poubelle');
   await createMeal(db, {
     name: 'Bircher',
     items: [{ foodItemId: apple.id, quantity: 80 }],
@@ -144,6 +151,7 @@ describe('backup', () => {
     expect(backup.recipe).toHaveLength(1);
     expect(backup.recipe_ingredient).toHaveLength(1);
     expect(backup.recipe_step).toHaveLength(2);
+    expect(backup.shopping_item).toHaveLength(2);
     expect(backup.meal).toHaveLength(2);
     expect(backup.meal_item).toHaveLength(4);
     expect(backup.weight_log).toHaveLength(1);
@@ -254,6 +262,7 @@ describe('backup', () => {
   it('empties the recipes when restoring a file from before them', async () => {
     const old = structuredClone(backup);
     old.format = 6;
+    delete old.shopping_item;
     delete old.recipe;
     delete old.recipe_ingredient;
     delete old.recipe_step;
@@ -265,6 +274,18 @@ describe('backup', () => {
 
     expect(await listRecipes(target)).toEqual([]);
     expect((await exportBackup(target, NOW)).meal_item).toHaveLength(3);
+  });
+
+  it('empties the shopping list when restoring a file from before it', async () => {
+    const old = structuredClone(backup);
+    old.format = 7;
+    delete old.shopping_item;
+    const target = await filledDatabase();
+
+    await restoreBackup(target, parseBackup(asText(old)));
+
+    expect(await listShopping(target)).toEqual([]);
+    expect(await listRecipes(target)).toHaveLength(1);
   });
 
   it('replaces the data already there', async () => {

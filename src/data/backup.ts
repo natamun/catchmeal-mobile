@@ -7,7 +7,7 @@ const APP = 'CatCHMeal';
  * Version of the file layout. A newer app keeps reading older files; an older
  * app refuses a newer file instead of guessing.
  */
-export const BACKUP_FORMAT = 7;
+export const BACKUP_FORMAT = 8;
 
 /** The format that added the fitness tables. */
 const FITNESS_FORMAT = 2;
@@ -15,6 +15,8 @@ const FITNESS_FORMAT = 2;
 const TEMPLATES_FORMAT = 3;
 /** The format that added the recipes. */
 const RECIPES_FORMAT = 7;
+/** The format that added the shopping list. */
+const SHOPPING_FORMAT = 8;
 
 /** The stored columns of each table, in the order rows are restored. */
 const TABLES = {
@@ -67,6 +69,7 @@ const TABLES = {
     'quantity',
   ],
   recipe_step: ['id', 'recipe_id', 'position', 'instruction'],
+  shopping_item: ['id', 'food_item_id', 'label', 'quantity', 'checked'],
   meal: ['id', 'name', 'type_meal', 'logged_at', 'source_meal_id'],
   meal_item: [
     'id',
@@ -130,6 +133,7 @@ const LIST_TABLES = [
   'recipe',
   'recipe_ingredient',
   'recipe_step',
+  'shopping_item',
   'meal',
   'meal_item',
   'weight_log',
@@ -176,6 +180,7 @@ function tablesIn(backup: Pick<Backup, 'format'>): readonly ListTable[] {
     ...(backup.format < FITNESS_FORMAT ? FITNESS_TABLES : []),
     ...(backup.format < TEMPLATES_FORMAT ? TEMPLATE_TABLES : []),
     ...(backup.format < RECIPES_FORMAT ? RECIPE_TABLES : []),
+    ...(backup.format < SHOPPING_FORMAT ? ['shopping_item' as const] : []),
   ];
   return without(missing);
 }
@@ -183,8 +188,9 @@ function tablesIn(backup: Pick<Backup, 'format'>): readonly ListTable[] {
 /**
  * The tables a restore replaces. A file from before the fitness tab leaves
  * them all as they are; a later one replaces the exercises, so the favorites
- * made of them go too, even when the file has none. The recipes are made of
- * the foods, so they are always replaced, emptied by a file from before them.
+ * made of them go too, even when the file has none. The recipes and the
+ * shopping list are made of the foods, so they are always replaced, emptied
+ * by a file from before them.
  */
 function tablesRestored(backup: Pick<Backup, 'format'>): readonly ListTable[] {
   return backup.format < FITNESS_FORMAT ? without(FITNESS_TABLES) : LIST_TABLES;
@@ -205,6 +211,8 @@ export interface Backup {
   recipe?: Row[];
   recipe_ingredient?: Row[];
   recipe_step?: Row[];
+  /** The shopping list, missing from the files before the eighth format. */
+  shopping_item?: Row[];
   /** The fitness tables, missing from the files of the first format. */
   exercise?: Row[];
   workout?: Row[];
@@ -242,6 +250,7 @@ export async function exportBackup(
     recipe: [],
     recipe_ingredient: [],
     recipe_step: [],
+    shopping_item: [],
     meal: [],
     meal_item: [],
     weight_log: [],
