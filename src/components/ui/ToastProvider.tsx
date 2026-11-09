@@ -9,7 +9,8 @@ const TOAST_DURATION_MS = 3000;
 
 /**
  * Displays one toast at a time for the logged-in part of the app; a new message
- * replaces the current one. It vanishes after 3 seconds.
+ * replaces the current one. It vanishes after 3 seconds, or at once when
+ * swiped away.
  */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<{
@@ -19,10 +20,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   // Only the message is cleared: the icon must stay during the fade-out
   // animation.
-  useTimeout(
+  const hide = useCallback(
     () => setToast((current) => ({ ...current, message: null })),
-    toast.message ? TOAST_DURATION_MS : null,
+    [],
   );
+  useTimeout(hide, toast.message ? TOAST_DURATION_MS : null);
 
   const showToast = useCallback<ShowToast>(
     (message, icon = CheckCircle2) => setToast({ message, icon }),
@@ -32,7 +34,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={showToast}>
       {children}
-      <Toast message={toast.message} icon={toast.icon} />
+      <Toast message={toast.message} icon={toast.icon} onDismiss={hide} />
     </ToastContext.Provider>
   );
 }
