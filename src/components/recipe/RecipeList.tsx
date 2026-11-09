@@ -89,6 +89,7 @@ export function RecipeList({
             criteria={criteria}
             onFilterChange={setCriteria}
             categories={categories}
+            note="Valeurs par portion, en grammes"
           />
           {headerAction}
         </>

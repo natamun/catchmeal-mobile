@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { ChevronRight, Filter, Search } from 'lucide-react';
 
+import { MACROS } from '../../constants/macros';
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { BaseDialog } from './BaseDialog';
 import { PRIMARY_BUTTON_CLASS } from './buttonStyle';
@@ -115,19 +116,27 @@ interface MacroSearchBarProps {
   onFilterChange: (criteria: FilterCriteria) => void;
   /** The categories to filter on, for a list that has some. */
   categories?: { value: string; label: string }[];
+  /** What the values are, under the sliders. */
+  note?: string;
 }
+
+/** The color of a macro's dots in the lists, none for the calories. */
+const dotOf = (key: MacroKey) =>
+  MACROS.find((macro) => macro.key === key)?.color;
 
 /**
  * Search bar of the food, meal and recipe lists. The text filters right
  * away; the filter dialog (sort, category when the list has some, one slider
- * per macro) applies its choices only when "Appliquer" is pressed. The filter
- * icon is filled while a range is narrowed or a category kept.
+ * per macro, which also tells the colors of the macro dots of the lists)
+ * applies its choices only when "Appliquer" is pressed. The filter icon is
+ * filled while a range is narrowed or a category kept.
  */
 export function MacroSearchBar({
   items,
   criteria,
   onFilterChange,
   categories = [],
+  note = 'Valeurs en grammes',
 }: MacroSearchBarProps) {
   const [draftMacros, setDraftMacros] = useState<MacroDraft>(
     EMPTY_FILTER_CRITERIA,
@@ -287,7 +296,12 @@ export function MacroSearchBar({
               return (
                 <div key={key} className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-theme-700">
+                    <span className="flex items-center gap-1.5 text-xs font-medium text-theme-700">
+                      {dotOf(key) && (
+                        <span
+                          className={`h-2 w-2 rounded-full ${dotOf(key)}`}
+                        />
+                      )}
                       {label}
                     </span>
                     <span className="text-xs text-theme-500">
@@ -343,13 +357,16 @@ export function MacroSearchBar({
             })}
           </div>
 
-          <button
-            type="button"
-            onClick={resetFilters}
-            className="cursor-pointer self-start text-xs font-medium text-theme-500 underline-offset-2 hover:underline"
-          >
-            Réinitialiser
-          </button>
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="cursor-pointer text-xs font-medium text-theme-500 underline-offset-2 hover:underline"
+            >
+              Réinitialiser
+            </button>
+            <span className="text-xs text-theme-400">{note}</span>
+          </div>
         </div>
 
         <button
