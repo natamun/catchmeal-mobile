@@ -50,6 +50,7 @@ async function filledDatabase() {
     servings: 4,
     category: 'DESSERT',
     prepMinutes: 30,
+    cooking: '20 min à couvert.',
     notes: 'Sans sucre ajouté.',
     ingredients: [{ foodItemId: apple.id, quantity: 800 }],
     steps: ['Couper les pommes.', 'Cuire 20 minutes.'],

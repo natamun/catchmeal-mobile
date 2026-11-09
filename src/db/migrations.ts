@@ -260,8 +260,8 @@ ALTER TABLE profile ADD COLUMN goal_pace REAL CHECK (goal_pace >= 0 AND goal_pac
 
 /**
  * Recipes: a name, a number of servings, an optional category and
- * preparation time, the ingredients taken from the food library, the steps in
- * order and free notes. A journal line can be servings of a recipe, its values
+ * preparation time, the ingredients taken from the food library, the cooking
+ * written freely, the steps in order and free notes. A journal line can be servings of a recipe, its values
  * stored like a food's. An archived recipe is hidden but kept for the meals
  * that logged it.
  */
@@ -272,6 +272,7 @@ CREATE TABLE recipe (
   servings INTEGER NOT NULL CHECK (servings > 0),
   category TEXT CHECK (category IN ('BREAKFAST', 'STARTER', 'MAIN', 'SIDE', 'DESSERT', 'SNACK', 'SAUCE', 'DRINK')),
   prep_minutes INTEGER CHECK (prep_minutes > 0),
+  cooking TEXT CHECK (cooking IS NULL OR length(trim(cooking)) > 0),
   notes TEXT CHECK (notes IS NULL OR length(trim(notes)) > 0),
   archived INTEGER NOT NULL DEFAULT 0 CHECK (archived IN (0, 1))
 ) STRICT;

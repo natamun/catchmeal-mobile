@@ -441,6 +441,7 @@ describe('recipe', () => {
       { name: 'Curry', servings: 0 },
       { name: 'Curry', servings: 4, category: 'BRUNCH' },
       { name: 'Curry', servings: 4, prep_minutes: 0 },
+      { name: 'Curry', servings: 4, cooking: ' ' },
       { name: 'Curry', servings: 4, notes: ' ' },
     ];
     for (const row of rows) {

@@ -58,6 +58,8 @@ export interface Recipe {
   servings: number;
   category: RecipeCategory | null;
   prepMinutes: number | null;
+  /** How it cooks, written freely: "25 min au four à 180 °C". */
+  cooking: string | null;
   /** Free notes: replacements, storage, anything else. */
   notes: string | null;
   ingredients: RecipeIngredient[];
@@ -73,6 +75,7 @@ export interface RecipeInput {
   servings: number;
   category: RecipeCategory | null;
   prepMinutes: number | null;
+  cooking: string | null;
   notes: string | null;
   ingredients: { foodItemId: number; quantity: number }[];
   steps: string[];

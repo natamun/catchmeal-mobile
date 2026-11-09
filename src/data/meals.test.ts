@@ -190,6 +190,7 @@ describe('a recipe line', () => {
       servings: 4,
       category: null,
       prepMinutes: null,
+      cooking: null,
       notes: null,
       ingredients: [
         { foodItemId: apple.id, quantity: 800 },
@@ -226,6 +227,7 @@ describe('a recipe line', () => {
       servings: 2,
       category: null,
       prepMinutes: null,
+      cooking: null,
       notes: null,
       ingredients: [{ foodItemId: apple.id, quantity: 800 }],
       steps: [],

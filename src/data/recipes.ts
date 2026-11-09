@@ -25,6 +25,7 @@ interface RecipeRow {
   servings: number;
   category: RecipeCategory | null;
   prep_minutes: number | null;
+  cooking: string | null;
   notes: string | null;
   archived: number;
 }
@@ -74,6 +75,7 @@ function validateRecipe(input: RecipeInput) {
       'temps de préparation',
       { min: 0, exclusive: true, max: 1440, integer: true },
     ),
+    cooking: checkOptionalText(input.cooking, 'cuisson', 500),
     notes: checkOptionalText(input.notes, 'notes', 2000),
     steps: input.steps.map((step) => checkText(step, 'étape', 500)),
   };
@@ -160,7 +162,7 @@ function totalsOf(ingredients: IngredientRow[]): Nutrition {
 /** Reads recipes with their ingredients and steps, sorted by name. */
 async function readRecipes(db: Executor, where: string, params: SqlValue[]) {
   const recipes = await db.query<RecipeRow>(
-    `SELECT id, name, servings, category, prep_minutes, notes, archived
+    `SELECT id, name, servings, category, prep_minutes, cooking, notes, archived
      FROM recipe WHERE ${where}`,
     params,
   );
@@ -188,6 +190,7 @@ async function readRecipes(db: Executor, where: string, params: SqlValue[]) {
         servings: recipe.servings,
         category: recipe.category,
         prepMinutes: recipe.prep_minutes,
+        cooking: recipe.cooking,
         notes: recipe.notes,
         ingredients: own.map((item) => ({
           id: item.id,
@@ -240,13 +243,14 @@ export async function createRecipe(db: Database, input: RecipeInput) {
   return db.transaction(async (tx) => {
     const ingredients = await checkIngredients(tx, input.ingredients, null);
     const { lastId } = await tx.run(
-      `INSERT INTO recipe (name, servings, category, prep_minutes, notes)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO recipe (name, servings, category, prep_minutes, cooking, notes)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [
         recipe.name,
         recipe.servings,
         recipe.category,
         recipe.prepMinutes,
+        recipe.cooking,
         recipe.notes,
       ],
     );
@@ -271,13 +275,14 @@ export async function updateRecipe(
     // still counts as part of this recipe.
     const ingredients = await checkIngredients(tx, input.ingredients, id);
     const { changes } = await tx.run(
-      `UPDATE recipe SET name = ?, servings = ?, category = ?, prep_minutes = ?, notes = ?
+      `UPDATE recipe SET name = ?, servings = ?, category = ?, prep_minutes = ?, cooking = ?, notes = ?
        WHERE id = ? AND archived = 0`,
       [
         recipe.name,
         recipe.servings,
         recipe.category,
         recipe.prepMinutes,
+        recipe.cooking,
         recipe.notes,
         id,
       ],

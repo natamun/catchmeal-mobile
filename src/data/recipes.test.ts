@@ -54,6 +54,7 @@ const curry = (override: Partial<RecipeInput> = {}): RecipeInput => ({
   servings: 4,
   category: 'MAIN',
   prepMinutes: 35,
+  cooking: '20 min à feu doux.',
   notes: 'Le poulet se remplace par de la dinde.',
   ingredients: [
     { foodItemId: chicken.id, quantity: 800 },
@@ -73,6 +74,7 @@ describe('createRecipe', () => {
       servings: 4,
       category: 'MAIN',
       prepMinutes: 35,
+      cooking: '20 min à feu doux.',
       notes: 'Le poulet se remplace par de la dinde.',
       ingredients: [
         {
@@ -95,6 +97,7 @@ describe('createRecipe', () => {
         name: '  Omelette ',
         category: null,
         prepMinutes: null,
+        cooking: ' ',
         notes: '   ',
         steps: ['  Battre les œufs. '],
       }),
@@ -104,6 +107,7 @@ describe('createRecipe', () => {
       name: 'Omelette',
       category: null,
       prepMinutes: null,
+      cooking: null,
       notes: null,
       steps: ['Battre les œufs.'],
     });
@@ -138,6 +142,7 @@ describe('createRecipe', () => {
     ['a preparation of 0 minutes', { prepMinutes: 0 }],
     ['a preparation over a day', { prepMinutes: 1441 }],
     ['a preparation in part of a minute', { prepMinutes: 12.5 }],
+    ['a cooking over 500 characters', { cooking: 'a'.repeat(501) }],
     ['notes over 2000 characters', { notes: 'a'.repeat(2001) }],
     ['no ingredient', { ingredients: [] }],
     [

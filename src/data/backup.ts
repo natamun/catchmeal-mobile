@@ -55,6 +55,7 @@ const TABLES = {
     'servings',
     'category',
     'prep_minutes',
+    'cooking',
     'notes',
     'archived',
   ],
