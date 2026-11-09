@@ -39,7 +39,8 @@ const LOADING = (
  * sit side by side as a carousel and stay mounted: switching tab keeps each
  * one's data, state and scroll, and the app prepares them all right after it
  * opens. The tabs off screen cannot be focused or touched. Adding to the
- * journal comes through the Outlet, in a FlowLayer over the journal.
+ * journal and the recipe pages come through the Outlet, in a FlowLayer over
+ * their tab.
  */
 export function AppLayout() {
   const { pathname } = useLocation();
@@ -48,8 +49,13 @@ export function AppLayout() {
   useSwipeTabs(mainRef, trackRef, TAB_PATHS);
 
   const activeIndex = TAB_PATHS.indexOf(pathname);
-  // Adding to the journal slides in over it, the journal staying behind.
+  // Adding to the journal slides in over it, the journal staying behind, and
+  // a recipe over the food page. A recipe and its edit page share one layer.
+  const isRecipe =
+    matchPath(PATHS.recipe, pathname) !== null ||
+    matchPath(PATHS.recipeEdit, pathname) !== null;
   const isFlow =
+    isRecipe ||
     pathname === PATHS.trainingAdd ||
     matchPath(PATHS.journalAdd, pathname) !== null;
   const [areAllPrepared, setAreAllPrepared] = useState(false);
@@ -100,7 +106,7 @@ export function AppLayout() {
         </main>
       </div>
       {isFlow && (
-        <FlowLayer key={pathname}>
+        <FlowLayer key={isRecipe ? 'recipe' : pathname}>
           <Suspense fallback={LOADING}>
             <Outlet />
           </Suspense>

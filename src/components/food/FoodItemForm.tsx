@@ -187,6 +187,8 @@ interface FoodItemFormProps {
   dialogRef: RefObject<HTMLDialogElement | null>;
   editingItem: FoodItem | null;
   foodItems: FoodItem[];
+  /** Receives a food just added, such as a recipe adding it as ingredient. */
+  onCreated?: (item: FoodItem) => void;
 }
 
 /**
@@ -198,6 +200,7 @@ export function FoodItemForm({
   dialogRef,
   editingItem,
   foodItems,
+  onCreated,
 }: FoodItemFormProps) {
   const {
     form,
@@ -286,7 +289,7 @@ export function FoodItemForm({
       if (editingItem) {
         await updateFoodItem(editingItem.id, input);
       } else {
-        await createFoodItem(input);
+        onCreated?.(await createFoodItem(input));
         setForm(EMPTY_FORM);
         setBarcodeFieldKey((key) => key + 1);
       }

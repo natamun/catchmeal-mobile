@@ -1,19 +1,29 @@
+import type { ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
 interface Props {
   title: string;
-  /** The day it adds to, such as "Vendredi 6 novembre". */
+  /** The line under the title, such as the day it adds to. */
   subtitle: string;
   onClose: () => void;
   /** Goes back to the first step, from the second. */
   onBack?: () => void;
+  /** Buttons on the right, such as edit or delete. */
+  action?: ReactNode;
 }
 
 /**
- * Top of an adding flow, staying while its list scrolls: what is added and
- * to which day, and an arrow back, to the first step or out of the flow.
+ * Top of a flow page, staying while it scrolls: what is shown and the line
+ * under it, an arrow back (to the first step or out of the flow), and the
+ * page's own buttons on the right.
  */
-export function FlowHeader({ title, subtitle, onClose, onBack }: Props) {
+export function FlowHeader({
+  title,
+  subtitle,
+  onClose,
+  onBack,
+  action,
+}: Props) {
   return (
     <div className="sticky top-0 z-10 -mx-6 flex items-center gap-2 bg-theme-50 px-4 py-3">
       <button
@@ -27,6 +37,7 @@ export function FlowHeader({ title, subtitle, onClose, onBack }: Props) {
         <h2 className="truncate text-lg font-bold text-theme-800">{title}</h2>
         <p className="truncate text-sm text-theme-500">{subtitle}</p>
       </div>
+      {action}
     </div>
   );
 }
