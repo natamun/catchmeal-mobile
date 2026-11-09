@@ -71,7 +71,7 @@ export function ExercisePicker({ exercises, dialogNode, onPick }: Props) {
           ref={inputRef}
           id={id}
           type="text"
-          placeholder="Rechercher ou créer un exercice..."
+          placeholder="Rechercher..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onFocus={() => setIsFocused(true)}

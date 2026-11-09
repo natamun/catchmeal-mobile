@@ -90,7 +90,6 @@ export function FoodItemList({
         <>
           <MacroSearchBar
             items={activeItems}
-            placeholder="Rechercher un aliment..."
             criteria={criteria}
             onFilterChange={setCriteria}
           />

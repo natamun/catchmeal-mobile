@@ -85,7 +85,7 @@ export function ExerciseList({
               ref={inputRef}
               type="text"
               data-hides-nav
-              placeholder="Rechercher un exercice..."
+              placeholder="Rechercher..."
               className="pl-9"
               value={query}
               onChange={(e) => setQuery(e.target.value)}

@@ -108,7 +108,6 @@ function clampToBounds(filter: MacroFilter, bounds: MacroFilter): MacroFilter {
 
 interface MacroSearchBarProps {
   items: Macros[];
-  placeholder: string;
   criteria: FilterCriteria;
   onFilterChange: (criteria: FilterCriteria) => void;
 }
@@ -120,7 +119,6 @@ interface MacroSearchBarProps {
  */
 export function MacroSearchBar({
   items,
-  placeholder,
   criteria,
   onFilterChange,
 }: MacroSearchBarProps) {
@@ -197,7 +195,7 @@ export function MacroSearchBar({
         ref={inputRef}
         type="text"
         data-hides-nav
-        placeholder={placeholder}
+        placeholder="Rechercher..."
         className="pr-10 pl-9"
         value={criteria.query}
         onChange={(e) => updateQuery(e.target.value)}

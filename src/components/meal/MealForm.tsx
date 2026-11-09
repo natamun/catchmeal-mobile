@@ -309,7 +309,7 @@ export function MealForm({ dialogRef, foodItems, editingMeal }: MealFormProps) {
               <Input
                 id="meal-item-search"
                 type="text"
-                placeholder="Rechercher un aliment..."
+                placeholder="Rechercher..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onFocus={() => setSearchFocused(true)}

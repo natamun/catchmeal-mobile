@@ -84,7 +84,6 @@ export function MealList({
         <>
           <MacroSearchBar
             items={meals.map(mealTotals)}
-            placeholder="Rechercher un repas..."
             criteria={criteria}
             onFilterChange={setCriteria}
           />
