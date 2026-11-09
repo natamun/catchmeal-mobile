@@ -302,6 +302,25 @@ ALTER TABLE meal_item ADD COLUMN recipe_id INTEGER REFERENCES recipe (id) CHECK 
 CREATE INDEX meal_item_recipe ON meal_item (recipe_id);
 `;
 
+/**
+ * The shopping list: foods with their quantity, once each, and free texts.
+ * A line stays until it is removed; checking it only marks it as in the
+ * basket.
+ */
+const SHOPPING_V12 = `
+CREATE TABLE shopping_item (
+  id INTEGER PRIMARY KEY,
+  food_item_id INTEGER REFERENCES food_item (id),
+  label TEXT CHECK (label IS NULL OR length(trim(label)) > 0),
+  quantity REAL CHECK (quantity > 0),
+  checked INTEGER NOT NULL DEFAULT 0 CHECK (checked IN (0, 1)),
+  CHECK ((food_item_id IS NULL) <> (label IS NULL)),
+  CHECK ((food_item_id IS NULL) = (quantity IS NULL))
+) STRICT;
+
+CREATE UNIQUE INDEX shopping_item_food_once ON shopping_item (food_item_id);
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: SCHEMA_V1 },
@@ -315,6 +334,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 9, sql: FOOD_PORTION_V9 },
   { version: 10, sql: GOAL_PACE_V10 },
   { version: 11, sql: RECIPES_V11 },
+  { version: 12, sql: SHOPPING_V12 },
 ];
 
 /**

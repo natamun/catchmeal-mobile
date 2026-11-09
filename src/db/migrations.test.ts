@@ -115,6 +115,7 @@ describe('migrate', () => {
       'recipe',
       'recipe_ingredient',
       'recipe_step',
+      'shopping_item',
       'weight_log',
       'workout',
       'workout_exercise',
@@ -489,6 +490,28 @@ describe('recipe', () => {
         food_item_id: foodId,
       }),
     ).rejects.toThrow(REFUSED);
+  });
+});
+
+describe('shopping_item', () => {
+  it('refuses a line that is not one food with its quantity, once, or one text', async () => {
+    const { lastId: foodId } = await insert('food_item', FOOD);
+    const rows: Row[] = [
+      { checked: 0 },
+      { food_item_id: foodId },
+      { label: 'Sacs', quantity: 2 },
+      { food_item_id: foodId, quantity: 100, label: 'Poulet' },
+      { label: ' ' },
+      { food_item_id: foodId, quantity: 0 },
+      { food_item_id: 999, quantity: 100 },
+      { food_item_id: foodId, quantity: 50 },
+    ];
+
+    await insert('shopping_item', { food_item_id: foodId, quantity: 100 });
+    await insert('shopping_item', { label: 'Sacs poubelle' });
+    for (const row of rows) {
+      await expect(insert('shopping_item', row)).rejects.toThrow(REFUSED);
+    }
   });
 });
 
