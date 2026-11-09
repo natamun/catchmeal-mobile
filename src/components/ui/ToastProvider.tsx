@@ -1,7 +1,6 @@
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { CheckCircle2, type LucideIcon } from 'lucide-react';
 
-import { useTimeout } from '../../hooks/useTimeout';
 import { Toast } from './Toast';
 import { ToastContext, type ShowToast } from './toastContext';
 
@@ -9,14 +8,16 @@ const TOAST_DURATION_MS = 3000;
 
 /**
  * Displays one toast at a time for the logged-in part of the app; a new message
- * replaces the current one. It vanishes after 3 seconds, or at once when
- * swiped away.
+ * replaces the current one, with its own 3 seconds. It vanishes after them, or
+ * at once when swiped away.
  */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<{
     message: string | null;
     icon: LucideIcon;
-  }>({ message: null, icon: CheckCircle2 });
+    /** Counts the toasts shown, so each one starts its own timer. */
+    count: number;
+  }>({ message: null, icon: CheckCircle2, count: 0 });
 
   // Only the message is cleared: the icon must stay during the fade-out
   // animation.
@@ -24,10 +25,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     () => setToast((current) => ({ ...current, message: null })),
     [],
   );
-  useTimeout(hide, toast.message ? TOAST_DURATION_MS : null);
+
+  useEffect(() => {
+    if (!toast.message) return;
+    const timer = setTimeout(hide, TOAST_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [toast.count, toast.message, hide]);
 
   const showToast = useCallback<ShowToast>(
-    (message, icon = CheckCircle2) => setToast({ message, icon }),
+    (message, icon = CheckCircle2) =>
+      setToast((current) => ({ message, icon, count: current.count + 1 })),
     [],
   );
 
