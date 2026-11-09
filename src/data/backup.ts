@@ -7,12 +7,14 @@ const APP = 'CatCHMeal';
  * Version of the file layout. A newer app keeps reading older files; an older
  * app refuses a newer file instead of guessing.
  */
-export const BACKUP_FORMAT = 6;
+export const BACKUP_FORMAT = 7;
 
 /** The format that added the fitness tables. */
 const FITNESS_FORMAT = 2;
 /** The format that added the favorite sessions and the session names. */
 const TEMPLATES_FORMAT = 3;
+/** The format that added the recipes. */
+const RECIPES_FORMAT = 7;
 
 /** The stored columns of each table, in the order rows are restored. */
 const TABLES = {
@@ -47,11 +49,29 @@ const TABLES = {
     'portion_name',
     'archived',
   ],
+  recipe: [
+    'id',
+    'name',
+    'servings',
+    'category',
+    'prep_minutes',
+    'notes',
+    'archived',
+  ],
+  recipe_ingredient: [
+    'id',
+    'recipe_id',
+    'food_item_id',
+    'position',
+    'quantity',
+  ],
+  recipe_step: ['id', 'recipe_id', 'position', 'instruction'],
   meal: ['id', 'name', 'type_meal', 'logged_at', 'source_meal_id'],
   meal_item: [
     'id',
     'meal_id',
     'food_item_id',
+    'recipe_id',
     'quantity',
     'kcal',
     'protein',
@@ -106,6 +126,9 @@ type Row = Record<string, SqlValue>;
 /** Every table but the one-row profile, which is updated, not inserted. */
 const LIST_TABLES = [
   'food_item',
+  'recipe',
+  'recipe_ingredient',
+  'recipe_step',
   'meal',
   'meal_item',
   'weight_log',
@@ -136,20 +159,31 @@ const TEMPLATE_TABLES: readonly ListTable[] = [
   'workout_template_exercise',
 ];
 
+/** The tables a file before the seventh format did not have yet. */
+const RECIPE_TABLES: readonly ListTable[] = [
+  'recipe',
+  'recipe_ingredient',
+  'recipe_step',
+];
+
 const without = (excluded: readonly ListTable[]) =>
   LIST_TABLES.filter((table) => !excluded.includes(table));
 
 /** The tables a file holds, by its format. */
 function tablesIn(backup: Pick<Backup, 'format'>): readonly ListTable[] {
-  if (backup.format < FITNESS_FORMAT) return without(FITNESS_TABLES);
-  if (backup.format < TEMPLATES_FORMAT) return without(TEMPLATE_TABLES);
-  return LIST_TABLES;
+  const missing = [
+    ...(backup.format < FITNESS_FORMAT ? FITNESS_TABLES : []),
+    ...(backup.format < TEMPLATES_FORMAT ? TEMPLATE_TABLES : []),
+    ...(backup.format < RECIPES_FORMAT ? RECIPE_TABLES : []),
+  ];
+  return without(missing);
 }
 
 /**
  * The tables a restore replaces. A file from before the fitness tab leaves
  * them all as they are; a later one replaces the exercises, so the favorites
- * made of them go too, even when the file has none.
+ * made of them go too, even when the file has none. The recipes are made of
+ * the foods, so they are always replaced, emptied by a file from before them.
  */
 function tablesRestored(backup: Pick<Backup, 'format'>): readonly ListTable[] {
   return backup.format < FITNESS_FORMAT ? without(FITNESS_TABLES) : LIST_TABLES;
@@ -166,6 +200,10 @@ export interface Backup {
   meal_item: Row[];
   weight_log: Row[];
   goal_setting: Row[];
+  /** The recipe tables, missing from the files before the seventh format. */
+  recipe?: Row[];
+  recipe_ingredient?: Row[];
+  recipe_step?: Row[];
   /** The fitness tables, missing from the files of the first format. */
   exercise?: Row[];
   workout?: Row[];
@@ -200,6 +238,9 @@ export async function exportBackup(
     exportedAt: now.toISOString(),
     profile,
     food_item: [],
+    recipe: [],
+    recipe_ingredient: [],
+    recipe_step: [],
     meal: [],
     meal_item: [],
     weight_log: [],

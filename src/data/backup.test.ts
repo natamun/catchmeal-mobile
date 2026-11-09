@@ -15,6 +15,7 @@ import { DataError } from './errors';
 import { archiveFoodItem, createFoodItem } from './foodItems';
 import { createMeal } from './meals';
 import { getProfile, updateProfile } from './profile';
+import { createRecipe, listRecipes } from './recipes';
 import { logWeight } from './weights';
 import { addToDay, listWorkouts } from './workouts';
 import { createTemplate, listTemplates } from './workoutTemplates';
@@ -44,12 +45,22 @@ async function filledDatabase() {
     portionName: 'pomme',
   });
   const old = await createFoodItem(db, { ...apple, name: 'Vieux pain' });
+  const compote = await createRecipe(db, {
+    name: 'Compote',
+    servings: 4,
+    category: 'DESSERT',
+    prepMinutes: 30,
+    notes: 'Sans sucre ajouté.',
+    ingredients: [{ foodItemId: apple.id, quantity: 800 }],
+    steps: ['Couper les pommes.', 'Cuire 20 minutes.'],
+  });
   await createMeal(db, {
     typeMeal: 'LUNCH',
     loggedAt: '2026-11-04',
     items: [
       { foodItemId: old.id, quantity: 50 },
       { quantity: 1, kcal: 300, protein: 10, carbs: 30, fat: 12 },
+      { recipeId: compote.id, quantity: 1 },
     ],
   });
   await archiveFoodItem(db, old.id);
@@ -129,8 +140,11 @@ describe('backup', () => {
       },
     });
     expect(backup.food_item).toHaveLength(2);
+    expect(backup.recipe).toHaveLength(1);
+    expect(backup.recipe_ingredient).toHaveLength(1);
+    expect(backup.recipe_step).toHaveLength(2);
     expect(backup.meal).toHaveLength(2);
-    expect(backup.meal_item).toHaveLength(3);
+    expect(backup.meal_item).toHaveLength(4);
     expect(backup.weight_log).toHaveLength(1);
     expect(backup.goal_setting).toHaveLength(1);
     expect(backup.exercise).toHaveLength(5);
@@ -236,6 +250,22 @@ describe('backup', () => {
     expect(await listWorkouts(target)).toHaveLength(1);
   });
 
+  it('empties the recipes when restoring a file from before them', async () => {
+    const old = structuredClone(backup);
+    old.format = 6;
+    delete old.recipe;
+    delete old.recipe_ingredient;
+    delete old.recipe_step;
+    old.meal_item = old.meal_item.filter((item) => item.recipe_id === null);
+    for (const item of old.meal_item) delete item.recipe_id;
+    const target = await filledDatabase();
+
+    await restoreBackup(target, parseBackup(asText(old)));
+
+    expect(await listRecipes(target)).toEqual([]);
+    expect((await exportBackup(target, NOW)).meal_item).toHaveLength(3);
+  });
+
   it('replaces the data already there', async () => {
     const target = await filledDatabase();
     await createFoodItem(target, {
@@ -316,6 +346,26 @@ describe('backup', () => {
       expect(() => parseBackup(asText(partial))).toThrow(
         "Ce fichier n'est pas une sauvegarde CatCHMeal.",
       );
+      await unchanged();
+    });
+
+    it('a file of the current format without its recipe tables', async () => {
+      const partial = structuredClone(backup);
+      delete partial.recipe_step;
+
+      expect(() => parseBackup(asText(partial))).toThrow(
+        "Ce fichier n'est pas une sauvegarde CatCHMeal.",
+      );
+      await unchanged();
+    });
+
+    it('an ingredient that points to a missing food', async () => {
+      const broken = structuredClone(backup);
+      broken.recipe_ingredient![0].food_item_id = 999;
+
+      await expect(
+        restoreBackup(target, parseBackup(asText(broken))),
+      ).rejects.toThrow(DataError);
       await unchanged();
     });
 
