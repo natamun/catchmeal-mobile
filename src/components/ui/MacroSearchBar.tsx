@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import * as Popover from '@radix-ui/react-popover';
+import * as Slider from '@radix-ui/react-slider';
 import { ChevronRight, Filter, Search } from 'lucide-react';
 
 import { MACROS } from '../../constants/macros';
@@ -109,6 +110,10 @@ function clampToBounds(filter: MacroFilter, bounds: MacroFilter): MacroFilter {
 }
 
 const ALL_CATEGORIES = '';
+
+/** A handle of a range: large enough for a thumb, with a halo while held. */
+const THUMB_CLASS =
+  'block h-6 w-6 cursor-grab rounded-full border-2 border-surface bg-theme-500 shadow-md transition-shadow outline-none focus-visible:ring-4 focus-visible:ring-theme-500/25 active:cursor-grabbing active:ring-8 active:ring-theme-500/15';
 
 interface MacroSearchBarProps {
   items: Macros[];
@@ -292,7 +297,6 @@ export function MacroSearchBar({
           <div className="flex flex-col gap-5">
             {MACRO_FIELDS.map(({ key, label, unit, step }) => {
               const { min, max } = macroBounds[key];
-              const minIsOnTop = draftMacros[key].min > (min + max) / 2;
               return (
                 <div key={key} className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
@@ -308,50 +312,29 @@ export function MacroSearchBar({
                       {draftMacros[key].min} – {draftMacros[key].max} {unit}
                     </span>
                   </div>
-                  <div className="relative h-4">
-                    <div className="absolute top-1/2 right-2 left-2 h-1.5 -translate-y-1/2 rounded-full bg-theme-100" />
-                    <div
-                      className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-theme-400"
-                      style={{
-                        left: `calc(8px + ${(draftMacros[key].min - min) / (max - min || 1)} * (100% - 16px))`,
-                        right: `calc(8px + ${1 - (draftMacros[key].max - min) / (max - min || 1)} * (100% - 16px))`,
-                      }}
+                  <Slider.Root
+                    min={min}
+                    // A single value still makes a slider that can be held.
+                    max={max > min ? max : min + 1}
+                    step={step}
+                    value={[draftMacros[key].min, draftMacros[key].max]}
+                    onValueChange={([low, high]) =>
+                      updateDraftMacro(key, { min: low, max: high })
+                    }
+                    className="relative flex h-8 w-full touch-none items-center select-none"
+                  >
+                    <Slider.Track className="relative h-1.5 grow overflow-hidden rounded-full bg-theme-100">
+                      <Slider.Range className="absolute h-full rounded-full bg-theme-400" />
+                    </Slider.Track>
+                    <Slider.Thumb
+                      aria-label={`${label} minimum`}
+                      className={THUMB_CLASS}
                     />
-                    <input
-                      type="range"
-                      min={min}
-                      max={max}
-                      step={step}
-                      value={draftMacros[key].min}
-                      onChange={(e) =>
-                        updateDraftMacro(key, {
-                          min: Math.min(
-                            Number(e.target.value),
-                            draftMacros[key].max,
-                          ),
-                        })
-                      }
-                      style={{ zIndex: minIsOnTop ? 2 : 1 }}
-                      className="range-thumb pointer-events-none absolute inset-0 w-full appearance-none bg-transparent"
+                    <Slider.Thumb
+                      aria-label={`${label} maximum`}
+                      className={THUMB_CLASS}
                     />
-                    <input
-                      type="range"
-                      min={min}
-                      max={max}
-                      step={step}
-                      value={draftMacros[key].max}
-                      onChange={(e) =>
-                        updateDraftMacro(key, {
-                          max: Math.max(
-                            Number(e.target.value),
-                            draftMacros[key].min,
-                          ),
-                        })
-                      }
-                      style={{ zIndex: minIsOnTop ? 1 : 2 }}
-                      className="range-thumb pointer-events-none absolute inset-0 w-full appearance-none bg-transparent"
-                    />
-                  </div>
+                  </Slider.Root>
                 </div>
               );
             })}
