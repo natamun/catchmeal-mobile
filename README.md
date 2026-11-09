@@ -72,7 +72,7 @@ The app is not on the Play Store. It runs on Android 7 or newer.
 
 1. On the phone, open the [latest release](https://github.com/natamun/catchmeal-mobile/releases/latest) and download `catchmeal-<version>.apk`.
 2. Open it, and allow installing apps from this source when Android asks. If Play Protect warns about an unknown app, choose to install anyway.
-3. For a new version, download its APK and open it the same way: the app is updated and keeps its data.
+3. For a new version, download its APK and open it the same way: the app is updated and keeps its data. What each version changed is in [CHANGELOG.md](./CHANGELOG.md).
 
 > [!NOTE]
 > Your data lives only on the phone, and uninstalling the app deletes it. Save a backup now and then from the profile page, and share one to a Drive.

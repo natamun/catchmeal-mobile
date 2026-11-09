@@ -106,8 +106,9 @@ keytool -genkeypair -keystore catchmeal-release.jks -storetype PKCS12 \
 For a new version:
 
 1. Raise the version: `npm version minor --no-git-tag-version` (or `patch` for a fix).
-2. Build it with `make release`, and update the phone with `make installRelease`.
-3. Publish it: push the commits, then create the GitHub release with its APK, `gh release create v<version> release/catchmeal-<version>.apk --title "CatCHMeal <version>" --notes "..."`.
+2. Tell what changed for the user at the top of [CHANGELOG.md](./CHANGELOG.md).
+3. Build it with `make release`, and update the phone with `make installRelease`.
+4. Publish it: push the commits, then create the GitHub release with its APK, `gh release create v<version> release/catchmeal-<version>.apk --title "CatCHMeal <version>" --notes "..."`, its notes taken from the changelog.
 
 ## Code layout
 
