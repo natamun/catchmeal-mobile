@@ -19,13 +19,8 @@ interface Props {
   renderAction?: (template: WorkoutTemplate) => ReactNode;
 }
 
-/**
- * What to recall for an exercise of a favorite: the values the favorite
- * sets for its cardio, or else the last time it was done.
- */
+/** What to recall for an exercise of a favorite: the last time it was done. */
 function reminderOf(item: TemplateItem, latest: Map<number, WorkoutItem>) {
-  const own = describeValues({ ...item, sets: [] });
-  if (item.kind !== 'STRENGTH' && own !== '') return own;
   const last = latest.get(item.exerciseId);
   return last ? describeValues(last) : 'Jamais fait';
 }

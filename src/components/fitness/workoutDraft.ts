@@ -1,8 +1,8 @@
 import { hasTooManyDecimals, parseDecimal } from '../../utils/decimals';
 import type {
+  CardioSet,
   Exercise,
   ExerciseKind,
-  TemplateItem,
   Workout,
   WorkoutItem,
   WorkoutItemInput,
@@ -14,25 +14,45 @@ export interface SetDraft {
   weight: string;
 }
 
-/** An exercise of the session being typed. */
+/** A set of cardio as typed, its fields text until the session is saved. */
+export interface CardioSetDraft {
+  duration: string;
+  speed: string;
+  incline: string;
+  resistance: string;
+}
+
+/** An exercise of the session being typed: its sets of its kind. */
 export interface ItemDraft {
   key: string;
   exerciseId: number;
   name: string;
   kind: ExerciseKind;
   sets: SetDraft[];
-  duration: string;
-  speed: string;
-  incline: string;
+  cardioSets: CardioSetDraft[];
 }
 
 export type DraftResult = { items: WorkoutItemInput[] } | { error: string };
 
 /** A number as the fields show it, with a comma; empty for null. */
-export const asText = (value: number | null | undefined) =>
+const asText = (value: number | null | undefined) =>
   value === null || value === undefined ? '' : String(value).replace('.', ',');
 
 const EMPTY_SET: SetDraft = { reps: '', weight: '' };
+
+export const EMPTY_CARDIO_SET: CardioSetDraft = {
+  duration: '',
+  speed: '',
+  incline: '',
+  resistance: '',
+};
+
+const cardioSetDraft = (set: CardioSet): CardioSetDraft => ({
+  duration: asText(set.durationMinutes),
+  speed: asText(set.speedKmh),
+  incline: asText(set.inclinePercent),
+  resistance: asText(set.resistance),
+});
 
 /**
  * The line of an exercise added to a session, filled with what was done on
@@ -43,20 +63,23 @@ export function draftFor(
   last: WorkoutItem | null,
   key: string = crypto.randomUUID(),
 ): ItemDraft {
+  const isStrength = exercise.kind === 'STRENGTH';
   const sets = last?.sets.map((set) => ({
     reps: String(set.reps),
     weight: asText(set.weightKg),
   }));
+  const cardioSets = last?.cardioSets.map(cardioSetDraft);
   return {
     key,
     exerciseId: exercise.id,
     name: exercise.name,
     kind: exercise.kind,
-    sets:
-      exercise.kind === 'STRENGTH' ? (sets?.length ? sets : [EMPTY_SET]) : [],
-    duration: asText(last?.durationMinutes),
-    speed: asText(last?.speedKmh),
-    incline: asText(last?.inclinePercent),
+    sets: isStrength ? (sets?.length ? sets : [EMPTY_SET]) : [],
+    cardioSets: isStrength
+      ? []
+      : cardioSets?.length
+        ? cardioSets
+        : [EMPTY_CARDIO_SET],
   };
 }
 
@@ -71,39 +94,10 @@ export function draftsOf(workout: Workout): ItemDraft[] {
   );
 }
 
-/**
- * The line of an exercise of a favorite: a cardio one takes the favorite's
- * duration, speed and incline where it sets them, the rest comes from the
- * last time, like a strength one.
- */
-export function draftFromTemplate(
-  item: TemplateItem,
-  last: WorkoutItem | null,
-  key?: string,
-): ItemDraft {
-  const draft = draftFor(
-    { id: item.exerciseId, name: item.exerciseName, kind: item.kind },
-    last,
-    key,
-  );
-  return {
-    ...draft,
-    duration:
-      item.durationMinutes === null
-        ? draft.duration
-        : asText(item.durationMinutes),
-    speed: item.speedKmh === null ? draft.speed : asText(item.speedKmh),
-    incline:
-      item.inclinePercent === null
-        ? draft.incline
-        : asText(item.inclinePercent),
-  };
-}
-
 /** Thrown inside draftToInput to stop at the first mistake. */
 export class DraftError extends Error {}
 
-export interface Range {
+interface Range {
   min: number;
   max: number;
   /** True when the minimum itself is refused (a duration of 0). */
@@ -112,7 +106,7 @@ export interface Range {
 }
 
 /** Reads a typed number within a range; `label` names it in the message. */
-export function readNumber(text: string, label: string, range: Range) {
+function readNumber(text: string, label: string, range: Range) {
   const value = parseDecimal(text);
   if (value === null) throw new DraftError(`${label} : valeur requise`);
   const isBelow = range.exclusive ? value <= range.min : value < range.min;
@@ -152,28 +146,55 @@ function itemInput(item: ItemDraft): WorkoutItemInput {
       }),
     };
   }
-  const durationMinutes = readNumber(
-    item.duration,
-    `${item.name}, durée`,
-    MINUTES,
-  );
-  if (item.kind === 'CARDIO') {
-    return { exerciseId: item.exerciseId, durationMinutes };
+  if (item.cardioSets.length === 0) {
+    throw new DraftError(`${item.name} : au moins une série`);
   }
   return {
     exerciseId: item.exerciseId,
+    cardioSets: item.cardioSets.map((set, index) =>
+      cardioSetInput(item, set, `${item.name}, série ${index + 1}`),
+    ),
+  };
+}
+
+/**
+ * A set of cardio from what was typed: a treadmill needs its speed, its
+ * slope 0 when left empty; the resistance of another machine is optional.
+ */
+function cardioSetInput(
+  item: ItemDraft,
+  set: CardioSetDraft,
+  label: string,
+): CardioSet {
+  const durationMinutes = readNumber(set.duration, `${label}, durée`, MINUTES);
+  if (item.kind === 'TREADMILL') {
+    return {
+      durationMinutes,
+      speedKmh: readNumber(set.speed, `${label}, vitesse`, {
+        min: 0,
+        max: 25,
+        exclusive: true,
+      }),
+      inclinePercent:
+        set.incline.trim() === ''
+          ? 0
+          : readNumber(set.incline, `${label}, inclinaison`, {
+              min: 0,
+              max: 30,
+            }),
+      resistance: null,
+    };
+  }
+  return {
     durationMinutes,
-    speedKmh: readNumber(item.speed, `${item.name}, vitesse`, {
-      min: 0,
-      max: 25,
-      exclusive: true,
-    }),
-    inclinePercent:
-      item.incline.trim() === ''
-        ? 0
-        : readNumber(item.incline, `${item.name}, inclinaison`, {
+    speedKmh: null,
+    inclinePercent: null,
+    resistance:
+      set.resistance.trim() === ''
+        ? null
+        : readNumber(set.resistance, `${label}, résistance`, {
             min: 0,
-            max: 30,
+            max: 100,
           }),
   };
 }

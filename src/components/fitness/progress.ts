@@ -17,15 +17,30 @@ export interface TrainingSummary {
 const volumeOf = (sets: readonly WorkoutSet[]) =>
   sets.reduce((sum, { reps, weightKg }) => sum + reps * weightKg, 0);
 
-/** The kilometers of a treadmill line: speed times duration. */
+/** The minutes of a cardio line, all its sets added up. */
+export const cardioMinutes = (item: WorkoutItem) =>
+  item.cardioSets.reduce((sum, set) => sum + set.durationMinutes, 0);
+
+/** The kilometers of a treadmill line: speed times duration, set by set. */
 export function treadmillKm(item: WorkoutItem) {
   if (item.kind !== 'TREADMILL') return 0;
-  return ((item.speedKmh ?? 0) * (item.durationMinutes ?? 0)) / 60;
+  return item.cardioSets.reduce(
+    (sum, set) => sum + ((set.speedKmh ?? 0) * set.durationMinutes) / 60,
+    0,
+  );
 }
 
-/** The meters climbed on a treadmill line: its distance times its slope. */
+/** The meters climbed on a treadmill line: each set's distance by its slope. */
 export function treadmillClimb(item: WorkoutItem) {
-  return treadmillKm(item) * 1000 * ((item.inclinePercent ?? 0) / 100);
+  if (item.kind !== 'TREADMILL') return 0;
+  return item.cardioSets.reduce(
+    (sum, set) =>
+      sum +
+      (((set.speedKmh ?? 0) * set.durationMinutes) / 60) *
+        1000 *
+        ((set.inclinePercent ?? 0) / 100),
+    0,
+  );
 }
 
 /** How much training a list of sessions holds. */
@@ -36,11 +51,7 @@ export function summarizeWorkouts(
   return {
     sessions: workouts.length,
     volumeKg: items.reduce((sum, item) => sum + volumeOf(item.sets), 0),
-    cardioMinutes: items.reduce(
-      (sum, item) =>
-        item.kind === 'STRENGTH' ? sum : sum + (item.durationMinutes ?? 0),
-      0,
-    ),
+    cardioMinutes: items.reduce((sum, item) => sum + cardioMinutes(item), 0),
     distanceKm: items.reduce((sum, item) => sum + treadmillKm(item), 0),
     climbMeters: items.reduce((sum, item) => sum + treadmillClimb(item), 0),
   };

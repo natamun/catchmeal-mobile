@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Exercise, TemplateItem, WorkoutItem } from './types';
+import type { Exercise, WorkoutItem } from './types';
 import {
   draftFor,
-  draftFromTemplate,
   draftsOf,
   draftsToItems,
   type ItemDraft,
@@ -34,9 +33,7 @@ const lastTime = (values: Partial<WorkoutItem>): WorkoutItem => ({
   exerciseName: 'Presse à cuisses',
   kind: 'STRENGTH',
   sets: [],
-  durationMinutes: null,
-  speedKmh: null,
-  inclinePercent: null,
+  cardioSets: [],
   ...values,
 });
 
@@ -45,11 +42,26 @@ const strengthDraft = (...sets: [string, string][]): ItemDraft => ({
   sets: sets.map(([reps, weight]) => ({ reps, weight })),
 });
 
-const walkDraft = (duration: string, speed: string, incline: string) => ({
+/** The treadmill typed, set by set: duration, speed, slope. */
+const walkDraft = (...sets: [string, string, string][]): ItemDraft => ({
   ...draftFor(TREADMILL, null, 'b'),
-  duration,
-  speed,
-  incline,
+  cardioSets: sets.map(([duration, speed, incline]) => ({
+    duration,
+    speed,
+    incline,
+    resistance: '',
+  })),
+});
+
+/** The rower typed, set by set: duration, resistance. */
+const rowDraft = (...sets: [string, string][]): ItemDraft => ({
+  ...draftFor(ROWER, null, 'c'),
+  cardioSets: sets.map(([duration, resistance]) => ({
+    duration,
+    speed: '',
+    incline: '',
+    resistance,
+  })),
 });
 
 describe('draftFor', () => {
@@ -74,63 +86,45 @@ describe('draftFor', () => {
     expect(draftFor(PRESS, null).sets).toEqual([{ reps: '', weight: '' }]);
   });
 
-  it('starts a treadmill from its last duration, speed and incline', () => {
+  it('starts a treadmill from its last sets', () => {
     const draft = draftFor(
       TREADMILL,
       lastTime({
         kind: 'TREADMILL',
-        durationMinutes: 30,
-        speedKmh: 5.5,
-        inclinePercent: 12,
+        cardioSets: [
+          {
+            durationMinutes: 10,
+            speedKmh: 3.5,
+            inclinePercent: 8,
+            resistance: null,
+          },
+          {
+            durationMinutes: 35,
+            speedKmh: 4,
+            inclinePercent: 10,
+            resistance: null,
+          },
+        ],
       }),
     );
 
     expect(draft).toMatchObject({
       sets: [],
-      duration: '30',
-      speed: '5,5',
-      incline: '12',
+      cardioSets: [
+        { duration: '10', speed: '3,5', incline: '8', resistance: '' },
+        { duration: '35', speed: '4', incline: '10', resistance: '' },
+      ],
     });
+  });
+
+  it('starts a cardio never done with one empty set', () => {
+    expect(draftFor(ROWER, null).cardioSets).toEqual([
+      { duration: '', speed: '', incline: '', resistance: '' },
+    ]);
   });
 
   it('gives each line its own key', () => {
     expect(draftFor(PRESS, null).key).not.toBe(draftFor(PRESS, null).key);
-  });
-});
-
-describe('draftFromTemplate', () => {
-  const templateItem = (values: Partial<TemplateItem>): TemplateItem => ({
-    id: 1,
-    exerciseId: 2,
-    exerciseName: 'Tapis',
-    kind: 'TREADMILL',
-    durationMinutes: null,
-    speedKmh: null,
-    inclinePercent: null,
-    ...values,
-  });
-
-  it('takes the values the favorite sets, the rest from the last time', () => {
-    const draft = draftFromTemplate(
-      templateItem({ durationMinutes: 45, speedKmh: 4 }),
-      lastTime({
-        kind: 'TREADMILL',
-        durationMinutes: 30,
-        speedKmh: 5,
-        inclinePercent: 12,
-      }),
-    );
-
-    expect(draft).toMatchObject({ duration: '45', speed: '4', incline: '12' });
-  });
-
-  it('starts a strength exercise from its last sets', () => {
-    const draft = draftFromTemplate(
-      templateItem({ exerciseId: 1, exerciseName: 'Presse', kind: 'STRENGTH' }),
-      lastTime({ sets: [{ reps: 10, weightKg: 90 }] }),
-    );
-
-    expect(draft.sets).toEqual([{ reps: '10', weight: '90' }]);
   });
 });
 
@@ -149,9 +143,7 @@ describe('draftsOf', () => {
         name: 'Presse à cuisses',
         kind: 'STRENGTH',
         sets: [{ reps: '8', weight: '100' }],
-        duration: '',
-        speed: '',
-        incline: '',
+        cardioSets: [],
       },
     ]);
   });
@@ -162,8 +154,8 @@ describe('draftsToItems', () => {
     expect(
       draftsToItems([
         strengthDraft(['8', '82,5'], ['10', '0']),
-        walkDraft('20', '5', '12'),
-        { ...draftFor(ROWER, null, 'c'), duration: '10' },
+        walkDraft(['10', '3,5', '8'], ['35', '4', '10']),
+        rowDraft(['15', '8'], ['10', '']),
       ]),
     ).toEqual({
       items: [
@@ -174,15 +166,47 @@ describe('draftsToItems', () => {
             { reps: 10, weightKg: 0 },
           ],
         },
-        { exerciseId: 2, durationMinutes: 20, speedKmh: 5, inclinePercent: 12 },
-        { exerciseId: 3, durationMinutes: 10 },
+        {
+          exerciseId: 2,
+          cardioSets: [
+            {
+              durationMinutes: 10,
+              speedKmh: 3.5,
+              inclinePercent: 8,
+              resistance: null,
+            },
+            {
+              durationMinutes: 35,
+              speedKmh: 4,
+              inclinePercent: 10,
+              resistance: null,
+            },
+          ],
+        },
+        {
+          exerciseId: 3,
+          cardioSets: [
+            {
+              durationMinutes: 15,
+              speedKmh: null,
+              inclinePercent: null,
+              resistance: 8,
+            },
+            {
+              durationMinutes: 10,
+              speedKmh: null,
+              inclinePercent: null,
+              resistance: null,
+            },
+          ],
+        },
       ],
     });
   });
 
   it('counts a treadmill without slope as flat', () => {
-    expect(draftsToItems([walkDraft('30', '6', '')])).toMatchObject({
-      items: [{ inclinePercent: 0 }],
+    expect(draftsToItems([walkDraft(['30', '6', ''])])).toMatchObject({
+      items: [{ cardioSets: [{ inclinePercent: 0 }] }],
     });
   });
 
@@ -226,20 +250,26 @@ describe('draftsToItems', () => {
       [strengthDraft(['8', 'abc'])],
       'Presse à cuisses, série 1, charge : entre 0 et 500',
     ],
+    ['a cardio without sets', [rowDraft()], 'Rameur : au moins une série'],
     [
       'a cardio without duration',
       [draftFor(ROWER, null, 'c')],
-      'Rameur, durée : valeur requise',
+      'Rameur, série 1, durée : valeur requise',
+    ],
+    [
+      'a resistance over 100',
+      [rowDraft(['10', '101'])],
+      'Rameur, série 1, résistance : entre 0 et 100',
     ],
     [
       'a treadmill without speed',
-      [walkDraft('20', '', '5')],
-      'Tapis, vitesse : valeur requise',
+      [walkDraft(['20', '', '5'])],
+      'Tapis, série 1, vitesse : valeur requise',
     ],
     [
-      'a treadmill too steep',
-      [walkDraft('20', '5', '31')],
-      'Tapis, inclinaison : entre 0 et 30',
+      'a treadmill too steep, on its second set',
+      [walkDraft(['20', '5', '8'], ['20', '5', '31'])],
+      'Tapis, série 2, inclinaison : entre 0 et 30',
     ],
   ])('refuses %s', (_, items, message) => {
     expect(draftsToItems(items)).toEqual({ error: message });

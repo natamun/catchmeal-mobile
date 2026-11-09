@@ -1,4 +1,5 @@
 import type {
+  CardioSet,
   ExerciseKind,
   Workout,
   WorkoutItem,
@@ -17,6 +18,7 @@ const MAX_SETS = 20;
 const MINUTES = { min: 0, exclusive: true, max: 600 };
 const SPEED = { min: 0, exclusive: true, max: 25 };
 const INCLINE = { min: 0, max: 30 };
+const RESISTANCE = { min: 0, max: 100 };
 const REPS = { min: 1, max: 100, integer: true };
 const LOAD = { min: 0, max: 500 };
 
@@ -37,9 +39,6 @@ interface ItemRow {
   exercise_id: number;
   name: string;
   kind: ExerciseKind;
-  duration_minutes: number | null;
-  speed_kmh: number | null;
-  incline_percent: number | null;
 }
 
 interface SetRow {
@@ -48,13 +47,28 @@ interface SetRow {
   weight_kg: number;
 }
 
-/** An exercise line ready to be stored: only the fields of its kind. */
+interface CardioSetRow {
+  workout_exercise_id: number;
+  duration_minutes: number;
+  speed_kmh: number | null;
+  incline_percent: number | null;
+  resistance: number | null;
+}
+
+/** An exercise line ready to be stored: only the sets of its kind. */
 interface ItemValues {
   exerciseId: number;
   sets: WorkoutSet[];
-  durationMinutes: number | null;
-  speedKmh: number | null;
-  inclinePercent: number | null;
+  cardioSets: CardioSet[];
+}
+
+/** The sets given for an exercise: a list, one at least, 20 at most. */
+function checkSetList<T>(sets: T[] | undefined, message: string): T[] {
+  if (!Array.isArray(sets) || sets.length === 0) throw new DataError(message);
+  if (sets.length > MAX_SETS) {
+    throw new DataError(`${MAX_SETS} séries maximum par exercice.`);
+  }
+  return sets;
 }
 
 /** The lines given, with a real exercise id each; `allowEmpty` for a save. */
@@ -76,10 +90,11 @@ function checkItems(items: unknown, allowEmpty: boolean): WorkoutItemInput[] {
 }
 
 /**
- * Keeps the fields of each line's kind, checked: the sets of a strength
- * exercise, the duration of a cardio one, with the speed and incline on a
- * treadmill. An archived exercise is only accepted when a session already
- * holds it (editing that session must keep working).
+ * Keeps the sets of each line's kind, checked: repetitions at a load for
+ * strength, a duration for cardio, with the speed and incline on a
+ * treadmill, or an optional resistance on another machine. An archived
+ * exercise is only accepted when a session already holds it (editing that
+ * session must keep working).
  */
 async function buildItems(
   tx: Executor,
@@ -99,39 +114,40 @@ async function buildItems(
   return items.map((item) => {
     const kind = kindOf.get(item.exerciseId)!;
     if (kind === 'STRENGTH') {
-      const sets = item.sets;
-      if (!Array.isArray(sets) || sets.length === 0) {
-        throw new DataError(
-          'Chaque exercice de musculation a au moins une série.',
-        );
-      }
-      if (sets.length > MAX_SETS) {
-        throw new DataError(`${MAX_SETS} séries maximum par exercice.`);
-      }
+      const sets = checkSetList(
+        item.sets,
+        'Chaque exercice de musculation a au moins une série.',
+      );
       return {
         exerciseId: item.exerciseId,
         sets: sets.map((set) => ({
           reps: checkNumber(set.reps, 'répétitions', REPS),
           weightKg: checkNumber(set.weightKg, 'charge', LOAD),
         })),
-        durationMinutes: null,
-        speedKmh: null,
-        inclinePercent: null,
+        cardioSets: [],
       };
     }
+    const isTreadmill = kind === 'TREADMILL';
+    const cardioSets = checkSetList(
+      item.cardioSets,
+      'Chaque exercice de cardio a au moins une série.',
+    );
     return {
       exerciseId: item.exerciseId,
       sets: [],
-      durationMinutes: checkNumber(item.durationMinutes, 'durée', MINUTES),
-      speedKmh:
-        kind === 'TREADMILL'
-          ? checkNumber(item.speedKmh, 'vitesse', SPEED)
+      cardioSets: cardioSets.map((set) => ({
+        durationMinutes: checkNumber(set.durationMinutes, 'durée', MINUTES),
+        speedKmh: isTreadmill
+          ? checkNumber(set.speedKmh, 'vitesse', SPEED)
           : null,
-      inclinePercent:
-        kind === 'TREADMILL'
-          ? (checkOptionalNumber(item.inclinePercent, 'inclinaison', INCLINE) ??
+        inclinePercent: isTreadmill
+          ? (checkOptionalNumber(set.inclinePercent, 'inclinaison', INCLINE) ??
             0)
           : null,
+        resistance: isTreadmill
+          ? null
+          : checkOptionalNumber(set.resistance, 'résistance', RESISTANCE),
+      })),
     };
   });
 }
@@ -144,16 +160,9 @@ async function insertItems(
 ) {
   for (const [index, item] of items.entries()) {
     const { lastId } = await tx.run(
-      `INSERT INTO workout_exercise (workout_id, exercise_id, position, duration_minutes, speed_kmh, incline_percent)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        workoutId,
-        item.exerciseId,
-        firstPosition + index,
-        item.durationMinutes,
-        item.speedKmh,
-        item.inclinePercent,
-      ],
+      `INSERT INTO workout_exercise (workout_id, exercise_id, position)
+       VALUES (?, ?, ?)`,
+      [workoutId, item.exerciseId, firstPosition + index],
     );
     for (const [setPosition, set] of item.sets.entries()) {
       await tx.run(
@@ -162,10 +171,28 @@ async function insertItems(
         [lastId, setPosition, set.reps, set.weightKg],
       );
     }
+    for (const [setPosition, set] of item.cardioSets.entries()) {
+      await tx.run(
+        `INSERT INTO cardio_set (workout_exercise_id, position, duration_minutes, speed_kmh, incline_percent, resistance)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          lastId,
+          setPosition,
+          set.durationMinutes,
+          set.speedKmh,
+          set.inclinePercent,
+          set.resistance,
+        ],
+      );
+    }
   }
 }
 
-function toItem(row: ItemRow, sets: SetRow[]): WorkoutItem {
+function toItem(
+  row: ItemRow,
+  sets: SetRow[],
+  cardioSets: CardioSetRow[],
+): WorkoutItem {
   return {
     id: row.id,
     exerciseId: row.exercise_id,
@@ -174,13 +201,18 @@ function toItem(row: ItemRow, sets: SetRow[]): WorkoutItem {
     sets: sets
       .filter((set) => set.workout_exercise_id === row.id)
       .map((set) => ({ reps: set.reps, weightKg: set.weight_kg })),
-    durationMinutes: row.duration_minutes,
-    speedKmh: row.speed_kmh,
-    inclinePercent: row.incline_percent,
+    cardioSets: cardioSets
+      .filter((set) => set.workout_exercise_id === row.id)
+      .map((set) => ({
+        durationMinutes: set.duration_minutes,
+        speedKmh: set.speed_kmh,
+        inclinePercent: set.incline_percent,
+        resistance: set.resistance,
+      })),
   };
 }
 
-/** Reads sessions with their lines and sets, in three queries in all. */
+/** Reads sessions with their lines and sets, in four queries in all. */
 async function readWorkouts(db: Executor, where: string, params: SqlValue[]) {
   const workouts = await db.query<WorkoutRow>(
     `SELECT id, performed_on FROM workout WHERE ${where}
@@ -188,8 +220,7 @@ async function readWorkouts(db: Executor, where: string, params: SqlValue[]) {
     params,
   );
   const items = await db.query<ItemRow>(
-    `SELECT we.id, we.workout_id, we.exercise_id, e.name, e.kind,
-            we.duration_minutes, we.speed_kmh, we.incline_percent
+    `SELECT we.id, we.workout_id, we.exercise_id, e.name, e.kind
      FROM workout_exercise we JOIN exercise e ON e.id = we.exercise_id
      WHERE we.workout_id IN (SELECT id FROM workout WHERE ${where})
      ORDER BY we.position, we.id`,
@@ -202,13 +233,21 @@ async function readWorkouts(db: Executor, where: string, params: SqlValue[]) {
      ORDER BY ws.position, ws.id`,
     params,
   );
+  const cardioSets = await db.query<CardioSetRow>(
+    `SELECT cs.workout_exercise_id, cs.duration_minutes, cs.speed_kmh,
+            cs.incline_percent, cs.resistance
+     FROM cardio_set cs JOIN workout_exercise we ON we.id = cs.workout_exercise_id
+     WHERE we.workout_id IN (SELECT id FROM workout WHERE ${where})
+     ORDER BY cs.position, cs.id`,
+    params,
+  );
 
   return workouts.map((workout): Workout => ({
     id: workout.id,
     performedOn: workout.performed_on,
     items: items
       .filter((item) => item.workout_id === workout.id)
-      .map((item) => toItem(item, sets)),
+      .map((item) => toItem(item, sets, cardioSets)),
   }));
 }
 
@@ -315,9 +354,9 @@ export async function saveDay(
 }
 
 /**
- * What was done on an exercise the last time, to start from it: the sets, or
- * the duration, speed and incline. `exceptDay` leaves out the day being
- * logged. Null when the exercise was never done.
+ * What was done on an exercise the last time, to start from it: its sets.
+ * `exceptDay` leaves out the day being logged. Null when the exercise was
+ * never done.
  */
 export async function lastPerformance(
   db: Executor,

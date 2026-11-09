@@ -9,6 +9,7 @@ import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { InfoBubble } from '../ui/InfoBubble';
 import { describeValues } from './format';
 import {
+  cardioMinutes,
   strengthProgress,
   treadmillClimb,
   treadmillKm,
@@ -90,7 +91,7 @@ export function ExerciseSheet({
       ? strengthRecord(workouts, exercise.id)
       : null;
   const items = history.map(({ item }) => item);
-  const minutes = items.reduce((sum, i) => sum + (i.durationMinutes ?? 0), 0);
+  const minutes = items.reduce((sum, i) => sum + cardioMinutes(i), 0);
   const distance = items.reduce((sum, i) => sum + treadmillKm(i), 0);
   const climb = items.reduce((sum, i) => sum + treadmillClimb(i), 0);
 

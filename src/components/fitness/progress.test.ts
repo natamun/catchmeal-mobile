@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  cardioMinutes,
   oneRepMax,
   strengthExercisesOf,
   strengthProgress,
@@ -17,19 +18,22 @@ const press = (...sets: [number, number][]): WorkoutItem => ({
   exerciseName: 'Presse à cuisses',
   kind: 'STRENGTH',
   sets: sets.map(([reps, weightKg]) => ({ reps, weightKg })),
-  durationMinutes: null,
-  speedKmh: null,
-  inclinePercent: null,
+  cardioSets: [],
 });
 
+const cardio = (
+  durationMinutes: number,
+  speedKmh: number | null = null,
+  inclinePercent: number | null = null,
+) => ({ durationMinutes, speedKmh, inclinePercent, resistance: null });
+
+/** 15 min at 4 km/h and 0 %, then 30 min at 4 km/h and 15 %: 3 km, 300 m. */
 const WALK: WorkoutItem = {
   ...press(),
   exerciseId: 2,
   exerciseName: 'Tapis de course',
   kind: 'TREADMILL',
-  durationMinutes: 45,
-  speedKmh: 4,
-  inclinePercent: 10,
+  cardioSets: [cardio(15, 4, 0), cardio(30, 4, 15)],
 };
 
 const ROWER: WorkoutItem = {
@@ -37,7 +41,7 @@ const ROWER: WorkoutItem = {
   exerciseId: 3,
   exerciseName: 'Rameur',
   kind: 'CARDIO',
-  durationMinutes: 10,
+  cardioSets: [cardio(10)],
 };
 
 const CURL: WorkoutItem = {
@@ -53,13 +57,15 @@ const session = (performedOn: string, ...items: WorkoutItem[]): Workout => ({
 });
 
 describe('treadmill', () => {
-  it('walks 3 km and climbs 300 m in 45 min at 4 km/h and 10 %', () => {
+  it('adds up the distance and the climb of each set', () => {
+    expect(cardioMinutes(WALK)).toBe(45);
     expect(treadmillKm(WALK)).toBe(3);
     expect(treadmillClimb(WALK)).toBeCloseTo(300);
   });
 
-  it('gives nothing for another exercise', () => {
+  it('gives no distance nor climb for another exercise', () => {
     expect(treadmillKm(ROWER)).toBe(0);
+    expect(treadmillClimb(ROWER)).toBe(0);
   });
 });
 

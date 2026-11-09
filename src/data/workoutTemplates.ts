@@ -1,19 +1,15 @@
 import type {
   ExerciseKind,
-  TemplateItem,
   TemplateItemInput,
   WorkoutTemplate,
   WorkoutTemplateInput,
 } from '../components/fitness/types';
 import type { Database, Executor } from '../db/database';
 import { DataError } from './errors';
-import { checkNumber, checkOptionalNumber, checkText } from './validation';
+import { checkNumber, checkText } from './validation';
 
 const GONE = "Cette séance favorite n'existe plus.";
 const MAX_ITEMS = 50;
-const MINUTES = { min: 0, exclusive: true, max: 600 };
-const SPEED = { min: 0, exclusive: true, max: 25 };
-const INCLINE = { min: 0, max: 30 };
 
 interface TemplateRow {
   id: number;
@@ -26,21 +22,17 @@ interface ItemRow {
   exercise_id: number;
   name: string;
   kind: ExerciseKind;
-  duration_minutes: number | null;
-  speed_kmh: number | null;
-  incline_percent: number | null;
 }
 
-/** A line ready to be stored: cardio values only for cardio. */
-type ItemValues = Omit<TemplateItem, 'id' | 'exerciseName' | 'kind'>;
-
 /**
- * Keeps the values of each line's kind: a cardio exercise may set its
- * duration (and a treadmill its speed and incline), each one optional; a
- * strength one has none, it starts from its last sets. Only exercises of the
- * library are accepted, not archived ones.
+ * Checks the exercises of a favorite: those of the library, not archived
+ * ones. They hold no values: a session started from the favorite begins with
+ * the sets of the last time.
  */
-async function buildItems(tx: Executor, items: unknown): Promise<ItemValues[]> {
+async function checkItems(
+  tx: Executor,
+  items: unknown,
+): Promise<TemplateItemInput[]> {
   if (!Array.isArray(items) || items.length === 0) {
     throw new DataError('La séance doit contenir au moins un exercice.');
   }
@@ -48,7 +40,6 @@ async function buildItems(tx: Executor, items: unknown): Promise<ItemValues[]> {
     throw new DataError(`${MAX_ITEMS} exercices maximum par séance.`);
   }
   const lines = (items as TemplateItemInput[]).map((item) => ({
-    ...item,
     exerciseId: checkNumber(item.exerciseId, 'exercice', {
       min: 0,
       exclusive: true,
@@ -57,52 +48,27 @@ async function buildItems(tx: Executor, items: unknown): Promise<ItemValues[]> {
   }));
 
   const ids = [...new Set(lines.map(({ exerciseId }) => exerciseId))];
-  const exercises = await tx.query<{ id: number; kind: ExerciseKind }>(
-    `SELECT id, kind FROM exercise
+  const exercises = await tx.query<{ id: number }>(
+    `SELECT id FROM exercise
      WHERE archived = 0 AND id IN (${ids.map(() => '?').join(', ')})`,
     ids,
   );
   if (exercises.length !== ids.length) {
     throw new DataError("Un des exercices n'existe plus.");
   }
-  const kindOf = new Map(exercises.map(({ id, kind }) => [id, kind]));
-
-  return lines.map((item) => {
-    const kind = kindOf.get(item.exerciseId)!;
-    const isTreadmill = kind === 'TREADMILL';
-    return {
-      exerciseId: item.exerciseId,
-      durationMinutes:
-        kind === 'STRENGTH'
-          ? null
-          : checkOptionalNumber(item.durationMinutes, 'durée', MINUTES),
-      speedKmh: isTreadmill
-        ? checkOptionalNumber(item.speedKmh, 'vitesse', SPEED)
-        : null,
-      inclinePercent: isTreadmill
-        ? checkOptionalNumber(item.inclinePercent, 'inclinaison', INCLINE)
-        : null,
-    };
-  });
+  return lines;
 }
 
 async function insertItems(
   tx: Executor,
   templateId: number,
-  items: ItemValues[],
+  items: TemplateItemInput[],
 ) {
   for (const [position, item] of items.entries()) {
     await tx.run(
-      `INSERT INTO workout_template_exercise (template_id, exercise_id, position, duration_minutes, speed_kmh, incline_percent)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        templateId,
-        item.exerciseId,
-        position,
-        item.durationMinutes,
-        item.speedKmh,
-        item.inclinePercent,
-      ],
+      `INSERT INTO workout_template_exercise (template_id, exercise_id, position)
+       VALUES (?, ?, ?)`,
+      [templateId, item.exerciseId, position],
     );
   }
 }
@@ -117,8 +83,7 @@ async function readTemplates(
     params,
   );
   const items = await db.query<ItemRow>(
-    `SELECT t.id, t.template_id, t.exercise_id, e.name, e.kind,
-            t.duration_minutes, t.speed_kmh, t.incline_percent
+    `SELECT t.id, t.template_id, t.exercise_id, e.name, e.kind
      FROM workout_template_exercise t JOIN exercise e ON e.id = t.exercise_id
      WHERE t.template_id IN (SELECT id FROM workout_template WHERE ${where})
      ORDER BY t.position, t.id`,
@@ -135,9 +100,6 @@ async function readTemplates(
           exerciseId: item.exercise_id,
           exerciseName: item.name,
           kind: item.kind,
-          durationMinutes: item.duration_minutes,
-          speedKmh: item.speed_kmh,
-          inclinePercent: item.incline_percent,
         })),
     }))
     .sort((a, b) =>
@@ -162,7 +124,7 @@ export async function createTemplate(
 ) {
   const name = checkText(input.name, 'nom', 80);
   return db.transaction(async (tx) => {
-    const items = await buildItems(tx, input.items);
+    const items = await checkItems(tx, input.items);
     const { lastId } = await tx.run(
       'INSERT INTO workout_template (name) VALUES (?)',
       [name],
@@ -185,7 +147,7 @@ export async function updateTemplate(
       [name, id],
     );
     if (changes === 0) throw new DataError(GONE);
-    const items = await buildItems(tx, input.items);
+    const items = await checkItems(tx, input.items);
     await tx.run(
       'DELETE FROM workout_template_exercise WHERE template_id = ?',
       [id],

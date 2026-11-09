@@ -1,8 +1,8 @@
 /**
- * How an exercise is logged:
- * - STRENGTH: sets of repetitions at a load;
+ * How an exercise is logged, in sets:
+ * - STRENGTH: repetitions at a load;
  * - TREADMILL: a duration at a speed and an incline;
- * - CARDIO: a duration.
+ * - CARDIO: a duration, at a resistance when the machine has one.
  */
 export type ExerciseKind = 'STRENGTH' | 'TREADMILL' | 'CARDIO';
 
@@ -29,8 +29,20 @@ export interface WorkoutSet {
 }
 
 /**
- * An exercise done in a session: its sets for strength, its duration for
- * cardio, with the speed and incline on a treadmill.
+ * One set of cardio, such as 10 minutes at 3.5 km/h and 8 %: its duration,
+ * the speed and incline on a treadmill, the resistance on another machine,
+ * which may stay unknown.
+ */
+export interface CardioSet {
+  durationMinutes: number;
+  speedKmh: number | null;
+  inclinePercent: number | null;
+  resistance: number | null;
+}
+
+/**
+ * An exercise done in a session: its sets, of repetitions for strength, of
+ * minutes for cardio.
  */
 export interface WorkoutItem {
   id: number;
@@ -38,9 +50,7 @@ export interface WorkoutItem {
   exerciseName: string;
   kind: ExerciseKind;
   sets: WorkoutSet[];
-  durationMinutes: number | null;
-  speedKmh: number | null;
-  inclinePercent: number | null;
+  cardioSets: CardioSet[];
 }
 
 /**
@@ -55,23 +65,18 @@ export interface Workout {
 export interface WorkoutItemInput {
   exerciseId: number;
   sets?: WorkoutSet[];
-  durationMinutes?: number | null;
-  speedKmh?: number | null;
-  inclinePercent?: number | null;
+  cardioSets?: CardioSet[];
 }
 
 /**
- * An exercise of a favorite session: a cardio one may set its duration,
- * speed and incline; a strength one starts from the last time it was done.
+ * An exercise of a favorite session. It holds no values: a session started
+ * from it begins with the sets of the last time each exercise was done.
  */
 export interface TemplateItem {
   id: number;
   exerciseId: number;
   exerciseName: string;
   kind: ExerciseKind;
-  durationMinutes: number | null;
-  speedKmh: number | null;
-  inclinePercent: number | null;
 }
 
 /** A favorite session ("Full body"), to start a session from in one go. */
@@ -83,9 +88,6 @@ export interface WorkoutTemplate {
 
 export interface TemplateItemInput {
   exerciseId: number;
-  durationMinutes?: number | null;
-  speedKmh?: number | null;
-  inclinePercent?: number | null;
 }
 
 export interface WorkoutTemplateInput {

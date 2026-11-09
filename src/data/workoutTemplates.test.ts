@@ -26,21 +26,14 @@ beforeEach(async () => {
   ({ press, pulldown, treadmill, rower } = await addTestExercises(db));
 });
 
+const INCLINE_WALK = (): WorkoutTemplateInput => ({
+  name: 'Tapis incliné',
+  items: [{ exerciseId: treadmill }],
+});
+
 const FULL_BODY = (): WorkoutTemplateInput => ({
   name: ' Full body ',
   items: [{ exerciseId: press }, { exerciseId: pulldown }],
-});
-
-const INCLINE_WALK = (): WorkoutTemplateInput => ({
-  name: 'Tapis incliné',
-  items: [
-    {
-      exerciseId: treadmill,
-      durationMinutes: 45,
-      speedKmh: 4,
-      inclinePercent: 10,
-    },
-  ],
 });
 
 describe('createTemplate', () => {
@@ -55,40 +48,30 @@ describe('createTemplate', () => {
           exerciseName: 'Presse à cuisses',
           kind: 'STRENGTH',
         },
-        { exerciseId: pulldown, kind: 'STRENGTH', durationMinutes: null },
+        { exerciseId: pulldown, kind: 'STRENGTH' },
       ],
     });
   });
 
-  it('keeps the duration, speed and incline of a treadmill', async () => {
-    const template = await createTemplate(db, INCLINE_WALK());
-
-    expect(template.items[0]).toMatchObject({
-      durationMinutes: 45,
-      speedKmh: 4,
-      inclinePercent: 10,
-    });
-  });
-
-  it('accepts a cardio without values and drops those of strength', async () => {
+  it('holds cardio exercises without values, like strength ones', async () => {
     const template = await createTemplate(db, {
-      name: 'Mix',
-      items: [
-        { exerciseId: rower },
-        { exerciseId: press, durationMinutes: 10, speedKmh: 5 },
-        { exerciseId: rower, durationMinutes: 15, speedKmh: 12 },
-      ],
+      name: 'Cardio',
+      items: [{ exerciseId: treadmill }, { exerciseId: rower }],
     });
 
-    expect(
-      template.items.map(({ durationMinutes, speedKmh }) => [
-        durationMinutes,
-        speedKmh,
-      ]),
-    ).toEqual([
-      [null, null],
-      [null, null],
-      [15, null],
+    expect(template.items).toEqual([
+      {
+        id: expect.any(Number) as number,
+        exerciseId: treadmill,
+        exerciseName: expect.any(String) as string,
+        kind: 'TREADMILL',
+      },
+      {
+        id: expect.any(Number) as number,
+        exerciseId: rower,
+        exerciseName: expect.any(String) as string,
+        kind: 'CARDIO',
+      },
     ]);
   });
 
@@ -101,17 +84,8 @@ describe('createTemplate', () => {
       { name: 'X', items: [{ exerciseId: 999 }] },
     ],
     [
-      'a treadmill over 30 % of incline',
-      {
-        name: 'Mur',
-        items: [
-          { exerciseId: treadmill, durationMinutes: 30, inclinePercent: 31 },
-        ],
-      },
-    ],
-    [
-      'a cardio of 0 minutes',
-      { name: 'Rien', items: [{ exerciseId: rower, durationMinutes: 0 }] },
+      'an exercise id that is not a number',
+      { name: 'X', items: [{ exerciseId: 'deux' as unknown as number }] },
     ],
   ])('refuses %s and saves nothing', async (_, input) => {
     await expect(createTemplate(db, input)).rejects.toThrow(DataError);

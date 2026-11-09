@@ -1,7 +1,7 @@
 import { Plus, X } from 'lucide-react';
 
 import { Input } from '../ui/Input';
-import { CardioFields } from './CardioFields';
+import { ADD_SET_CLASS, CardioSetsEditor } from './CardioSetsEditor';
 import type { ItemDraft, SetDraft } from './workoutDraft';
 
 const REMOVE_BUTTON =
@@ -14,8 +14,8 @@ interface Props {
 }
 
 /**
- * An exercise of the day's session: its sets for strength, its duration for
- * cardio, with the speed and slope on a treadmill.
+ * An exercise of the day's session and its sets: repetitions at a load for
+ * strength, minutes for cardio, with the speed and slope on a treadmill.
  */
 export function ItemEditor({ item, onChange, onRemove }: Props) {
   const setSet = (index: number, set: SetDraft) =>
@@ -95,17 +95,17 @@ export function ItemEditor({ item, onChange, onRemove }: Props) {
                 ],
               })
             }
-            className="flex cursor-pointer items-center gap-1.5 self-start rounded-lg py-1 text-sm font-medium text-theme-600 transition-colors hover:text-theme-800"
+            className={ADD_SET_CLASS}
           >
             <Plus className="h-4 w-4" />
             Ajouter une série
           </button>
         </>
       ) : (
-        <CardioFields
+        <CardioSetsEditor
           kind={item.kind}
-          values={item}
-          onChange={(values) => onChange({ ...item, ...values })}
+          sets={item.cardioSets}
+          onChange={(cardioSets) => onChange({ ...item, cardioSets })}
         />
       )}
     </li>

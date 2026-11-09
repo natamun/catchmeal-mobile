@@ -14,9 +14,7 @@ const press = (...sets: [number, number][]): WorkoutItem => ({
   exerciseName: 'Presse à cuisses',
   kind: 'STRENGTH',
   sets: sets.map(([reps, weightKg]) => ({ reps, weightKg })),
-  durationMinutes: null,
-  speedKmh: null,
-  inclinePercent: null,
+  cardioSets: [],
 });
 
 const CURL: WorkoutItem = { ...press([10, 30]), exerciseId: 2 };
@@ -114,7 +112,19 @@ describe('newRecords', () => {
 
   it('ignores cardio lines', () => {
     expect(
-      newRecords(HISTORY, [{ exerciseId: 1, durationMinutes: 20 }]),
+      newRecords(HISTORY, [
+        {
+          exerciseId: 1,
+          cardioSets: [
+            {
+              durationMinutes: 20,
+              speedKmh: null,
+              inclinePercent: null,
+              resistance: null,
+            },
+          ],
+        },
+      ]),
     ).toEqual([]);
   });
 });

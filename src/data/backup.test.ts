@@ -97,14 +97,7 @@ async function filledDatabase() {
   const { press, treadmill } = await addTestExercises(db);
   await createTemplate(db, {
     name: 'Tapis incliné',
-    items: [
-      {
-        exerciseId: treadmill,
-        durationMinutes: 45,
-        speedKmh: 4,
-        inclinePercent: 10,
-      },
-    ],
+    items: [{ exerciseId: treadmill }],
   });
   await addToDay(db, '2026-11-04', [
     {
@@ -116,9 +109,20 @@ async function filledDatabase() {
     },
     {
       exerciseId: treadmill,
-      durationMinutes: 20,
-      speedKmh: 5,
-      inclinePercent: 12,
+      cardioSets: [
+        {
+          durationMinutes: 10,
+          speedKmh: 3.5,
+          inclinePercent: 8,
+          resistance: null,
+        },
+        {
+          durationMinutes: 20,
+          speedKmh: 5,
+          inclinePercent: 12,
+          resistance: null,
+        },
+      ],
     },
   ]);
   return db;
@@ -160,6 +164,7 @@ describe('backup', () => {
     expect(backup.workout).toHaveLength(1);
     expect(backup.workout_exercise).toHaveLength(2);
     expect(backup.workout_set).toHaveLength(2);
+    expect(backup.cardio_set).toHaveLength(2);
     expect(backup.workout_template).toHaveLength(1);
     expect(backup.workout_template_exercise).toHaveLength(1);
   });
@@ -286,6 +291,41 @@ describe('backup', () => {
 
     expect(await listShopping(target)).toEqual([]);
     expect(await listRecipes(target)).toHaveLength(1);
+  });
+
+  it('turns the cardio of a file from before the sets into sets', async () => {
+    const old = structuredClone(backup);
+    old.format = 8;
+    delete old.cardio_set;
+    const walk = old.workout_exercise!.find(
+      (line) => line.id === backup.cardio_set![0].workout_exercise_id,
+    )!;
+    Object.assign(walk, {
+      duration_minutes: 45,
+      speed_kmh: 4,
+      incline_percent: 10,
+    });
+    Object.assign(old.workout_template_exercise![0], { duration_minutes: 30 });
+    const target = await freshDatabase();
+
+    await restoreBackup(target, parseBackup(asText(old)));
+
+    const [day] = await listWorkouts(target);
+    expect(day.items[1].cardioSets).toEqual([
+      {
+        durationMinutes: 45,
+        speedKmh: 4,
+        inclinePercent: 10,
+        resistance: null,
+      },
+    ]);
+    const restored = await exportBackup(target, NOW);
+    expect(restored.workout_exercise![1]).toMatchObject({
+      duration_minutes: null,
+    });
+    expect(restored.workout_template_exercise![0]).toMatchObject({
+      duration_minutes: null,
+    });
   });
 
   it('replaces the data already there', async () => {

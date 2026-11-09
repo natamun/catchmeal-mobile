@@ -19,15 +19,10 @@ import { TrainingDayReview } from '../fitness/TrainingDayDialog';
 import type {
   Exercise,
   ExerciseKind,
-  TemplateItem,
   Workout,
   WorkoutTemplate,
 } from '../fitness/types';
-import {
-  draftFor,
-  draftFromTemplate,
-  type ItemDraft,
-} from '../fitness/workoutDraft';
+import { draftFor, type ItemDraft } from '../fitness/workoutDraft';
 import { FlowHeader } from '../layout/FlowHeader';
 import { PillTabs } from '../ui/PillTabs';
 import { SelectToggle } from '../ui/SelectToggle';
@@ -47,10 +42,9 @@ interface Library {
   workouts: Workout[];
 }
 
-/** An exercise picked, alone or through a favorite that may set its values. */
+/** An exercise picked, alone or through a favorite. */
 interface Picked {
   exercise: Pick<Exercise, 'id' | 'name' | 'kind'>;
-  templateItem?: TemplateItem;
 }
 
 interface Props {
@@ -127,13 +121,12 @@ export function TrainingPicker({ day, onClose, onAdded }: Props) {
       ...library.templates
         .filter(({ id }) => selectedTemplateIds.has(id))
         .flatMap(({ items }) =>
-          items.map((templateItem) => ({
+          items.map((item) => ({
             exercise: {
-              id: templateItem.exerciseId,
-              name: templateItem.exerciseName,
-              kind: templateItem.kind,
+              id: item.exerciseId,
+              name: item.exerciseName,
+              kind: item.kind,
             },
-            templateItem,
           })),
         ),
     ];
@@ -146,13 +139,11 @@ export function TrainingPicker({ day, onClose, onAdded }: Props) {
 
   const openReview = async () => {
     const items = await Promise.all(
-      picks().map(async ({ exercise, templateItem }) => {
+      picks().map(async ({ exercise }) => {
         const last = await getLastPerformance(exercise.id, day).catch(
           () => null,
         );
-        return templateItem
-          ? draftFromTemplate(templateItem, last)
-          : draftFor(exercise, last);
+        return draftFor(exercise, last);
       }),
     );
     setReview((prev) => ({ key: (prev?.key ?? 0) + 1, items }));

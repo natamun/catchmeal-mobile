@@ -9,7 +9,6 @@ import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
 import { useToast } from '../ui/toastContext';
 import { createTemplate, deleteTemplate, updateTemplate } from './api';
-import { CardioFields } from './CardioFields';
 import { ExercisePicker } from './ExercisePicker';
 import {
   templateDrafts,
@@ -20,7 +19,6 @@ import {
 import type { Exercise, WorkoutTemplate } from './types';
 
 /** Empty values of a favorite start from the last time: say so. */
-const FROM_LAST_TIME = { duration: '–', speed: '–', incline: '–' };
 
 interface FormProps {
   template: WorkoutTemplate | null;
@@ -46,11 +44,6 @@ function TemplateForm({
   );
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const change = (key: string, values: Partial<TemplateItemDraft>) =>
-    setItems((current) =>
-      current.map((item) => (item.key === key ? { ...item, ...values } : item)),
-    );
 
   const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -130,18 +123,9 @@ function TemplateForm({
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              {item.kind === 'STRENGTH' ? (
-                <p className="text-sm text-theme-500">
-                  Reprend tes séries de la dernière fois.
-                </p>
-              ) : (
-                <CardioFields
-                  kind={item.kind}
-                  values={item}
-                  placeholders={FROM_LAST_TIME}
-                  onChange={(values) => change(item.key, values)}
-                />
-              )}
+              <p className="text-sm text-theme-500">
+                Reprend tes séries de la dernière fois.
+              </p>
             </li>
           ))}
         </ul>

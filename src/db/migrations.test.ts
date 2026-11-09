@@ -106,6 +106,7 @@ describe('migrate', () => {
 
     expect(await versionOf(db)).toBe(MIGRATIONS.length);
     expect(tables.map(({ name }) => name)).toEqual([
+      'cardio_set',
       'exercise',
       'food_item',
       'goal_setting',
@@ -512,6 +513,86 @@ describe('shopping_item', () => {
     for (const row of rows) {
       await expect(insert('shopping_item', row)).rejects.toThrow(REFUSED);
     }
+  });
+});
+
+describe('migration 13', () => {
+  it('turns each cardio line into one set, and empties the favorites of values', async () => {
+    const old = openMemoryDatabase();
+    await migrate(old, MIGRATIONS.slice(0, 12));
+    await addExercises(old);
+    await old.run("INSERT INTO workout (performed_on) VALUES ('2026-11-05')");
+    await old.run(
+      'INSERT INTO workout_exercise (workout_id, exercise_id, position, duration_minutes, speed_kmh, incline_percent) VALUES (1, 3, 0, 20, 5, 12)',
+    );
+    await old.run(
+      'INSERT INTO workout_exercise (workout_id, exercise_id, position) VALUES (1, 1, 1)',
+    );
+    await old.run("INSERT INTO workout_template (name) VALUES ('Tapis')");
+    await old.run(
+      'INSERT INTO workout_template_exercise (template_id, exercise_id, position, duration_minutes, speed_kmh) VALUES (1, 3, 0, 45, 4)',
+    );
+
+    await migrate(old);
+
+    expect(
+      await old.query(
+        'SELECT workout_exercise_id, position, duration_minutes, speed_kmh, incline_percent, resistance FROM cardio_set',
+      ),
+    ).toEqual([
+      {
+        workout_exercise_id: 1,
+        position: 0,
+        duration_minutes: 20,
+        speed_kmh: 5,
+        incline_percent: 12,
+        resistance: null,
+      },
+    ]);
+    expect(
+      await old.query(
+        `SELECT duration_minutes, speed_kmh FROM workout_exercise
+         UNION ALL SELECT duration_minutes, speed_kmh FROM workout_template_exercise`,
+      ),
+    ).toEqual([
+      { duration_minutes: null, speed_kmh: null },
+      { duration_minutes: null, speed_kmh: null },
+      { duration_minutes: null, speed_kmh: null },
+    ]);
+  });
+
+  it('refuses a set without duration, and deletes the sets with their line', async () => {
+    await addExercises(db);
+    const { lastId: workoutId } = await insert('workout', {
+      performed_on: '2026-11-05',
+    });
+    const { lastId: lineId } = await insert('workout_exercise', {
+      workout_id: workoutId,
+      exercise_id: 3,
+      position: 0,
+    });
+    const rows: Row[] = [
+      { workout_exercise_id: lineId, position: 0, duration_minutes: 0 },
+      {
+        workout_exercise_id: lineId,
+        position: 0,
+        duration_minutes: 10,
+        resistance: -1,
+      },
+      { workout_exercise_id: 999, position: 0, duration_minutes: 10 },
+    ];
+    for (const row of rows) {
+      await expect(insert('cardio_set', row)).rejects.toThrow(REFUSED);
+    }
+    await insert('cardio_set', {
+      workout_exercise_id: lineId,
+      position: 0,
+      duration_minutes: 10,
+    });
+
+    await db.run('DELETE FROM workout_exercise WHERE id = ?', [lineId]);
+
+    expect(await count('cardio_set')).toBe(0);
   });
 });
 

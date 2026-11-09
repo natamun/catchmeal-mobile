@@ -348,9 +348,7 @@ describe('buildAiContext', () => {
             { reps: 8, weightKg: 100 },
             { reps: 10, weightKg: 92.5 },
           ],
-          durationMinutes: null,
-          speedKmh: null,
-          inclinePercent: null,
+          cardioSets: [],
         },
         {
           id: 2,
@@ -358,9 +356,14 @@ describe('buildAiContext', () => {
           exerciseName: 'Tapis de course',
           kind: 'TREADMILL',
           sets: [],
-          durationMinutes: 20,
-          speedKmh: 5,
-          inclinePercent: 12,
+          cardioSets: [
+            {
+              durationMinutes: 20,
+              speedKmh: 5,
+              inclinePercent: 12,
+              resistance: null,
+            },
+          ],
         },
       ],
     };
@@ -378,7 +381,7 @@ describe('buildAiContext', () => {
       expect(text).toContain('- Séances : 1');
       expect(text).toContain('- Cardio : 20 min');
       expect(text).toContain(
-        '| mar. 03/11 | Presse à cuisses : 8×100, 10×92,5 kg ; Tapis de course : 20 min à 5 km/h, pente 12 % |',
+        '| mar. 03/11 | Presse à cuisses : 8×100, 10×92,5 kg ; Tapis de course : 20 min à 5 km/h, 12 % |',
       );
       // 8 × 100 + 10 × 92.5 = 1725 kg; 20 min at 5 km/h = 1.7 km, 12 % of it.
       expect(text).toContain('- Volume soulevé (répétitions × charge) : 1,7 t');

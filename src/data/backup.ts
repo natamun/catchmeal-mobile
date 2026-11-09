@@ -7,7 +7,7 @@ const APP = 'CatCHMeal';
  * Version of the file layout. A newer app keeps reading older files; an older
  * app refuses a newer file instead of guessing.
  */
-export const BACKUP_FORMAT = 8;
+export const BACKUP_FORMAT = 9;
 
 /** The format that added the fitness tables. */
 const FITNESS_FORMAT = 2;
@@ -17,6 +17,8 @@ const TEMPLATES_FORMAT = 3;
 const RECIPES_FORMAT = 7;
 /** The format that added the shopping list. */
 const SHOPPING_FORMAT = 8;
+/** The format that logs cardio in sets. */
+const CARDIO_SETS_FORMAT = 9;
 
 /** The stored columns of each table, in the order rows are restored. */
 const TABLES = {
@@ -112,6 +114,15 @@ const TABLES = {
     'incline_percent',
   ],
   workout_set: ['id', 'workout_exercise_id', 'position', 'reps', 'weight_kg'],
+  cardio_set: [
+    'id',
+    'workout_exercise_id',
+    'position',
+    'duration_minutes',
+    'speed_kmh',
+    'incline_percent',
+    'resistance',
+  ],
   workout_template: ['id', 'name'],
   workout_template_exercise: [
     'id',
@@ -142,6 +153,7 @@ const LIST_TABLES = [
   'workout',
   'workout_exercise',
   'workout_set',
+  'cardio_set',
   'workout_template',
   'workout_template_exercise',
 ] as const satisfies readonly Table[];
@@ -154,6 +166,7 @@ const FITNESS_TABLES: readonly ListTable[] = [
   'workout',
   'workout_exercise',
   'workout_set',
+  'cardio_set',
   'workout_template',
   'workout_template_exercise',
 ];
@@ -181,6 +194,7 @@ function tablesIn(backup: Pick<Backup, 'format'>): readonly ListTable[] {
     ...(backup.format < TEMPLATES_FORMAT ? TEMPLATE_TABLES : []),
     ...(backup.format < RECIPES_FORMAT ? RECIPE_TABLES : []),
     ...(backup.format < SHOPPING_FORMAT ? ['shopping_item' as const] : []),
+    ...(backup.format < CARDIO_SETS_FORMAT ? ['cardio_set' as const] : []),
   ];
   return without(missing);
 }
@@ -218,6 +232,8 @@ export interface Backup {
   workout?: Row[];
   workout_exercise?: Row[];
   workout_set?: Row[];
+  /** The cardio sets, missing from the files before the ninth format. */
+  cardio_set?: Row[];
   workout_template?: Row[];
   workout_template_exercise?: Row[];
 }
@@ -259,6 +275,7 @@ export async function exportBackup(
     workout: [],
     workout_exercise: [],
     workout_set: [],
+    cardio_set: [],
     workout_template: [],
     workout_template_exercise: [],
   };
@@ -316,6 +333,24 @@ const PROFILE_DEFAULTS: Partial<Record<string, SqlValue>> = {
 };
 
 /**
+ * The cardio of a file from before the sets, as migration 13 does: each line
+ * becomes one set, and the favorites keep no values.
+ */
+async function cardioIntoSets(tx: Executor) {
+  await tx.run(
+    `INSERT INTO cardio_set (workout_exercise_id, position, duration_minutes, speed_kmh, incline_percent)
+     SELECT id, 0, duration_minutes, speed_kmh, incline_percent FROM workout_exercise
+     WHERE duration_minutes IS NOT NULL`,
+  );
+  await tx.run(
+    'UPDATE workout_exercise SET duration_minutes = NULL, speed_kmh = NULL, incline_percent = NULL',
+  );
+  await tx.run(
+    'UPDATE workout_template_exercise SET duration_minutes = NULL, speed_kmh = NULL, incline_percent = NULL',
+  );
+}
+
+/**
  * Replaces all the data of the app with the backup, in one transaction: when
  * one row breaks a rule of the database, nothing changes. A file from before
  * the fitness tab leaves the exercises and sessions as they are.
@@ -356,6 +391,12 @@ export async function restoreBackup(
             ),
           );
         }
+      }
+      if (
+        backup.format >= FITNESS_FORMAT &&
+        backup.format < CARDIO_SETS_FORMAT
+      ) {
+        await cardioIntoSets(tx);
       }
       for (const meal of backup.meal) {
         if (valueOf(meal, 'source_meal_id') !== null) {

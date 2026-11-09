@@ -20,6 +20,7 @@ import {
 } from '../../data/goals';
 import { endOfDay, startOfDay, toDateKey } from '../../utils/dateKey';
 import { formatKg, formatMinutes } from '../../utils/format';
+import { describeCardioSet } from '../fitness/format';
 import {
   strengthExercisesOf,
   strengthProgress,
@@ -367,8 +368,8 @@ function weeklyTable(
 const inCell = (text: string) => text.replaceAll('|', '/');
 
 /**
- * "Presse à cuisses : 8×100, 10×90 kg", "Tapis de course : 20 min à 5 km/h,
- * pente 12 %" or "Rameur : 10 min".
+ * "Presse à cuisses : 8×100, 10×90 kg", "Tapis de course : 10 min à
+ * 3,5 km/h, 8 %, puis 35 min à 4 km/h, 10 %" or "Rameur : 10 min".
  */
 function describeItem(item: WorkoutItem) {
   if (item.kind === 'STRENGTH') {
@@ -377,9 +378,7 @@ function describeItem(item: WorkoutItem) {
       .join(', ');
     return `${item.exerciseName} : ${sets} kg`;
   }
-  const minutes = `${formatKg(item.durationMinutes ?? 0)} min`;
-  if (item.kind === 'CARDIO') return `${item.exerciseName} : ${minutes}`;
-  return `${item.exerciseName} : ${minutes} à ${formatKg(item.speedKmh ?? 0)} km/h, pente ${formatKg(item.inclinePercent ?? 0)} %`;
+  return `${item.exerciseName} : ${item.cardioSets.map(describeCardioSet).join(', puis ')}`;
 }
 
 /**

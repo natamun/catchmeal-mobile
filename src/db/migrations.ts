@@ -321,6 +321,33 @@ CREATE TABLE shopping_item (
 CREATE UNIQUE INDEX shopping_item_food_once ON shopping_item (food_item_id);
 `;
 
+/**
+ * Cardio in sets, like strength: each one a duration, with the speed and
+ * incline on a treadmill and an optional resistance on another machine. A
+ * cardio line logged so far becomes one set. The favorites keep no cardio
+ * values any more: a session starts from the last time, as for strength.
+ * The emptied columns stay, no longer read.
+ */
+const CARDIO_SETS_V13 = `
+CREATE TABLE cardio_set (
+  id INTEGER PRIMARY KEY,
+  workout_exercise_id INTEGER NOT NULL REFERENCES workout_exercise (id) ON DELETE CASCADE,
+  position INTEGER NOT NULL CHECK (position >= 0),
+  duration_minutes REAL NOT NULL CHECK (duration_minutes > 0),
+  speed_kmh REAL CHECK (speed_kmh > 0),
+  incline_percent REAL CHECK (incline_percent >= 0),
+  resistance REAL CHECK (resistance >= 0)
+) STRICT;
+
+CREATE INDEX cardio_set_workout_exercise ON cardio_set (workout_exercise_id);
+
+INSERT INTO cardio_set (workout_exercise_id, position, duration_minutes, speed_kmh, incline_percent) SELECT id, 0, duration_minutes, speed_kmh, incline_percent FROM workout_exercise WHERE duration_minutes IS NOT NULL;
+
+UPDATE workout_exercise SET duration_minutes = NULL, speed_kmh = NULL, incline_percent = NULL;
+
+UPDATE workout_template_exercise SET duration_minutes = NULL, speed_kmh = NULL, incline_percent = NULL;
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: SCHEMA_V1 },
@@ -335,6 +362,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 10, sql: GOAL_PACE_V10 },
   { version: 11, sql: RECIPES_V11 },
   { version: 12, sql: SHOPPING_V12 },
+  { version: 13, sql: CARDIO_SETS_V13 },
 ];
 
 /**

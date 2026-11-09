@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import type { WorkoutItemInput } from '../components/fitness/types';
+import type { CardioSet, WorkoutItemInput } from '../components/fitness/types';
 import type { Database } from '../db/database';
 import { migrate } from '../db/migrations';
 import { addTestExercises } from '../test/exercises';
@@ -35,18 +35,29 @@ const strength = (
   sets: sets.map(([reps, weightKg]) => ({ reps, weightKg })),
 });
 
-const walk = (values: Partial<WorkoutItemInput> = {}): WorkoutItemInput => ({
+const cardioSet = (
+  durationMinutes: number,
+  speedKmh: number | null = null,
+  inclinePercent: number | null = null,
+  resistance: number | null = null,
+): CardioSet => ({ durationMinutes, speedKmh, inclinePercent, resistance });
+
+/** The treadmill, by default 20 minutes at 5 km/h and 12 %. */
+const walk = (...cardioSets: CardioSet[]): WorkoutItemInput => ({
   exerciseId: treadmill,
-  durationMinutes: 20,
-  speedKmh: 5,
-  inclinePercent: 12,
-  ...values,
+  cardioSets: cardioSets.length ? cardioSets : [cardioSet(20, 5, 12)],
+});
+
+/** The rower, by default 10 minutes. */
+const row = (...cardioSets: CardioSet[]): WorkoutItemInput => ({
+  exerciseId: rower,
+  cardioSets: cardioSets.length ? cardioSets : [cardioSet(10)],
 });
 
 const LEG_DAY = () => [
   strength(press, [8, 100], [10, 90], [12, 80]),
   walk(),
-  { exerciseId: rower, durationMinutes: 10 },
+  row(),
 ];
 
 describe('addToDay', () => {
@@ -65,18 +76,24 @@ describe('addToDay', () => {
             { reps: 10, weightKg: 90 },
             { reps: 12, weightKg: 80 },
           ],
-          durationMinutes: null,
+          cardioSets: [],
         },
-        {
-          kind: 'TREADMILL',
-          sets: [],
-          durationMinutes: 20,
-          speedKmh: 5,
-          inclinePercent: 12,
-        },
-        { kind: 'CARDIO', durationMinutes: 10, speedKmh: null },
+        { kind: 'TREADMILL', sets: [], cardioSets: [cardioSet(20, 5, 12)] },
+        { kind: 'CARDIO', sets: [], cardioSets: [cardioSet(10)] },
       ],
     });
+  });
+
+  it('logs cardio in sets, each at its own pace or resistance', async () => {
+    const day = await addToDay(db, '2026-11-05', [
+      walk(cardioSet(10, 3.5, 8), cardioSet(35, 4, 10)),
+      row(cardioSet(15, null, null, 8), cardioSet(15)),
+    ]);
+
+    expect(day.items.map(({ cardioSets }) => cardioSets)).toEqual([
+      [cardioSet(10, 3.5, 8), cardioSet(35, 4, 10)],
+      [cardioSet(15, null, null, 8), cardioSet(15)],
+    ]);
   });
 
   it('adds new exercises after those of the day, in one session', async () => {
@@ -106,31 +123,32 @@ describe('addToDay', () => {
     ]);
   });
 
-  it('keeps only the fields of each kind', async () => {
+  it('keeps only the values of each kind', async () => {
     const day = await addToDay(db, '2026-11-05', [
-      { ...strength(press, [8, 100]), durationMinutes: 5, speedKmh: 3 },
+      { ...strength(press, [8, 100]), cardioSets: [cardioSet(5, 3)] },
       {
-        exerciseId: rower,
-        durationMinutes: 10,
-        speedKmh: 12,
+        ...row(cardioSet(10, 12, 5, 6)),
         sets: [{ reps: 1, weightKg: 1 }],
       },
+      walk(cardioSet(20, 5, 12, 9)),
     ]);
 
-    expect(day.items[0]).toMatchObject({
-      durationMinutes: null,
-      speedKmh: null,
-    });
-    expect(day.items[1]).toMatchObject({ sets: [], speedKmh: null });
+    expect(day.items.map(({ sets, cardioSets }) => [sets, cardioSets])).toEqual(
+      [
+        [[{ reps: 8, weightKg: 100 }], []],
+        [[], [cardioSet(10, null, null, 6)]],
+        [[], [cardioSet(20, 5, 12)]],
+      ],
+    );
   });
 
   it('counts a treadmill without incline as flat, and a set at body weight', async () => {
     const day = await addToDay(db, '2026-11-05', [
-      walk({ inclinePercent: null }),
+      walk(cardioSet(20, 5, null)),
       strength(curl, [15, 0]),
     ]);
 
-    expect(day.items[0].inclinePercent).toBe(0);
+    expect(day.items[0].cardioSets[0].inclinePercent).toBe(0);
     expect(day.items[1].sets).toEqual([{ reps: 15, weightKg: 0 }]);
   });
 
@@ -161,16 +179,27 @@ describe('addToDay', () => {
         ),
       ],
     ],
-    ['a cardio without duration', '2026-11-05', () => [{ exerciseId: rower }]],
+    ['a cardio without sets', '2026-11-05', () => [{ exerciseId: rower }]],
+    ['a cardio set of 0 minutes', '2026-11-05', () => [row(cardioSet(0))]],
     [
-      'a treadmill without speed',
+      '21 sets of cardio',
       '2026-11-05',
-      () => [walk({ speedKmh: null })],
+      () => [row(...Array.from({ length: 21 }, () => cardioSet(1)))],
+    ],
+    [
+      'a treadmill set without speed',
+      '2026-11-05',
+      () => [walk(cardioSet(20, null, 5))],
     ],
     [
       'a treadmill over 30 % of incline',
       '2026-11-05',
-      () => [walk({ inclinePercent: 31 })],
+      () => [walk(cardioSet(20, 5, 31))],
+    ],
+    [
+      'a resistance over 100',
+      '2026-11-05',
+      () => [row(cardioSet(10, null, null, 101))],
     ],
     [
       'an exercise that does not exist',
@@ -239,10 +268,11 @@ describe('saveDay', () => {
       { exerciseId: curl, sets: [{ reps: 12, weightKg: 45 }] },
       { exerciseId: press, sets: [{ reps: 8, weightKg: 105 }] },
     ]);
-    const [{ n }] = await db.query<{ n: number }>(
-      'SELECT count(*) AS n FROM workout_set',
+    const counts = await db.query<{ n: number }>(
+      `SELECT count(*) AS n FROM workout_set
+       UNION ALL SELECT count(*) FROM cardio_set`,
     );
-    expect(n).toBe(2);
+    expect(counts.map(({ n }) => n)).toEqual([2, 0]);
   });
 
   it('starts the session of a day that had none', async () => {
@@ -307,14 +337,15 @@ describe('lastPerformance', () => {
     ]);
   });
 
-  it('gives the duration, speed and incline of a treadmill', async () => {
-    await addToDay(db, '2026-11-05', LEG_DAY());
+  it('gives the sets of a treadmill, at their pace', async () => {
+    await addToDay(db, '2026-11-05', [
+      walk(cardioSet(10, 3.5, 8), cardioSet(35, 4, 10)),
+    ]);
 
-    expect(await lastPerformance(db, treadmill)).toMatchObject({
-      durationMinutes: 20,
-      speedKmh: 5,
-      inclinePercent: 12,
-    });
+    expect((await lastPerformance(db, treadmill))?.cardioSets).toEqual([
+      cardioSet(10, 3.5, 8),
+      cardioSet(35, 4, 10),
+    ]);
   });
 
   it('leaves out the day being logged', async () => {
