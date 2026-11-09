@@ -103,6 +103,7 @@ describe('a meal logged by the portion', () => {
       {
         id: 1,
         foodItemId: BISCUITS.id,
+        recipeId: null,
         quantity,
         kcal: 0,
         protein: 0,

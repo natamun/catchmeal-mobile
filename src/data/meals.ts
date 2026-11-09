@@ -8,6 +8,7 @@ import {
 } from '../components/meal/types';
 import type { Database, Executor, SqlValue } from '../db/database';
 import { DataError } from './errors';
+import { loggableRecipes } from './recipes';
 import {
   checkChoice,
   checkDateOnly,
@@ -17,6 +18,7 @@ import {
 
 const GONE = "Ce repas n'existe plus.";
 const MISSING_FOOD = "Un des aliments n'existe plus.";
+const MISSING_RECIPE = "Une des recettes n'existe plus.";
 
 interface MealRow {
   id: number;
@@ -29,6 +31,7 @@ interface ItemRow {
   id: number;
   meal_id: number;
   food_item_id: number | null;
+  recipe_id: number | null;
   quantity: number;
   kcal: number;
   protein: number;
@@ -57,8 +60,12 @@ export interface MealFilter {
 }
 
 const amount = { min: 0 };
+const AN_ID = { min: 0, exclusive: true, integer: true };
 
-/** Checks the lines; a quick add (no food) must give its own calories and macros. */
+/**
+ * Checks the lines: a food, servings of a recipe, or a quick add, which must
+ * give its own calories and macros.
+ */
 function validateItems(items: unknown): MealItemInput[] {
   if (!Array.isArray(items) || items.length === 0) {
     throw new DataError('Le repas doit contenir au moins un aliment.');
@@ -68,13 +75,20 @@ function validateItems(items: unknown): MealItemInput[] {
       min: 0,
       exclusive: true,
     });
+    if (item.foodItemId !== undefined && item.recipeId !== undefined) {
+      throw new DataError(
+        'Une ligne est un aliment ou une recette, pas les deux.',
+      );
+    }
     if (item.foodItemId !== undefined) {
       return {
-        foodItemId: checkNumber(item.foodItemId, 'aliment', {
-          min: 0,
-          exclusive: true,
-          integer: true,
-        }),
+        foodItemId: checkNumber(item.foodItemId, 'aliment', AN_ID),
+        quantity,
+      };
+    }
+    if (item.recipeId !== undefined) {
+      return {
+        recipeId: checkNumber(item.recipeId, 'recette', AN_ID),
         quantity,
       };
     }
@@ -100,9 +114,10 @@ function checkLoggedMealHasType(
 
 /**
  * Computes each line: a food line takes the food's values scaled to the
- * quantity eaten, now, so editing the food later leaves this meal unchanged. An
- * archived food is only accepted when a meal already holds it (editing that
- * meal must keep working).
+ * quantity eaten, and a recipe line its servings of the recipe's totals, now,
+ * so editing the food or the recipe later leaves this meal unchanged. An
+ * archived food or recipe is only accepted when a meal already holds it
+ * (editing that meal must keep working).
  */
 async function buildItems(
   tx: Executor,
@@ -128,10 +143,36 @@ async function buildItems(
   }
   const foodById = new Map(foods.map((food) => [food.id, food]));
 
+  const recipeIds = [
+    ...new Set(
+      items
+        .map(({ recipeId }) => recipeId)
+        .filter((id): id is number => id !== undefined),
+    ),
+  ];
+  const recipeById = await loggableRecipes(tx, recipeIds);
+  if (recipeById.size !== recipeIds.length) {
+    throw new DataError(MISSING_RECIPE);
+  }
+
   return items.map((item) => {
+    if (item.recipeId !== undefined) {
+      const { servings, totals } = recipeById.get(item.recipeId)!;
+      const scale = item.quantity / servings;
+      return {
+        foodItemId: null,
+        recipeId: item.recipeId,
+        quantity: item.quantity,
+        kcal: totals.kcal * scale,
+        protein: totals.protein * scale,
+        carbs: totals.carbs * scale,
+        fat: totals.fat * scale,
+      };
+    }
     if (item.foodItemId === undefined) {
       return {
         foodItemId: null,
+        recipeId: null,
         quantity: item.quantity,
         kcal: item.kcal!,
         protein: item.protein!,
@@ -143,6 +184,7 @@ async function buildItems(
     const scale = item.quantity / food.base_quantity;
     return {
       foodItemId: item.foodItemId,
+      recipeId: null,
       quantity: item.quantity,
       kcal: food.kcal * scale,
       protein: food.protein * scale,
@@ -155,11 +197,12 @@ async function buildItems(
 async function insertItems(tx: Executor, mealId: number, items: ItemValues[]) {
   for (const item of items) {
     await tx.run(
-      `INSERT INTO meal_item (meal_id, food_item_id, quantity, kcal, protein, carbs, fat)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO meal_item (meal_id, food_item_id, recipe_id, quantity, kcal, protein, carbs, fat)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         mealId,
         item.foodItemId,
+        item.recipeId,
         item.quantity,
         item.kcal,
         item.protein,
@@ -177,7 +220,7 @@ async function readMeals(db: Executor, where: string, params: SqlValue[]) {
     params,
   );
   const items = await db.query<ItemRow>(
-    `SELECT id, meal_id, food_item_id, quantity, kcal, protein, carbs, fat FROM meal_item
+    `SELECT id, meal_id, food_item_id, recipe_id, quantity, kcal, protein, carbs, fat FROM meal_item
      WHERE meal_id IN (SELECT id FROM meal WHERE ${where}) ORDER BY id`,
     params,
   );
@@ -192,6 +235,7 @@ async function readMeals(db: Executor, where: string, params: SqlValue[]) {
       .map((item) => ({
         id: item.id,
         foodItemId: item.food_item_id,
+        recipeId: item.recipe_id,
         quantity: item.quantity,
         kcal: item.kcal,
         protein: item.protein,

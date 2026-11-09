@@ -8,6 +8,7 @@ import { openMemoryDatabase } from '../test/nodeDatabase';
 import { DataError } from './errors';
 import { archiveFoodItem, createFoodItem, updateFoodItem } from './foodItems';
 import { createMeal, deleteMeal, listMeals, updateMeal } from './meals';
+import { archiveRecipe, createRecipe, updateRecipe } from './recipes';
 
 let db: Database;
 let apple: FoodItem;
@@ -77,6 +78,7 @@ describe('createMeal', () => {
       {
         id: expect.any(Number) as number,
         foodItemId: apple.id,
+        recipeId: null,
         quantity: 150,
         kcal: 78,
         protein: expect.closeTo(0.45, 5) as number,
@@ -86,6 +88,7 @@ describe('createMeal', () => {
       {
         id: expect.any(Number) as number,
         foodItemId: yogurt.id,
+        recipeId: null,
         quantity: 2,
         kcal: 240,
         protein: 10,
@@ -175,6 +178,97 @@ describe('createMeal', () => {
     await expect(
       createMeal(db, lunch([{ foodItemId: apple.id, quantity: 100 }])),
     ).rejects.toThrow("Un des aliments n'existe plus.");
+  });
+});
+
+describe('a recipe line', () => {
+  let compoteId: number;
+
+  beforeEach(async () => {
+    ({ id: compoteId } = await createRecipe(db, {
+      name: 'Compote',
+      servings: 4,
+      category: null,
+      prepMinutes: null,
+      notes: null,
+      ingredients: [
+        { foodItemId: apple.id, quantity: 800 },
+        { foodItemId: yogurt.id, quantity: 2 },
+      ],
+      steps: [],
+    }));
+  });
+
+  it('takes its servings of the recipe totals', async () => {
+    const meal = await createMeal(
+      db,
+      lunch([{ recipeId: compoteId, quantity: 1.5 }]),
+    );
+
+    expect(meal.items).toEqual([
+      {
+        id: expect.any(Number) as number,
+        foodItemId: null,
+        recipeId: compoteId,
+        quantity: 1.5,
+        kcal: expect.closeTo(246, 5) as number,
+        protein: expect.closeTo(4.65, 5) as number,
+        carbs: expect.closeTo(54, 5) as number,
+        fat: expect.closeTo(3.225, 5) as number,
+      },
+    ]);
+  });
+
+  it('keeps the values of that day when the recipe changes later', async () => {
+    await createMeal(db, lunch([{ recipeId: compoteId, quantity: 1 }]));
+    const recipe = await updateRecipe(db, compoteId, {
+      name: 'Compote',
+      servings: 2,
+      category: null,
+      prepMinutes: null,
+      notes: null,
+      ingredients: [{ foodItemId: apple.id, quantity: 800 }],
+      steps: [],
+    });
+
+    const [saved] = await listMeals(db, { date: '2026-11-05' });
+
+    expect(saved.items[0].kcal).toBeCloseTo(164);
+    expect(recipe.totals.kcal).toBe(416);
+  });
+
+  it('keeps an archived recipe a meal already holds when editing it', async () => {
+    const meal = await createMeal(
+      db,
+      lunch([{ recipeId: compoteId, quantity: 1 }]),
+    );
+    await archiveRecipe(db, compoteId);
+
+    const edited = await updateMeal(db, meal.id, {
+      items: [{ recipeId: compoteId, quantity: 2 }],
+    });
+
+    expect(edited.items[0]).toMatchObject({ recipeId: compoteId, quantity: 2 });
+  });
+
+  it.each<[string, MealItemInput]>([
+    ['an unknown recipe', { recipeId: 999, quantity: 1 }],
+    [
+      'a line both a food and a recipe',
+      { foodItemId: 1, recipeId: 1, quantity: 1 },
+    ],
+    ['no serving', { recipeId: 1, quantity: 0 }],
+  ])('refuses %s and saves nothing', async (_, item) => {
+    await expect(createMeal(db, lunch([item]))).rejects.toThrow(DataError);
+    expect(await listMeals(db)).toEqual([]);
+  });
+
+  it('refuses an archived recipe that no meal holds', async () => {
+    await archiveRecipe(db, compoteId);
+
+    await expect(
+      createMeal(db, lunch([{ recipeId: compoteId, quantity: 1 }])),
+    ).rejects.toThrow("Une des recettes n'existe plus.");
   });
 });
 

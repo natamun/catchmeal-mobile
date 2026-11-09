@@ -16,13 +16,15 @@ export const MEAL_TYPE_LABELS: Record<MealType, string> = {
 };
 
 /**
- * One line of a saved meal. foodItemId is null for a quick add. Calories and
- * macros are stored when the meal is saved, so editing the food later does not
- * change past meals.
+ * One line of a saved meal: a food in its base unit, servings of a recipe, or
+ * a quick add, with neither. Calories and macros are stored when the meal is
+ * saved, so editing the food or the recipe later does not change past meals.
  */
 export interface MealFoodItem {
   id: number;
   foodItemId: number | null;
+  recipeId: number | null;
+  /** In the food's base unit, or in servings of the recipe. */
   quantity: number;
   kcal: number;
   protein: number;
@@ -43,11 +45,12 @@ export interface Meal {
 }
 
 /**
- * An item to save: a food id with a quantity, or for a quick add the quantity
- * and the macros.
+ * An item to save: a food id with a quantity, a recipe id with servings, or
+ * for a quick add the quantity and the macros.
  */
 export interface MealItemInput {
   foodItemId?: number;
+  recipeId?: number;
   quantity: number;
   kcal?: number;
   protein?: number;
