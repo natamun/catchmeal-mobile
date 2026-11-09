@@ -25,7 +25,7 @@
 
 ---
 
-CatCHMeal logs what you eat, scans barcodes with Open Food Facts, measures your real energy expenditure from your journal and weigh-ins, and recommends calories and macros for your goal. The data lives on the phone: only the barcode lookups go online.
+CatCHMeal logs what you eat, scans barcodes with Open Food Facts, keeps your recipes and your shopping list, measures your real energy expenditure from your journal and weigh-ins, and recommends calories and macros for your goal. The data lives on the phone: only the barcode lookups go online.
 
 It started from CatCHMeal, a web app built as a team for the ft_transcendence project at 42, cut down and rebuilt as a single-user phone app.
 
@@ -37,6 +37,8 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 - **Barcode scanning**: the camera reads the code, and [Open Food Facts](https://world.openfoodfacts.org) fills the food form.
 - **Food library**: values per 100 g, 100 ml or per piece, with an optional portion to log by the piece ("4 biscuits").
 - **Meal library and quick add**: meals saved once and logged again in one go, or calories and macros typed by hand.
+- **Recipes**: ingredients from the food library, cooking, numbered steps and notes, filtered by category. Each recipe shows its calories and macros per serving and its quantities for any number of servings, and the screen stays on while you cook. A recipe is logged by the serving.
+- **Shopping list**: foods, meals and recipes added for the servings you need, the same food added up into one line, and free items. You tick the list off in the shop and share it as text.
 
 ### Body and goals
 

@@ -154,9 +154,40 @@ erDiagram
     meal_item {
         int id PK
         int meal_id FK
-        int food_item_id FK "null for a quick add"
-        real quantity
+        int food_item_id FK "null for a recipe or a quick add"
+        int recipe_id FK "servings of a recipe"
+        real quantity "in the food's unit, or servings"
         real kcal
+    }
+    recipe {
+        int id PK
+        text name
+        int servings
+        text category
+        int prep_minutes
+        text cooking
+        text notes
+        int archived
+    }
+    recipe_ingredient {
+        int id PK
+        int recipe_id FK
+        int food_item_id FK
+        int position
+        real quantity "in the food's unit"
+    }
+    recipe_step {
+        int id PK
+        int recipe_id FK
+        int position
+        text instruction
+    }
+    shopping_item {
+        int id PK
+        int food_item_id FK "once each, null for a free text"
+        text label "free text"
+        real quantity "in the food's unit"
+        int checked
     }
     weight_log {
         int id PK
@@ -212,6 +243,11 @@ erDiagram
     meal ||--o{ meal_item : "contains"
     meal ||--o| meal : "made from"
     food_item ||--o{ meal_item : "used in"
+    recipe ||--o{ meal_item : "logged in"
+    recipe ||--|{ recipe_ingredient : "contains"
+    food_item ||--o{ recipe_ingredient : "used in"
+    recipe ||--o{ recipe_step : "made of"
+    food_item ||--o| shopping_item : "to buy"
     workout ||--|{ workout_exercise : "contains"
     exercise ||--o{ workout_exercise : "done in"
     workout_exercise ||--o{ workout_set : "made of"
@@ -219,6 +255,8 @@ erDiagram
     exercise ||--o{ workout_template_exercise : "used in"
 ```
 
-- A meal line stores the calories and macros computed when the meal is saved, so editing or archiving a food later leaves past meals unchanged.
+- A meal line stores the calories and macros computed when the meal is saved, so editing or archiving a food or a recipe later leaves past meals unchanged.
+- A recipe's calories and macros are not stored: they come from the current values of its foods. A deleted recipe is archived, like a food, so the meals that logged it keep its name.
+- The shopping list holds each food once: adding it again adds up the quantity, whatever recipe it is for.
 - Training sessions are a logbook: their calories are neither estimated nor added to the goals, because the measured expenditure already holds the training.
 - Three columns are left from earlier versions and no longer read: `met` in `exercise`, the effort once used to estimate those calories, and `name` and `duration_minutes` in `workout`, empty since the sessions became one a day.
