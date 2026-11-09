@@ -1,30 +1,7 @@
-import { useEffect, useState } from 'react';
-
-import { useToggleSet } from '../../hooks/useToggleSet';
 import { formatWeekday } from '../../utils/format';
-import { listFoodItems } from '../food/api';
-import { FoodItemList } from '../food/FoodItemList';
-import type { FoodItem } from '../food/types';
-import { FlowHeader } from '../layout/FlowHeader';
-import { listMeals } from '../meal/api';
-import { buildDrafts, type MealItemDraft } from '../meal/draft';
-import { MealList } from '../meal/MealList';
-import { MEAL_TYPE_LABELS, type Meal, type MealType } from '../meal/types';
-import { listRecipes } from '../recipe/api';
-import { RecipeList } from '../recipe/RecipeList';
-import type { Recipe } from '../recipe/types';
-import { PillTabs } from '../ui/PillTabs';
-import { SelectToggle } from '../ui/SelectToggle';
+import { MEAL_TYPE_LABELS, type MealType } from '../meal/types';
 import { DailyMealReview } from './DailyMealReview';
-import { SelectionBar } from './SelectionBar';
-
-type PickerTab = 'food' | 'meal' | 'recipe';
-
-const TAB_OPTIONS: { value: PickerTab; label: string }[] = [
-  { value: 'food', label: 'Aliments' },
-  { value: 'meal', label: 'Repas' },
-  { value: 'recipe', label: 'Recettes' },
-];
+import { LibraryPicker } from './LibraryPicker';
 
 interface DailyMealPickerProps {
   mealType: MealType;
@@ -44,138 +21,19 @@ export function DailyMealPicker({
   onClose,
   onAdded,
 }: DailyMealPickerProps) {
-  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
-  const [templates, setTemplates] = useState<Meal[]>([]);
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [tab, setTab] = useState<PickerTab>('food');
-  const [selectedFoodIds, toggleFood] = useToggleSet<number>();
-  const [selectedMealIds, toggleMeal] = useToggleSet<number>();
-  const [selectedRecipeIds, toggleRecipe] = useToggleSet<number>();
-  const [review, setReview] = useState<{
-    key: number;
-    items: MealItemDraft[];
-  } | null>(null);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    Promise.all([
-      listFoodItems(controller.signal),
-      listMeals(false, controller.signal),
-      listRecipes(controller.signal),
-    ])
-      .then(([foods, meals, library]) => {
-        setFoodItems(foods);
-        setTemplates(meals);
-        setRecipes(library);
-      })
-      .catch(() => {
-        if (controller.signal.aborted) {
-          return;
-        }
-        setLoadError('Impossible de charger la bibliothèque. Réessayez.');
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
-      });
-    return () => controller.abort();
-  }, []);
-
-  const selectedCount =
-    selectedFoodIds.size + selectedMealIds.size + selectedRecipeIds.size;
-
-  const openReview = () => {
-    const items = buildDrafts(
-      {
-        foods: foodItems.filter((food) => selectedFoodIds.has(food.id)),
-        recipes: recipes.filter((recipe) => selectedRecipeIds.has(recipe.id)),
-        meals: templates.filter((meal) => selectedMealIds.has(meal.id)),
-      },
-      { foodItems, recipes },
-    );
-    setReview((prev) => ({ key: (prev?.key ?? 0) + 1, items }));
-  };
-
-  const header = (
-    <FlowHeader
+  return (
+    <LibraryPicker
       title={MEAL_TYPE_LABELS[mealType]}
       subtitle={formatWeekday(date)}
       onClose={onClose}
-      onBack={review ? () => setReview(null) : undefined}
+      renderReview={(items) => (
+        <DailyMealReview
+          mealType={mealType}
+          date={date}
+          initialItems={items}
+          onSaved={onAdded}
+        />
+      )}
     />
-  );
-
-  if (review) {
-    return (
-      <div className="flex flex-col gap-4">
-        {header}
-        <div key={review.key} className="animate-step-in">
-          <DailyMealReview
-            mealType={mealType}
-            date={date}
-            initialItems={review.items}
-            onSaved={onAdded}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      {header}
-      <PillTabs
-        name="mealPickerTab"
-        options={TAB_OPTIONS}
-        value={tab}
-        onChange={setTab}
-        className="self-start"
-      />
-
-      <div key={tab} className="animate-fade-in-up">
-        {tab === 'food' ? (
-          <FoodItemList
-            items={foodItems}
-            isLoading={isLoading}
-            loadError={loadError}
-            renderAction={(food) => (
-              <SelectToggle
-                selected={selectedFoodIds.has(food.id)}
-                onToggle={() => toggleFood(food.id)}
-              />
-            )}
-          />
-        ) : tab === 'meal' ? (
-          <MealList
-            meals={templates}
-            isLoading={isLoading}
-            loadError={loadError}
-            renderAction={(meal) => (
-              <SelectToggle
-                selected={selectedMealIds.has(meal.id)}
-                onToggle={() => toggleMeal(meal.id)}
-              />
-            )}
-          />
-        ) : (
-          <RecipeList
-            recipes={recipes}
-            isLoading={isLoading}
-            loadError={loadError}
-            renderAction={(recipe) => (
-              <SelectToggle
-                selected={selectedRecipeIds.has(recipe.id)}
-                onToggle={() => toggleRecipe(recipe.id)}
-              />
-            )}
-          />
-        )}
-      </div>
-
-      <SelectionBar count={selectedCount} onNext={openReview} />
-    </div>
   );
 }
