@@ -57,7 +57,7 @@ android/                Capacitor Android project (debug suffix .debug, signing 
 - Once the user said go, work autonomously: installs, builds, `make phone`, code. `sudo` is allowed; the user types the password, never store it.
 - Verify behaviour by running it (tests, a script). Never drive the dev app yourself: only `ui-inspector` does, for an interface review. Otherwise hand the user a short list of what to try on the phone.
 - Run checks silently; only mention a failure you could not fix, or a check you could not run.
-- Commits: Claude runs `git add` + `git commit`, one logical change each, CONTRIBUTING format, one line, no body. An interface change the user checks on the phone is committed only once they validate it; until then it stays in the working tree, kept apart so each change becomes its own commit. Never push, tag, or touch GitHub: the user pushes last.
+- Commits: Claude runs `git add` + `git commit`, one logical change each, CONTRIBUTING format, one line, no body. An interface change the user checks on the phone is committed only once they validate it; until then it stays in the working tree, kept apart so each change becomes its own commit. A change the user sees adds its line under `## [Unreleased]` in CHANGELOG.md, in the same commit. Never push, tag, or touch GitHub: the user pushes last.
 - Fixes to unpushed commits go into their original commit (`/fold-fixes`), not into a `fix:` commit.
 - The real app (`io.github.natamun.catchmeal`) is updated only after the user's go (`/release`).
 
