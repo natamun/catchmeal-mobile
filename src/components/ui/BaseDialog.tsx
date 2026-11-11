@@ -72,8 +72,9 @@ export function BaseDialog({
       }}
       className={`dialog-fade m-auto w-[calc(100vw-2rem)] ${MAX_WIDTH_CLASS[maxWidth]} overflow-hidden rounded-2xl border-none bg-surface p-0 shadow-lg backdrop:backdrop-blur-sm`}
     >
-      <div className="flex max-h-[calc(100dvh-3rem)] flex-col gap-5 overflow-y-auto p-4 sm:p-6">
-        <div className="flex items-center justify-between gap-3">
+      <div className="flex max-h-[calc(100dvh-3rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex-col">
+        {/* The header stays out of the scroll, so the close button never leaves. */}
+        <div className="flex shrink-0 items-center justify-between gap-3 px-4 pt-4 pb-4 sm:px-6 sm:pt-6">
           <h3 className="min-w-0 truncate text-lg font-bold text-theme-800">
             {title}
           </h3>
@@ -98,7 +99,9 @@ export function BaseDialog({
           </div>
         </div>
 
-        {children}
+        <div className="flex min-h-0 flex-col gap-5 overflow-y-auto overscroll-contain px-4 pt-1 pb-4 sm:px-6 sm:pb-6">
+          {children}
+        </div>
       </div>
       {onDelete && (
         <BottomSheet
