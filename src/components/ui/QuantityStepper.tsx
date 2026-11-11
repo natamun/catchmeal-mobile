@@ -113,11 +113,11 @@ export function QuantityStepper({
 
   return (
     <div className="flex items-center gap-2 select-none">
-      {stepButton(-10, '--')}
-      {stepButton(-1, '-')}
+      {stepButton(-10, '−10')}
+      {stepButton(-1, '−1')}
       {value}
-      {stepButton(1, '+')}
-      {stepButton(10, '++')}
+      {stepButton(1, '+1')}
+      {stepButton(10, '+10')}
     </div>
   );
 }
