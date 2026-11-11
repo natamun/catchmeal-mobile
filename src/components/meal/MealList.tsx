@@ -132,7 +132,7 @@ export function MealList({
                     <MacroBadge key={m.label} {...m} />
                   ))}
                 </div>
-                <span className="min-w-20 shrink-0 rounded-full bg-theme-50 px-2.5 py-0.5 text-center text-sm font-semibold text-theme-800">
+                <span className="shrink-0 text-right text-sm font-semibold whitespace-nowrap text-theme-800 tabular-nums">
                   {kcal} kcal
                 </span>
                 {renderAction?.(meal)}
