@@ -78,5 +78,5 @@ Restore the `splash.png` files with git if only the icon should change.
 - **`api.ts` bypassed**: `GoalsCard`, `MeasureChart`, `aiContext`, `BarcodeField`, `BackupCard` and `HomePage` call `src/data` directly, so a write made there must notify the change bus by itself.
 - **Decimals handled in four places** (`data/validation.ts`, `utils/decimals.ts`, `meal/draft.ts`, `recipe/recipeForm.ts`) and two `validation` modules (`data/` and `utils/`).
 - **Hooks split** between `src/hooks` and feature folders (`recipe/useRecipeEditor.ts`, `analytics/useChartTooltip.ts`).
-- **Large files**: `analytics/aiContext.ts` (585 lines), `food/FoodItemForm.tsx` (538).
+- **Large files**: `analytics/aiContext.ts` (596 lines), `food/FoodItemForm.tsx` (538).
 - **Possibly dead columns**: check whether `profile.lean_loss_alert` and `goal_type` are still read.

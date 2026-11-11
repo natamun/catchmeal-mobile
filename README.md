@@ -56,8 +56,9 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 
 ### Statistics
 
+- **Summary** of the chosen period at the top: average calories against the goal, weekday against weekend, protein, weight change with its pace per week, sessions per week.
 - **Charts** over a chosen period: calories, macros and body measures, with their trend.
-- **Training**: sessions per week, volume lifted, cardio time, treadmill distance and climb.
+- **Training**: sessions per week, strength and cardio.
 - **AI summary**: the period as text to paste into an AI chat and ask about it.
 
 ### And also
