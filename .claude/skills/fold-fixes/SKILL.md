@@ -11,4 +11,4 @@ The working tree holds fixes for bugs the user found while testing commits not y
 4. `git switch -c fold <base>` where base is the last pushed commit. Cherry-pick the commits in order; right after each target commit, `git apply` its patch and `git commit --amend --no-edit`.
 5. Check that the rebuilt tree equals the old tree plus the fixes: `git diff main fold` must show exactly the patches.
 6. Check each amended commit alone in a temporary worktree (`git worktree add <scratchpad>/wt <sha>`, `npm ci`, `make check`), then remove the worktree.
-7. `git branch -f main fold`, `git switch main`, delete `fold`, pop the stash. Report the old and new SHAs.
+7. `git branch -f main fold`, `git switch main`, delete `fold`, pop the stash. Report the rewritten commits by their message, without SHAs.
