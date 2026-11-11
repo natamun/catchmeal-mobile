@@ -251,6 +251,28 @@ describe('buildAiContext', () => {
     expect(text).toContain('- Moyenne par jour loggé : 1900 kcal');
   });
 
+  it('compares a weekday with a weekend day when there are enough of both', () => {
+    const week = ['2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05'];
+    const text = build({
+      from: '2026-10-31',
+      to: '2026-11-06',
+      days: [
+        day('2026-10-31', meal(2400)),
+        day('2026-11-01', meal(2200)),
+        ...week.map((key) => day(key, meal(1800))),
+      ],
+    });
+    const fewWeekdays = build({
+      from: '2026-10-31',
+      days: [day('2026-10-31', meal(2400)), day('2026-11-01', meal(2200))],
+    });
+
+    expect(text).toContain(
+      "- Moyenne d'un jour de semaine (lundi à vendredi) : 1800 kcal ; d'un jour de week-end (samedi et dimanche) : 2300 kcal",
+    );
+    expect(fewWeekdays).not.toContain('jour de week-end');
+  });
+
   it('gives each measure from the first to the last value', () => {
     const text = build({
       days: [
@@ -317,7 +339,7 @@ describe('buildAiContext', () => {
     expect(text).toContain('(en cours)');
   });
 
-  it('details a long period week by week', () => {
+  it('details a long period week by week, Monday to Sunday', () => {
     const text = build({
       from: '2026-09-01',
       to: '2026-10-31',
@@ -328,7 +350,8 @@ describe('buildAiContext', () => {
       .filter((line) => /^\| \d{2}\/\d{2} →/.test(line));
     expect(text).toContain('## Détail par semaine');
     expect(rows).toHaveLength(9);
-    expect(rows[0]).toBe('| 01/09 → 07/09 | 2/7 | 1900 | 140 | 200 | 60 | – |');
+    expect(rows[0]).toBe('| 01/09 → 06/09 | 2/6 | 1900 | 140 | 200 | 60 | – |');
+    expect(rows[1]).toMatch(/^\| 07\/09 → 13\/09 \|/);
   });
 
   it('ends on the question to type', () => {
@@ -436,11 +459,11 @@ describe('buildAiContext', () => {
         weighIns: WEIGH_INS,
       });
 
-      expect(text).toContain('| 01/09 → 07/09 | 2 |');
+      expect(text).toContain('| 01/09 → 06/09 | 2 |');
       expect(text).toContain(
         '- Charge max, de la première à la dernière séance de la période :\n  - Presse à cuisses : 100 → 105 kg',
       );
-      expect(text).toContain('| 08/09 → 14/09 | 0 |');
+      expect(text).toContain('| 07/09 → 13/09 | 0 |');
     });
   });
 });

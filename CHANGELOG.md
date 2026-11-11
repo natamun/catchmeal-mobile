@@ -10,6 +10,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - Options are picked in a sheet from the bottom instead of a small list, the quick add category included.
 - A search clears with one tap.
 - A confirmation appears when exercises are added to a session.
+- The AI summary compares a weekday with a weekend day, and its weekly detail runs Monday to Sunday, like the charts.
 
 ### Changed
 

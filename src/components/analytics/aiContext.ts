@@ -31,6 +31,8 @@ import type { Profile } from '../profile/api';
 import { calculateBMR, calculateTDEE, getAge } from '../profile/bmr';
 import { GOAL_TYPE_OPTIONS } from '../profile/goalTypes';
 import { ACTIVITY_OPTIONS, GENDER_OPTIONS } from '../profile/profileOptions';
+import { groupDays } from './buildDataGraph';
+import { weekSplitOf } from './periodSummary';
 import type { DashboardDay } from './types';
 
 /** Up to this many days the detail is day by day, then week by week. */
@@ -314,6 +316,16 @@ function measureLines(from: string, days: DashboardDay[]) {
   return lines;
 }
 
+/** A weekday against a weekend day, when there are enough of both. */
+function weekSplitLines(eaten: DashboardDay[]) {
+  const split = weekSplitOf(eaten);
+  return split === null
+    ? []
+    : [
+        `- Moyenne d'un jour de semaine (lundi à vendredi) : ${split.week} kcal ; d'un jour de week-end (samedi et dimanche) : ${split.weekend} kcal`,
+      ];
+}
+
 const MACRO_HEADERS = 'kcal | Protéines (g) | Glucides (g) | Lipides (g)';
 
 function dailyTable(
@@ -339,8 +351,7 @@ function weeklyTable(
   todayKey: string,
 ) {
   const rows: string[] = [];
-  for (let index = 0; index < calendar.length; index += 7) {
-    const week = calendar.slice(index, index + 7);
+  for (const week of groupDays(calendar[0], calendar.at(-1)!, 'week')) {
     const entries = week.flatMap((day) => byDay.get(day) ?? []);
     const eaten = entries.filter(
       (entry) => entry.totalKcal !== null && entry.day !== todayKey,
@@ -450,8 +461,7 @@ function sportLines(
   }
 
   lines.push('', '| Semaine | Séances |', '|---|---|');
-  for (let index = 0; index < calendar.length; index += 7) {
-    const week = calendar.slice(index, index + 7);
+  for (const week of groupDays(calendar[0], calendar.at(-1)!, 'week')) {
     const inWeek = workouts.filter(
       ({ performedOn }) =>
         performedOn >= week[0] && performedOn <= week.at(-1)!,
@@ -467,9 +477,9 @@ function sportLines(
  * A summary of a period to paste into an AI chat: the profile (age, never the
  * birth date) with the latest weigh-in and body composition, the goal and
  * its alert, the goals set with the protein the app advises, the measured
- * expenditure, the period's averages and measures, its training sessions,
- * then the detail, day by day up to 31 days and week by week
- * beyond. Today's meals are left out of the averages: the day is not over.
+ * expenditure, the period's averages (a weekday against a weekend day too)
+ * and measures, its training sessions, then the detail, day by day up to 31
+ * days and by week, Monday to Sunday, beyond. Today's meals are left out of the averages: the day is not over.
  * It ends on "Ma question :" for the question to be typed after it.
  */
 export function buildAiContext({
@@ -540,6 +550,7 @@ export function buildAiContext({
     eaten.length > 0
       ? `- Moyenne par jour loggé : ${mean('totalKcal')} kcal, ${mean('totalProtein')} g de protéines, ${mean('totalCarbs')} g de glucides, ${mean('totalFat')} g de lipides`
       : '- Aucun repas loggé sur la période',
+    ...weekSplitLines(eaten),
     `- Pesées : ${weighIns}`,
     ...measureLines(from, days),
   ];

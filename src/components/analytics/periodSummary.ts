@@ -149,7 +149,7 @@ const isWeekend = (day: DashboardDay) => {
  * Average calories of a weekday (Monday to Friday) and of a weekend day over
  * the logged days given, or null with fewer than 4 weekdays or 2 weekend days.
  */
-function weekSplitOf(logged: DashboardDay[]) {
+export function weekSplitOf(logged: DashboardDay[]) {
   const weekend = logged.filter(isWeekend).map((day) => day.totalKcal!);
   const week = logged
     .filter((day) => !isWeekend(day))
