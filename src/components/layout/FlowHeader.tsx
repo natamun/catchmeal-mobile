@@ -29,7 +29,7 @@ export function FlowHeader({
       <button
         type="button"
         onClick={onBack ?? onClose}
-        className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-theme-600 transition-colors hover:bg-theme-100 active:bg-theme-200"
+        className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-theme-600 transition-colors hover:bg-theme-100 active:bg-theme-200"
       >
         <ArrowLeft className="h-6 w-6" />
       </button>

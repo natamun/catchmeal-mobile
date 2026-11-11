@@ -44,7 +44,7 @@ import { PATHS } from '../routing/paths';
 import { recipeEditPath, recipePath } from '../routing/recipes';
 
 const HEADER_BUTTON_CLASS =
-  'flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-theme-400 transition-colors hover:bg-theme-100';
+  'flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-theme-400 transition-colors hover:bg-theme-100';
 
 /** What the page is opened with: a new recipe can start as a copy. */
 interface RecipeState {
@@ -71,7 +71,7 @@ function DeleteAction({ editor }: { editor: RecipeEditor }) {
       <button
         type="button"
         onClick={() => dialogRef.current?.showModal()}
-        className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-red-500 transition-colors hover:bg-red-500/10"
+        className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-red-500 transition-colors hover:bg-red-500/10"
       >
         <Trash2 className="h-5 w-5" />
       </button>
