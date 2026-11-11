@@ -55,8 +55,8 @@ Before showing a proposal, check that it has none of these unless it was chosen 
 
 1. **Plan**: the screen's intent, what the user sees first, the layout in a small ASCII sketch, and which `ui/` pieces it uses.
 2. **Three proposals** that differ in structure, not only in colour (for example: list first, summary first, one big action). Review each plan against "Avoid the generated look" and say what you changed.
-3. **Build them** in CatCHMeal dev behind a temporary selector "Essai : 1 / 2 / 3" on the screen, install with `make phone` (via `android-builder`). Commit only what the three share.
+3. **Build them** in CatCHMeal dev behind a temporary selector "Essai : 1 / 2 / 3" on the screen, install with `make phone` (via `android-builder`). Commit nothing while the proposals are open.
 4. **Look and compare**: ask `ui-inspector` for screenshots of each proposal (with a long name, an empty day, a light theme), then compare with `references/review.md` and give your recommendation. Give the user what to try on the phone.
-5. Once the user picks, remove the other two and the selector, then commit.
+5. Once the user picks, remove the other two and the selector, then commit the chosen one alone.
 
 For a small change (a spacing, a label, one button), skip the proposals: apply the rules and the checklist.
