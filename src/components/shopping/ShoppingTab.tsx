@@ -27,6 +27,10 @@ import { ShoppingChecklist } from './ShoppingChecklist';
 const ACTION_CLASS =
   'flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-theme-200 px-2 py-2.5 text-sm font-medium whitespace-nowrap text-theme-700 transition-colors hover:bg-theme-50';
 
+/** The same, for "Vider": red whatever the theme, since it empties the list. */
+const DANGER_ACTION_CLASS =
+  'flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-red-500/40 px-2 py-2.5 text-sm font-medium whitespace-nowrap text-red-500 transition-colors hover:bg-red-500/10';
+
 interface ShoppingTabProps {
   foodItems: FoodItem[];
 }
@@ -165,7 +169,7 @@ export function ShoppingTab({ foodItems }: ShoppingTabProps) {
           <button
             type="button"
             onClick={() => clearDialogRef.current?.showModal()}
-            className={ACTION_CLASS}
+            className={DANGER_ACTION_CLASS}
           >
             <Trash2 className="h-4 w-4 shrink-0" />
             Vider

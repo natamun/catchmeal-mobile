@@ -71,7 +71,7 @@ function DeleteAction({ editor }: { editor: RecipeEditor }) {
       <button
         type="button"
         onClick={() => dialogRef.current?.showModal()}
-        className={`${HEADER_BUTTON_CLASS} hover:text-red-500`}
+        className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-red-500 transition-colors hover:bg-red-500/10"
       >
         <Trash2 className="h-5 w-5" />
       </button>

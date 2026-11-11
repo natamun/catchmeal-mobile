@@ -6,7 +6,7 @@ import type { Backup } from '../../data/backup';
 import { PATHS } from '../../routing/paths';
 import { failureMessage } from '../../utils/failureMessage';
 import { useProfile } from '../profile/profileContext';
-import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
+import { DANGER_BUTTON_CLASS, SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { SummaryCard } from '../ui/SummaryCard';
 import { useToast } from '../ui/toastContext';
@@ -120,7 +120,7 @@ export function BackupCard() {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isBusy}
-          className={`col-span-2 ${SECONDARY_BUTTON_CLASS}`}
+          className={`col-span-2 ${DANGER_BUTTON_CLASS}`}
         >
           <Upload className="h-4 w-4" />
           Restaurer
