@@ -112,9 +112,9 @@ export function LibraryPicker({
 
   if (review) {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-1 flex-col gap-4">
         {header}
-        <div key={review.key} className="animate-step-in">
+        <div key={review.key} className="flex flex-1 animate-step-in flex-col">
           {renderReview(review.items)}
         </div>
       </div>

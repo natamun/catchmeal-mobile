@@ -11,6 +11,8 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - A search clears with one tap.
 - A confirmation appears when exercises are added to a session.
 - The AI summary compares a weekday with a weekend day, and its weekly detail runs Monday to Sunday, like the charts.
+- A journal section, a library meal and the day's session are edited on a page of their own, the totals and the save button kept at the bottom.
+- Foods and exercises are added from a full-screen search that stays open, those already added checked.
 
 ### Changed
 
@@ -29,6 +31,8 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - The Évolution chart no longer blows a few hundred grams up to its full height.
 - Behind a dialog the page is only dimmed, no longer blurred, so a picker opens over it without stuttering.
 - Every card shares one padding and one title style, the titles of Stats and Profile included.
+- The items of a meal, a recipe or a session being edited take one line each. A tap opens a sheet with the item's calories and macros, live, its quantity and a trash that asks twice.
+- The serving card of a recipe has its title, the calories beside it and the macros under it.
 - The Profile is two blocks. The body block shows the latest weigh-in, then rows to the weigh-in history and to the profile (gender, age, height, activity). The goal block picks the goal in full width and the pace as pills with its kg per week, opens on what is left to lose or gain with a bar from the start to the target and its date, and folds how the goals are computed. The target and the daily goals are edited in their own dialog.
 - A weigh-in opens with a tap on its row; it shows its date, weight and body fat on one line.
 - The sessions chart is lower, shows from three weeks on, groups two weeks per bar when they do not fit, and follows the finger like the calorie chart.

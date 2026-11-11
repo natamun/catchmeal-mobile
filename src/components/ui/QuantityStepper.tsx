@@ -4,7 +4,7 @@ import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { parseDecimal, roundDecimals } from '../../utils/decimals';
 
 const STEP_BUTTON_CLASS =
-  'tap-area relative flex h-10 w-12 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-theme-50 text-sm font-bold text-theme-600 transition-colors hover:bg-theme-100';
+  'tap-area relative flex h-10 w-12 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-theme-100 text-sm font-bold text-theme-600 transition-colors hover:bg-theme-200';
 
 /** The quantity as a number to type, in the unit it is shown in. */
 interface Typing {
@@ -98,7 +98,7 @@ export function QuantityStepper({
         onClick={() =>
           setDraft(String(roundDecimals(typing.value, 2)).replace('.', ','))
         }
-        className="flex min-w-0 flex-1 cursor-text flex-col items-center rounded-lg py-0.5 tabular-nums underline decoration-theme-300 decoration-dotted underline-offset-4 transition-colors hover:bg-theme-50"
+        className="flex min-w-0 flex-1 cursor-text flex-col items-center rounded-lg py-0.5 tabular-nums underline decoration-theme-300 decoration-dotted underline-offset-4 transition-colors hover:bg-theme-100"
       >
         {shown}
       </button>

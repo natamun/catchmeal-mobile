@@ -1,7 +1,8 @@
 import { Minus, Plus } from 'lucide-react';
 
 import type { FoodItem } from '../food/types';
-import { MacroSummary } from '../ui/MacroSummary';
+import { Card } from '../ui/Card';
+import { KcalPill, MacroBadges } from '../ui/MacroSummary';
 import {
   amountText,
   MAX_SERVINGS,
@@ -53,13 +54,13 @@ export function ServingsStepper({
   );
 }
 
-/** Calories and macros of one serving, under a small title. */
+/** Calories and macros of one serving, as a card of its own. */
 export function ServingNutrition({ recipe }: { recipe: Recipe }) {
+  const totals = perServing(recipe);
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-xs text-theme-600">Par portion</span>
-      <MacroSummary totals={perServing(recipe)} />
-    </div>
+    <Card title="Par portion" action={<KcalPill kcal={totals.kcal} />}>
+      <MacroBadges totals={totals} />
+    </Card>
   );
 }
 

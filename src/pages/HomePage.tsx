@@ -2,13 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Zap } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router';
 
-import { DailyMealForm } from '../components/home/DailyMealForm';
 import { DailyMealList } from '../components/home/DailyMealList';
 import { DaySummary } from '../components/home/DaySummary';
 import { QuickAddDialog } from '../components/home/QuickAddDialog';
 import { TrainingDayCard } from '../components/home/TrainingDayCard';
-import { buildDrafts, type MealItemDraft } from '../components/meal/draft';
-import { mealTotals, type Meal, type MealType } from '../components/meal/types';
+import { mealTotals } from '../components/meal/types';
 import { getWeightHistory, type WeightEntry } from '../components/profile/api';
 import { useProfile } from '../components/profile/profileContext';
 import { DateNavigator } from '../components/ui/DateNavigator';
@@ -22,22 +20,15 @@ import { useDailyMeals } from '../hooks/useDailyMeals';
 import { useDataVersion } from '../hooks/useDataVersion';
 import {
   journalAddPath,
+  journalEditPath,
   journalPath,
   parseDateParam,
 } from '../routing/journal';
 
-interface SectionEdit {
-  mealType: MealType;
-  key: number;
-  items: MealItemDraft[];
-  meals: Meal[];
-}
-
 /**
  * The journal of a day (?date= in the URL): calorie and macro progress with
  * the latest weigh-in (DaySummary), the four meal sections and the session.
- * Adding to a section opens its own page; editing a section opens
- * DailyMealForm with all its meals merged.
+ * Adding to a section and editing it each open their own page.
  */
 export default function HomePage() {
   const { profile } = useProfile();
@@ -85,27 +76,7 @@ export default function HomePage() {
     },
     { kcal: 0, protein: 0, carbs: 0, fat: 0 },
   );
-  const [sectionEdit, setSectionEdit] = useState<SectionEdit>({
-    mealType: 'BREAKFAST',
-    key: 0,
-    items: [],
-    meals: [],
-  });
-  const editDialogRef = useRef<HTMLDialogElement>(null);
   const quickAddDialogRef = useRef<HTMLDialogElement>(null);
-
-  const openSectionEditor = (mealType: MealType) => {
-    const sectionMeals = meals
-      .filter((meal) => meal.typeMeal === mealType)
-      .sort((a, b) => a.id - b.id);
-    setSectionEdit((prev) => ({
-      mealType,
-      key: prev.key + 1,
-      items: buildDrafts({ meals: sectionMeals }, { foodItems, recipes }),
-      meals: sectionMeals,
-    }));
-    editDialogRef.current?.showModal();
-  };
 
   const measured = weightHistory ? latestComposition(weightHistory) : null;
   const goalWeight = effectiveTargetWeight(
@@ -165,24 +136,14 @@ export default function HomePage() {
               onAdd={(mealType) =>
                 void navigate(journalAddPath(mealType, selectedDate))
               }
-              onEdit={openSectionEditor}
+              onEdit={(mealType) =>
+                void navigate(journalEditPath(mealType, selectedDate))
+              }
             />
             <TrainingDayCard date={selectedDate} />
           </div>
         </div>
       </div>
-      <DailyMealForm
-        dialogRef={editDialogRef}
-        mealType={sectionEdit.mealType}
-        date={selectedDate}
-        initialItems={sectionEdit.items}
-        sessionKey={sectionEdit.key}
-        existingMeals={sectionEdit.meals}
-        onSaved={() => {
-          showToast('Journal mis à jour');
-          reload();
-        }}
-      />
       <QuickAddDialog
         dialogRef={quickAddDialogRef}
         date={selectedDate}

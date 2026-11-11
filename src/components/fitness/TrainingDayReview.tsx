@@ -1,16 +1,33 @@
-import { useState, type RefObject } from 'react';
+import { useState } from 'react';
 import { Trophy } from 'lucide-react';
 
 import { failureMessage } from '../../utils/failureMessage';
 import { formatKg } from '../../utils/format';
-import { BaseDialog } from '../ui/BaseDialog';
+import { FlowFooter } from '../layout/FlowFooter';
 import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
+import { EditableList, type EditableRow } from '../ui/EditableList';
 import { useToast } from '../ui/toastContext';
 import { addToDay, saveDay } from './api';
-import { ItemEditor } from './ItemEditor';
+import { draftSummary } from './format';
+import { ItemSets } from './ItemEditor';
 import { newRecords } from './records';
 import type { Workout } from './types';
 import { draftsToItems, type ItemDraft } from './workoutDraft';
+
+/** The row of an exercise of the day's session. */
+function itemRow(
+  item: ItemDraft,
+  onChange: (item: ItemDraft) => void,
+  onRemove: () => void,
+): EditableRow {
+  return {
+    id: item.key,
+    name: item.name,
+    value: draftSummary(item),
+    editor: <ItemSets item={item} onChange={onChange} />,
+    onRemove,
+  };
+}
 
 interface ReviewProps {
   day: string;
@@ -77,28 +94,25 @@ export function TrainingDayReview({
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-1 flex-col gap-5">
       {items.length > 0 ? (
-        <ul className="flex flex-col gap-2">
-          {items.map((item) => (
-            <ItemEditor
-              key={item.key}
-              item={item}
-              onChange={(changed) =>
+        <EditableList
+          rows={items.map((item) =>
+            itemRow(
+              item,
+              (changed) =>
                 setItems((current) =>
                   current.map((other) =>
                     other.key === changed.key ? changed : other,
                   ),
-                )
-              }
-              onRemove={() =>
+                ),
+              () =>
                 setItems((current) =>
                   current.filter((other) => other.key !== item.key),
-                )
-              }
-            />
-          ))}
-        </ul>
+                ),
+            ),
+          )}
+        />
       ) : (
         <p className="py-4 text-center text-sm text-theme-400">
           {isEdit
@@ -107,7 +121,7 @@ export function TrainingDayReview({
         </p>
       )}
 
-      <div className="flex flex-col gap-3 border-t border-theme-100 pt-5">
+      <FlowFooter>
         {error && <p className="text-sm text-red-500">{error}</p>}
         <button
           type="button"
@@ -121,55 +135,7 @@ export function TrainingDayReview({
               ? 'Enregistrer la séance'
               : 'Ajouter à la séance'}
         </button>
-      </div>
+      </FlowFooter>
     </div>
-  );
-}
-
-interface Props {
-  dialogRef: RefObject<HTMLDialogElement | null>;
-  /** Changes at each opening, so the lines start again from initialItems. */
-  sessionKey: number;
-  /** The day of the session (YYYY-MM-DD). */
-  day: string;
-  /** Adding new exercises, or editing the whole session of the day. */
-  isEdit: boolean;
-  initialItems: ItemDraft[];
-  /** Every session logged, to tell a new record. */
-  history: Workout[];
-  onSaved: () => void;
-}
-
-/**
- * Review dialog of the day's session, like the journal's: check the sets and
- * values, then add the exercises to the session, or save the whole session
- * when editing it. Saving tells the new records.
- */
-export function TrainingDayDialog({
-  dialogRef,
-  sessionKey,
-  day,
-  isEdit,
-  initialItems,
-  history,
-  onSaved,
-}: Props) {
-  return (
-    <BaseDialog
-      dialogRef={dialogRef}
-      title={isEdit ? 'Modifier : Séance' : 'Ajouter : Séance'}
-    >
-      <TrainingDayReview
-        key={sessionKey}
-        day={day}
-        isEdit={isEdit}
-        initialItems={initialItems}
-        history={history}
-        onSaved={() => {
-          dialogRef.current?.close();
-          onSaved();
-        }}
-      />
-    </BaseDialog>
   );
 }

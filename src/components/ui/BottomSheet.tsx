@@ -13,6 +13,8 @@ interface BottomSheetProps {
   open: boolean;
   onClose: () => void;
   title: string;
+  /** A button in the header, before the close button, such as a delete. */
+  action?: ReactNode;
   children: ReactNode;
 }
 
@@ -30,6 +32,7 @@ export function BottomSheet({
   open,
   onClose,
   title,
+  action,
   children,
 }: BottomSheetProps) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -108,9 +111,10 @@ export function BottomSheet({
         >
           <div className="mx-auto h-1 w-10 shrink-0 rounded-full bg-theme-200" />
           <div className="flex items-center justify-between gap-3">
-            <h3 className="min-w-0 truncate text-base font-semibold text-theme-800">
+            <h3 className="line-clamp-2 min-w-0 flex-1 text-base font-semibold break-words text-theme-800">
               {title}
             </h3>
+            {action}
             <button
               type="button"
               onClick={onClose}

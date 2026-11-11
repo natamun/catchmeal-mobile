@@ -55,8 +55,6 @@ interface PageProps {
   recipe: Recipe | null;
   copyOf: Recipe | null;
   foodItems: FoodItem[];
-  /** The page itself: the dropdowns render in it. */
-  container: HTMLElement | null;
   onClose: () => void;
   onSaved: (recipe: Recipe) => void;
   onDeleted: () => void;
@@ -136,9 +134,7 @@ function RecipeSheet({
           </div>
         }
       />
-      <Card>
-        <ServingNutrition recipe={recipe} />
-      </Card>
+      <ServingNutrition recipe={recipe} />
       <Card
         title="Ingrédients"
         action={<ServingsStepper value={servings} onChange={setServings} />}
@@ -183,7 +179,6 @@ function EditRecipe({
   recipe,
   copyOf,
   foodItems,
-  container,
   onClose,
   onSaved,
   onDeleted,
@@ -209,7 +204,7 @@ function EditRecipe({
         <InfoFields editor={editor} />
       </Card>
       <Card title="Ingrédients">
-        <IngredientsEditor editor={editor} container={container} />
+        <IngredientsEditor editor={editor} />
       </Card>
       <Card title="Cuisson">
         <CookingField editor={editor} hideLabel />
@@ -239,7 +234,6 @@ export default function RecipePage() {
   const recipes = useList(listRecipes);
   const foods = useList(listFoodItems);
   const [lastSaved, setLastSaved] = useState<Recipe | null>(null);
-  const [node, setNode] = useState<HTMLDivElement | null>(null);
 
   const isNew = recipeId === 'new';
   const id = Number(recipeId);
@@ -260,7 +254,6 @@ export default function RecipePage() {
     recipe,
     copyOf,
     foodItems: foods.items,
-    container: node,
     onClose: close,
     onSaved: (saved: Recipe) => {
       setLastSaved(saved);
@@ -316,9 +309,5 @@ export default function RecipePage() {
     );
   }
 
-  return (
-    <div ref={setNode} className="flex flex-col gap-4">
-      {content}
-    </div>
-  );
+  return <div className="flex flex-col gap-4">{content}</div>;
 }

@@ -1,25 +1,18 @@
-import { X } from 'lucide-react';
-
+import { MACROS } from '../../constants/macros';
 import { roundDecimals } from '../../utils/decimals';
 import { DEFAULT_PORTION_NAME, pluralOf, portionLabel } from '../food/portion';
 import { UNIT_LABELS } from '../food/types';
 import { servingsLabel } from '../recipe/servings';
+import { EditableList, type EditableRow } from '../ui/EditableList';
+import { MacroBadge } from '../ui/MacroBadge';
 import { QuantityStepper } from '../ui/QuantityStepper';
 import {
   adjustDraft,
+  draftTotals,
   setDraftQuantity,
   showInPortions,
   type MealItemDraft,
 } from './draft';
-
-const ROW_CLASS =
-  'flex animate-fade-in-up rounded-xl border border-theme-200 px-3 py-2.5';
-
-const NAME_CLASS =
-  'min-w-0 flex-1 truncate text-base font-medium text-theme-800';
-
-const REMOVE_CLASS =
-  'tap-area relative shrink-0 cursor-pointer text-theme-400 transition-colors hover:text-red-500';
 
 const TOGGLE_CLASS =
   'tap-area relative max-w-24 cursor-pointer truncate rounded-md px-2.5 py-1 text-xs font-semibold transition-colors';
@@ -41,7 +34,7 @@ function UnitToggle({ unit, portion, inPortions, onChange }: UnitToggleProps) {
       className={`${TOGGLE_CLASS} ${
         inPortions === value
           ? 'bg-theme-500 text-on-accent'
-          : 'text-theme-600 hover:bg-theme-50'
+          : 'text-theme-600 hover:bg-theme-100'
       }`}
     >
       {label}
@@ -61,100 +54,117 @@ interface DraftItemListProps {
   /** Gives back an item with its quantity or its unit changed. */
   onChange: (item: MealItemDraft) => void;
   onRemove: (id: string) => void;
+  /** Shows each item's calories; the shopping list leaves them out. */
+  showKcal?: boolean;
   className?: string;
 }
 
+/** The row of one item: its quantity, its calories and its controls. */
+function rowOf(
+  item: MealItemDraft,
+  onChange: (item: MealItemDraft) => void,
+  onRemove: (id: string) => void,
+  showKcal: boolean,
+): EditableRow {
+  const totals = draftTotals([item]);
+  const kcal = `${Math.round(totals.kcal)} kcal`;
+  const base = {
+    id: item.id,
+    meta: showKcal ? kcal : undefined,
+    detail: showKcal ? (
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="shrink-0 text-base font-bold text-theme-800 tabular-nums">
+          {kcal}
+        </span>
+        {MACROS.map(({ key, label, color }) => (
+          <MacroBadge
+            key={key}
+            label={label}
+            color={color}
+            size="md"
+            value={Math.round(totals[key] * 10) / 10}
+          />
+        ))}
+      </div>
+    ) : undefined,
+    onRemove: () => onRemove(item.id),
+  };
+
+  if (item.kind === 'quick') {
+    return { ...base, name: 'Ajout rapide', value: '' };
+  }
+
+  if (item.kind === 'recipe') {
+    const value = servingsLabel(item.quantity);
+    return {
+      ...base,
+      name: item.recipe.name,
+      value,
+      editor: (
+        <QuantityStepper
+          text={value}
+          onAdjust={(delta) => onChange(adjustDraft(item, delta))}
+          typing={{
+            value: item.quantity,
+            unit: 'portions',
+            onType: (typed) => onChange(setDraftQuantity(item, typed)),
+          }}
+        />
+      ),
+    };
+  }
+
+  const { foodItem, quantity, inPortions } = item;
+  const unit = UNIT_LABELS[foodItem.baseUnit];
+  const amount = `${roundDecimals(quantity, 1)}${unit}`;
+  const portion = foodItem.portionQuantity;
+  const portionName = foodItem.portionName ?? DEFAULT_PORTION_NAME;
+  const byPortion = inPortions && portion !== null;
+  const value = byPortion ? portionLabel(foodItem, quantity / portion) : amount;
+  return {
+    ...base,
+    name: foodItem.name,
+    value,
+    aside:
+      portion === null ? undefined : (
+        <UnitToggle
+          unit={unit}
+          portion={portionName}
+          inPortions={inPortions}
+          onChange={(next) => onChange(showInPortions(item, next))}
+        />
+      ),
+    editor: (
+      <QuantityStepper
+        text={value}
+        detail={inPortions ? amount : undefined}
+        onAdjust={(delta) => onChange(adjustDraft(item, delta))}
+        typing={{
+          value: byPortion ? quantity / portion : quantity,
+          unit: byPortion ? pluralOf(portionName) : unit,
+          onType: (typed) => onChange(setDraftQuantity(item, typed)),
+        }}
+      />
+    ),
+  };
+}
+
 /**
- * Items of a meal being edited: a food with its quantity buttons on a line
- * of their own, counted in portions when it has some, a recipe counted in
- * servings, or a quick add with its calories. Each one can be removed.
+ * Items of a meal being edited: a food with its quantity buttons, counted in
+ * portions when it has some, a recipe counted in servings, or a quick add with
+ * its calories. Each one shows its calories and can be removed.
  */
 export function DraftItemList({
   items,
   onChange,
   onRemove,
+  showKcal = true,
   className = '',
 }: DraftItemListProps) {
   return (
-    <ul className={`flex flex-col gap-2 ${className}`}>
-      {items.map((item) => {
-        const removeButton = (
-          <button
-            type="button"
-            onClick={() => onRemove(item.id)}
-            className={REMOVE_CLASS}
-          >
-            <X className="h-5 w-5" />
-          </button>
-        );
-
-        if (item.kind === 'quick') {
-          return (
-            <li
-              key={item.id}
-              className={`${ROW_CLASS} min-h-12 items-center gap-3`}
-            >
-              <span className={NAME_CLASS}>{Math.round(item.kcal)} kcal</span>
-              {removeButton}
-            </li>
-          );
-        }
-
-        if (item.kind === 'recipe') {
-          return (
-            <li key={item.id} className={`${ROW_CLASS} flex-col gap-2`}>
-              <div className="flex items-center gap-3">
-                <span className={NAME_CLASS}>{item.recipe.name}</span>
-                {removeButton}
-              </div>
-              <QuantityStepper
-                text={servingsLabel(item.quantity)}
-                onAdjust={(delta) => onChange(adjustDraft(item, delta))}
-                typing={{
-                  value: item.quantity,
-                  unit: 'portions',
-                  onType: (value) => onChange(setDraftQuantity(item, value)),
-                }}
-              />
-            </li>
-          );
-        }
-
-        const { foodItem, quantity, inPortions } = item;
-        const unit = UNIT_LABELS[foodItem.baseUnit];
-        const amount = `${roundDecimals(quantity, 1)}${unit}`;
-        const portion = foodItem.portionQuantity;
-        const portionName = foodItem.portionName ?? DEFAULT_PORTION_NAME;
-        const byPortion = inPortions && portion !== null;
-        return (
-          <li key={item.id} className={`${ROW_CLASS} flex-col gap-2`}>
-            <div className="flex items-center gap-3">
-              <span className={NAME_CLASS}>{foodItem.name}</span>
-              {portion !== null && (
-                <UnitToggle
-                  unit={unit}
-                  portion={portionName}
-                  inPortions={inPortions}
-                  onChange={(next) => onChange(showInPortions(item, next))}
-                />
-              )}
-              {removeButton}
-            </div>
-            <QuantityStepper
-              text={
-                byPortion ? portionLabel(foodItem, quantity / portion) : amount
-              }
-              detail={inPortions ? amount : undefined}
-              onAdjust={(delta) => onChange(adjustDraft(item, delta))}
-              typing={{
-                value: byPortion ? quantity / portion : quantity,
-                unit: byPortion ? pluralOf(portionName) : unit,
-                onType: (value) => onChange(setDraftQuantity(item, value)),
-              }}
-            />
-          </li>
-        );
-      })}
-    </ul>
+    <EditableList
+      rows={items.map((item) => rowOf(item, onChange, onRemove, showKcal))}
+      className={className}
+    />
   );
 }

@@ -7,9 +7,7 @@ import { FoodItemList } from '../components/food/FoodItemList';
 import { preloadScanner } from '../components/food/preloadScanner';
 import type { FoodItem } from '../components/food/types';
 import { listMeals } from '../components/meal/api';
-import { MealForm } from '../components/meal/MealForm';
 import { MealList } from '../components/meal/MealList';
-import type { Meal } from '../components/meal/types';
 import { listRecipes } from '../components/recipe/api';
 import { RecipeList } from '../components/recipe/RecipeList';
 import { ShoppingTab } from '../components/shopping/ShoppingTab';
@@ -17,7 +15,7 @@ import { AddCircleButton } from '../components/ui/AddCircleButton';
 import { EditIconButton } from '../components/ui/EditIconButton';
 import { PillTabs } from '../components/ui/PillTabs';
 import { useList } from '../hooks/useList';
-import { recipePath } from '../routing/recipes';
+import { mealPath, recipePath } from '../routing/recipes';
 
 type Tab = 'food' | 'meal' | 'recipe' | 'shopping';
 
@@ -43,9 +41,7 @@ export default function FoodPage() {
   const recipes = useList(listRecipes);
   const navigate = useNavigate();
   const [editingItem, setEditingItem] = useState<FoodItem | null>(null);
-  const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const mealDialogRef = useRef<HTMLDialogElement>(null);
 
   // The scanner is slow to open the first time: prepare it once the app is up.
   useEffect(() => {
@@ -56,11 +52,6 @@ export default function FoodPage() {
   const openDialog = (item: FoodItem | null) => {
     setEditingItem(item);
     dialogRef.current?.showModal();
-  };
-
-  const openMealDialog = (meal: Meal | null) => {
-    setEditingMeal(meal);
-    mealDialogRef.current?.showModal();
   };
 
   return (
@@ -77,12 +68,6 @@ export default function FoodPage() {
         dialogRef={dialogRef}
         editingItem={editingItem}
         foodItems={foods.items}
-      />
-
-      <MealForm
-        dialogRef={mealDialogRef}
-        foodItems={foods.items}
-        editingMeal={editingMeal}
       />
 
       <div key={activeTab} className="animate-fade-in-up">
@@ -125,10 +110,12 @@ export default function FoodPage() {
             }
             onRetry={meals.retry}
             headerAction={
-              <AddCircleButton onClick={() => openMealDialog(null)} />
+              <AddCircleButton onClick={() => void navigate(mealPath('new'))} />
             }
             renderAction={(meal) => (
-              <EditIconButton onClick={() => openMealDialog(meal)} />
+              <EditIconButton
+                onClick={() => void navigate(mealPath(meal.id))}
+              />
             )}
           />
         )}

@@ -398,6 +398,30 @@ body {
   }
 }
 
+/* SearchPicker: the whole-screen search fades in, a mode of the page. */
+.search-fade {
+  opacity: 0;
+  transition:
+    opacity 0.15s ease-in,
+    overlay 0.15s allow-discrete,
+    display 0.15s allow-discrete;
+}
+
+.search-fade[open] {
+  opacity: 1;
+  transition-timing-function: ease-out;
+}
+
+.search-fade::backdrop {
+  background-color: transparent;
+}
+
+@starting-style {
+  .search-fade[open] {
+    opacity: 0;
+  }
+}
+
 /* BottomSheet: slides up from the bottom edge, the backdrop fades in. */
 .sheet-slide {
   transform: translateY(100%);

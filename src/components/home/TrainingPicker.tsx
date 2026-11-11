@@ -15,7 +15,7 @@ import {
 import { ExerciseList } from '../fitness/ExerciseList';
 import { latestItems } from '../fitness/records';
 import { TemplateList } from '../fitness/TemplateList';
-import { TrainingDayReview } from '../fitness/TrainingDayDialog';
+import { TrainingDayReview } from '../fitness/TrainingDayReview';
 import type {
   Exercise,
   ExerciseKind,
@@ -160,9 +160,9 @@ export function TrainingPicker({ day, onClose, onAdded }: Props) {
 
   if (review) {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-1 flex-col gap-4">
         {header}
-        <div key={review.key} className="animate-step-in">
+        <div key={review.key} className="flex flex-1 animate-step-in flex-col">
           <TrainingDayReview
             day={day}
             isEdit={false}

@@ -49,8 +49,9 @@ export function AppLayout() {
   useSwipeTabs(mainRef, trackRef, TAB_PATHS);
 
   const activeIndex = TAB_PATHS.indexOf(pathname);
-  // Adding to the journal slides in over it, the journal staying behind, and
-  // a recipe or adding to the shopping list over the food page. A recipe and its edit page share one layer.
+  // Adding to or editing the journal slides in over it, the journal staying
+  // behind, and a recipe, a library meal or adding to the shopping list over
+  // the food page. A recipe and its edit page share one layer.
   const isRecipe =
     matchPath(PATHS.recipe, pathname) !== null ||
     matchPath(PATHS.recipeEdit, pathname) !== null;
@@ -58,7 +59,10 @@ export function AppLayout() {
     isRecipe ||
     pathname === PATHS.shoppingAdd ||
     pathname === PATHS.trainingAdd ||
-    matchPath(PATHS.journalAdd, pathname) !== null;
+    pathname === PATHS.trainingEdit ||
+    matchPath(PATHS.journalAdd, pathname) !== null ||
+    matchPath(PATHS.journalEdit, pathname) !== null ||
+    matchPath(PATHS.meal, pathname) !== null;
   const [areAllPrepared, setAreAllPrepared] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setAreAllPrepared(true), PREPARE_DELAY_MS);

@@ -10,14 +10,13 @@ const REMOVE_BUTTON =
 interface Props {
   item: ItemDraft;
   onChange: (item: ItemDraft) => void;
-  onRemove: () => void;
 }
 
 /**
- * An exercise of the day's session and its sets: repetitions at a load for
+ * The sets of an exercise of the day's session: repetitions at a load for
  * strength, minutes for cardio, with the speed and slope on a treadmill.
  */
-export function ItemEditor({ item, onChange, onRemove }: Props) {
+export function ItemSets({ item, onChange }: Props) {
   const setSet = (index: number, set: SetDraft) =>
     onChange({
       ...item,
@@ -25,16 +24,7 @@ export function ItemEditor({ item, onChange, onRemove }: Props) {
     });
 
   return (
-    <li className="flex animate-fade-in-up flex-col gap-2.5 rounded-xl border border-theme-200 px-3 py-2.5">
-      <div className="flex items-center gap-3">
-        <span className="min-w-0 flex-1 truncate text-base font-medium text-theme-800">
-          {item.name}
-        </span>
-        <button type="button" onClick={onRemove} className={REMOVE_BUTTON}>
-          <X className="h-5 w-5" />
-        </button>
-      </div>
-
+    <div className="flex flex-col gap-2.5">
       {item.kind === 'STRENGTH' ? (
         <>
           {item.sets.map((set, index) => (
@@ -108,6 +98,6 @@ export function ItemEditor({ item, onChange, onRemove }: Props) {
           onChange={(cardioSets) => onChange({ ...item, cardioSets })}
         />
       )}
-    </li>
+    </div>
   );
 }

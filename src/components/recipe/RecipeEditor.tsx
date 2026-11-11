@@ -1,9 +1,10 @@
-import { useRef, useState, type RefObject } from 'react';
-import * as Popover from '@radix-ui/react-popover';
+import { useRef, type RefObject } from 'react';
 import { ChevronDown, ChevronUp, Plus, X } from 'lucide-react';
 
 import { FoodItemForm } from '../food/FoodItemForm';
+import { matchesFood } from '../food/search';
 import type { FoodItem } from '../food/types';
+import { FlowFooter } from '../layout/FlowFooter';
 import { newFoodDraft, type MealItemDraft } from '../meal/draft';
 import { DraftItemList } from '../meal/DraftItemList';
 import {
@@ -11,12 +12,11 @@ import {
   SECONDARY_BUTTON_CLASS,
 } from '../ui/buttonStyle';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
-import { DropdownPanel } from '../ui/DropdownPanel';
 import { FieldError } from '../ui/FieldError';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
 import { MacroSummary } from '../ui/MacroSummary';
-import { SearchInput } from '../ui/SearchInput';
+import { SearchPicker } from '../ui/SearchPicker';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { formPerServing, moveStep, newStep, RECIPE_LIMITS } from './recipeForm';
 import { ServingsStepper } from './RecipeView';
@@ -45,13 +45,8 @@ interface PartProps {
   editor: RecipeEditor;
 }
 
-interface FloatingPartProps extends PartProps {
-  /** The dialog or page the dropdowns render in. */
-  container: HTMLElement | null;
-}
-
 /** Name, category, servings and preparation time. */
-export function InfoFields({ editor }: Pick<FloatingPartProps, 'editor'>) {
+export function InfoFields({ editor }: PartProps) {
   const { form, update, errors } = editor;
   return (
     <div className="flex flex-col gap-4">
@@ -119,29 +114,12 @@ export function InfoFields({ editor }: Pick<FloatingPartProps, 'editor'>) {
  * The ingredients: foods searched in the library with their quantity, or a
  * new food added on the way (barcode scan included).
  */
-export function IngredientsEditor({ editor, container }: FloatingPartProps) {
+export function IngredientsEditor({ editor }: PartProps) {
   const { form, update, errors, foodItems } = editor;
-  const [search, setSearch] = useState('');
-  const [searchFocused, setSearchFocused] = useState(false);
   const foodDialogRef = useRef<HTMLDialogElement>(null);
 
-  const query = search.trim().toLowerCase();
-  const results = query
-    ? foodItems.filter(
-        (food) =>
-          !food.archived &&
-          !form.ingredients.some(
-            (item) => item.kind === 'food' && item.foodItem.id === food.id,
-          ) &&
-          (food.name.toLowerCase().includes(query) ||
-            food.brand?.toLowerCase().includes(query)),
-      )
-    : [];
-
-  const add = (food: FoodItem) => {
+  const add = (food: FoodItem) =>
     update({ ingredients: [...form.ingredients, newFoodDraft(food)] });
-    setSearch('');
-  };
 
   const replace = (updated: MealItemDraft) =>
     update({
@@ -150,53 +128,45 @@ export function IngredientsEditor({ editor, container }: FloatingPartProps) {
       ),
     });
 
+  const newFoodButton = (
+    <button
+      type="button"
+      onClick={() => foodDialogRef.current?.showModal()}
+      className="cursor-pointer text-xs font-medium text-theme-500 underline-offset-2 hover:underline"
+    >
+      Nouvel aliment
+    </button>
+  );
+
   return (
     <div className="flex flex-col gap-4">
-      <Popover.Root
-        open={searchFocused && results.length > 0}
-        onOpenChange={() => {}}
-      >
-        <Popover.Anchor className="relative flex flex-col gap-1.5">
-          <div className="flex items-center justify-between gap-3">
-            <label htmlFor="recipe-ingredient-search" className={LABEL_CLASS}>
-              Ajouter un aliment
-            </label>
-            <button
-              type="button"
-              onClick={() => foodDialogRef.current?.showModal()}
-              className="cursor-pointer text-xs font-medium text-theme-500 underline-offset-2 hover:underline"
-            >
-              Nouvel aliment
-            </button>
-          </div>
-          <SearchInput
-            id="recipe-ingredient-search"
-            value={search}
-            onValueChange={setSearch}
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-            data-invalid={Boolean(errors.ingredients)}
-            autoComplete="off"
-          />
-          <FieldError message={errors.ingredients} />
-        </Popover.Anchor>
-        <DropdownPanel container={container} matchAnchorWidth>
-          {results.map((food) => (
-            <button
-              key={food.id}
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => add(food)}
-              className="flex w-full cursor-pointer items-center justify-between border-t border-theme-100 px-4 py-2 text-left text-sm text-theme-800 transition-colors first:border-t-0 hover:bg-theme-50"
-            >
-              <span className="min-w-0 flex-1 truncate">{food.name}</span>
-              <span className="shrink-0 text-xs text-theme-600">
-                {food.kcal} kcal
-              </span>
-            </button>
-          ))}
-        </DropdownPanel>
-      </Popover.Root>
+      <SearchPicker
+        label="Ajouter un aliment"
+        placeholder="Rechercher un aliment"
+        items={foodItems.filter((food) => !food.archived)}
+        keyOf={(food) => food.id}
+        nameOf={(food) => food.name}
+        detailOf={(food) => `${food.kcal} kcal`}
+        matches={matchesFood}
+        isAdded={(food) =>
+          form.ingredients.some(
+            (item) => item.kind === 'food' && item.foodItem.id === food.id,
+          )
+        }
+        onPick={add}
+        labelAction={newFoodButton}
+        renderEmpty={() => (
+          <button
+            type="button"
+            onClick={() => foodDialogRef.current?.showModal()}
+            className={`${SECONDARY_BUTTON_CLASS} flex-none`}
+          >
+            <Plus className="h-4 w-4" />
+            Nouvel aliment
+          </button>
+        )}
+        error={errors.ingredients}
+      />
 
       {form.ingredients.length > 0 && (
         <DraftItemList
@@ -346,9 +316,9 @@ interface SaveBarProps extends PartProps {
 export function SaveBar({ editor, onSave }: SaveBarProps) {
   const { form, error, isSubmitting } = editor;
   return (
-    <div className="flex flex-col gap-3">
+    <FlowFooter>
       {form.ingredients.length > 0 && (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col">
           <span className="text-xs text-theme-600">Par portion</span>
           <MacroSummary totals={formPerServing(form)} />
         </div>
@@ -362,7 +332,7 @@ export function SaveBar({ editor, onSave }: SaveBarProps) {
       >
         {isSubmitting ? 'Enregistrement...' : 'Enregistrer la recette'}
       </button>
-    </div>
+    </FlowFooter>
   );
 }
 

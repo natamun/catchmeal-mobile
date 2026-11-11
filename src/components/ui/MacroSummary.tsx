@@ -1,28 +1,40 @@
 import { MACROS } from '../../constants/macros';
 import { MacroBadge } from './MacroBadge';
 
-interface MacroSummaryProps {
-  totals: { kcal: number; protein: number; carbs: number; fat: number };
+type Totals = { kcal: number; protein: number; carbs: number; fat: number };
+
+/** The three macros as coloured dots and grams, on one line. */
+export function MacroBadges({ totals }: { totals: Totals }) {
+  return (
+    <div className="flex items-center gap-3">
+      {MACROS.map(({ key, label, color }) => (
+        <MacroBadge
+          key={key}
+          label={label}
+          color={color}
+          size="md"
+          value={Math.round(totals[key] * 10) / 10}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** The calories, in a pill. */
+export function KcalPill({ kcal }: { kcal: number }) {
+  return (
+    <span className="shrink-0 rounded-full bg-theme-100 px-3 py-1 text-base font-semibold text-theme-800 tabular-nums">
+      {Math.round(kcal)} kcal
+    </span>
+  );
 }
 
 /** Macros and calories of a meal being edited, on one line. */
-export function MacroSummary({ totals }: MacroSummaryProps) {
+export function MacroSummary({ totals }: { totals: Totals }) {
   return (
-    <div className="mb-2 flex min-h-12 items-center justify-between gap-3 rounded-xl border border-theme-200 px-3 py-1.5">
-      <div className="flex items-center gap-3">
-        {MACROS.map(({ key, label, color }) => (
-          <MacroBadge
-            key={key}
-            label={label}
-            color={color}
-            size="md"
-            value={Math.round(totals[key] * 10) / 10}
-          />
-        ))}
-      </div>
-      <span className="shrink-0 rounded-full bg-theme-50 px-3 py-1 text-base font-semibold text-theme-800">
-        {Math.round(totals.kcal)} kcal
-      </span>
+    <div className="flex items-center justify-between gap-3">
+      <MacroBadges totals={totals} />
+      <KcalPill kcal={totals.kcal} />
     </div>
   );
 }

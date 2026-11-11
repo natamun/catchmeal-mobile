@@ -23,7 +23,6 @@ import type { Exercise, WorkoutTemplate } from './types';
 interface FormProps {
   template: WorkoutTemplate | null;
   exercises: Exercise[];
-  dialogNode: HTMLDialogElement | null;
   onSaved: () => void;
   hasDeleteFailed: boolean;
 }
@@ -32,7 +31,6 @@ interface FormProps {
 function TemplateForm({
   template,
   exercises,
-  dialogNode,
   onSaved,
   hasDeleteFailed,
 }: FormProps) {
@@ -94,25 +92,28 @@ function TemplateForm({
 
       <ExercisePicker
         exercises={exercises}
-        dialogNode={dialogNode}
+        isAdded={(exercise) =>
+          items.some((item) => item.exerciseId === exercise.id)
+        }
         onPick={(exercise) =>
           setItems((current) => [...current, templateItemDraft(exercise)])
         }
       />
 
       {items.length > 0 && (
-        <ul className="flex flex-col gap-2 border-t border-theme-100 pt-5">
-          {items.map((item) => (
-            <li
-              key={item.key}
-              className="flex animate-fade-in-up flex-col gap-2.5 rounded-xl border border-theme-200 px-3 py-2.5"
-            >
-              <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-1 border-t border-theme-100 pt-4">
+          <ul className="flex flex-col divide-y divide-theme-100">
+            {items.map((item) => (
+              <li
+                key={item.key}
+                className="flex min-h-12 animate-fade-in-up items-center gap-3"
+              >
                 <span className="min-w-0 flex-1 truncate text-base font-medium text-theme-800">
                   {item.name}
                 </span>
                 <button
                   type="button"
+                  aria-label="Retirer"
                   onClick={() =>
                     setItems((current) =>
                       current.filter((other) => other.key !== item.key),
@@ -122,13 +123,10 @@ function TemplateForm({
                 >
                   <X className="h-5 w-5" />
                 </button>
-              </div>
-              <p className="text-sm text-theme-600">
-                Reprend les séries de la dernière fois.
-              </p>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       <div className="flex flex-col gap-3 border-t border-theme-100 pt-5">
@@ -169,7 +167,6 @@ export function TemplateDialog({
 }: Props) {
   const confirmDialogRef = useRef<HTMLDialogElement>(null);
   const showToast = useToast();
-  const [dialogNode, setDialogNode] = useState<HTMLDialogElement | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [hasDeleteFailed, setHasDeleteFailed] = useState(false);
 
@@ -194,7 +191,6 @@ export function TemplateDialog({
       <BaseDialog
         dialogRef={dialogRef}
         title={template ? 'Modifier la séance' : 'Nouvelle séance favorite'}
-        onDialogNode={setDialogNode}
         onClose={() => setHasDeleteFailed(false)}
         deleteLabel="Supprimer la séance"
         onDelete={
@@ -205,7 +201,6 @@ export function TemplateDialog({
           key={openCount}
           template={template}
           exercises={exercises}
-          dialogNode={dialogNode}
           hasDeleteFailed={hasDeleteFailed}
           onSaved={() => dialogRef.current?.close()}
         />

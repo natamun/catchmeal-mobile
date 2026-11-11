@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { toDateKey } from '../../utils/dateKey';
 import { failureMessage } from '../../utils/failureMessage';
+import { FlowFooter } from '../layout/FlowFooter';
 import { createMeal, deleteMeal, updateMeal } from '../meal/api';
 import { draftsToInput, draftTotals, type MealItemDraft } from '../meal/draft';
 import { DraftItemList } from '../meal/DraftItemList';
@@ -78,7 +79,7 @@ export function DailyMealReview({
   const totals = draftTotals(items);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-1 flex-col gap-5">
       {items.length > 0 ? (
         <DraftItemList
           items={items}
@@ -93,7 +94,7 @@ export function DailyMealReview({
         </p>
       )}
 
-      <div className="flex flex-col gap-3 border-t border-theme-100 pt-5">
+      <FlowFooter>
         {items.length > 0 && <MacroSummary totals={totals} />}
 
         {error && <p className="text-sm text-red-500">{error}</p>}
@@ -110,7 +111,7 @@ export function DailyMealReview({
               ? 'Enregistrer le repas'
               : 'Ajouter au journal'}
         </button>
-      </div>
+      </FlowFooter>
     </div>
   );
 }

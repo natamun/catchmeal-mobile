@@ -33,6 +33,19 @@ export function journalAddPath(mealType: MealType, date: Date) {
   );
 }
 
+/** URL of the page that edits one section of the journal. */
+export function journalEditPath(mealType: MealType, date: Date) {
+  return withDate(
+    generatePath(PATHS.journalEdit, { mealType: MEAL_TYPE_SLUGS[mealType] }),
+    date,
+  );
+}
+
+/** URL of the page that edits the session of a day. */
+export function trainingEditPath(date: Date) {
+  return withDate(PATHS.trainingEdit, date);
+}
+
 /** URL of the page that adds exercises to the session of a day. */
 export function trainingAddPath(date: Date) {
   return withDate(PATHS.trainingAdd, date);

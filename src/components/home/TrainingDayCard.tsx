@@ -1,16 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
 import { useDataVersion } from '../../hooks/useDataVersion';
-import { trainingAddPath } from '../../routing/journal';
+import { trainingAddPath, trainingEditPath } from '../../routing/journal';
 import { startOfDay, toDateKey } from '../../utils/dateKey';
 import { formatSince } from '../../utils/format';
 import { listWorkouts } from '../fitness/api';
 import { describeValues } from '../fitness/format';
-import { TrainingDayDialog } from '../fitness/TrainingDayDialog';
 import type { Workout } from '../fitness/types';
-import { draftsOf, type ItemDraft } from '../fitness/workoutDraft';
 import { AddCircleButton } from '../ui/AddCircleButton';
 import { Card } from '../ui/Card';
 import { EditIconButton } from '../ui/EditIconButton';
@@ -30,11 +28,6 @@ export function TrainingDayCard({ date }: Props) {
   const version = useDataVersion();
   const day = toDateKey(date);
   const [workouts, setWorkouts] = useState<Workout[] | null>(null);
-  const [edit, setEdit] = useState<{ key: number; items: ItemDraft[] }>({
-    key: 0,
-    items: [],
-  });
-  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -50,12 +43,6 @@ export function TrainingDayCard({ date }: Props) {
   // The list is the newest first: the first before the day is the last one.
   const lastBefore = workouts?.find(({ performedOn }) => performedOn < day);
 
-  const openEdit = () => {
-    if (!session) return;
-    setEdit((prev) => ({ key: prev.key + 1, items: draftsOf(session) }));
-    dialogRef.current?.showModal();
-  };
-
   return (
     <>
       <Card flush>
@@ -66,7 +53,9 @@ export function TrainingDayCard({ date }: Props) {
             <h3 className="text-base font-semibold text-theme-500">Séance</h3>
             {session && (
               <div className="animate-fade-in-up">
-                <EditIconButton onClick={openEdit} />
+                <EditIconButton
+                  onClick={() => void navigate(trainingEditPath(date))}
+                />
               </div>
             )}
           </div>
@@ -107,16 +96,6 @@ export function TrainingDayCard({ date }: Props) {
           </p>
         )}
       </Card>
-
-      <TrainingDayDialog
-        dialogRef={dialogRef}
-        sessionKey={edit.key}
-        day={day}
-        isEdit
-        initialItems={edit.items}
-        history={workouts ?? []}
-        onSaved={() => undefined}
-      />
     </>
   );
 }

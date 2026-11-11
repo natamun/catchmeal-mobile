@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { failureMessage } from '../../utils/failureMessage';
+import { FlowFooter } from '../layout/FlowFooter';
 import type { MealItemDraft } from '../meal/draft';
 import { DraftItemList } from '../meal/DraftItemList';
 import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
@@ -36,10 +37,11 @@ export function ShoppingReview({ initialItems, onAdded }: ShoppingReviewProps) {
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-1 flex-col gap-5">
       {items.length > 0 ? (
         <DraftItemList
           items={items}
+          showKcal={false}
           onChange={(updated) =>
             setItems((prev) =>
               prev.map((item) => (item.id === updated.id ? updated : item)),
@@ -55,7 +57,7 @@ export function ShoppingReview({ initialItems, onAdded }: ShoppingReviewProps) {
         </p>
       )}
 
-      <div className="flex flex-col gap-3 border-t border-theme-100 pt-5">
+      <FlowFooter>
         {error && <p className="text-sm text-red-500">{error}</p>}
         <button
           type="button"
@@ -65,7 +67,7 @@ export function ShoppingReview({ initialItems, onAdded }: ShoppingReviewProps) {
         >
           {isSubmitting ? 'Ajout...' : 'Ajouter aux courses'}
         </button>
-      </div>
+      </FlowFooter>
     </div>
   );
 }
