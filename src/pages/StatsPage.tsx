@@ -12,6 +12,7 @@ import { PeriodSelector } from '../components/analytics/PeriodSelector';
 import { summarizePeriod } from '../components/analytics/periodSummary';
 import { WeeklySessionsChart } from '../components/analytics/WeeklySessionsChart';
 import { useProfile } from '../components/profile/profileContext';
+import { Card } from '../components/ui/Card';
 import { LoadError } from '../components/ui/LoadError';
 import { useDashboard } from '../hooks/useDashboard';
 import { useTraining } from '../hooks/useTraining';
@@ -42,12 +43,12 @@ export default function StatsPage() {
       <PeriodSelector period={period} onChange={setPeriod} />
 
       {hasError ? (
-        <div className="rounded-2xl border border-theme-200 bg-surface shadow-sm">
+        <Card flush>
           <LoadError
             message="Impossible de charger les statistiques."
             onRetry={retry}
           />
-        </div>
+        </Card>
       ) : (
         <div
           key={`${from}:${to}`}

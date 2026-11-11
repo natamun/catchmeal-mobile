@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { Minus, Plus } from 'lucide-react';
 
 import type { FoodItem } from '../food/types';
@@ -14,9 +13,6 @@ import type { Recipe } from './types';
 
 const STEP_BUTTON_CLASS =
   'tap-area relative flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-theme-50 text-theme-600 transition-colors hover:bg-theme-100 disabled:cursor-not-allowed disabled:opacity-40';
-
-/** Title of a part of a recipe: Ingrédients, Cuisson, Préparation... */
-const SECTION_TITLE_CLASS = 'text-base font-semibold text-theme-500';
 
 interface ServingsStepperProps {
   value: number;
@@ -54,32 +50,6 @@ export function ServingsStepper({
         <Plus className="h-4 w-4" />
       </button>
     </div>
-  );
-}
-
-interface RecipeCardProps {
-  title?: string;
-  /** Next to the title, such as the servings stepper. */
-  action?: ReactNode;
-  children: ReactNode;
-}
-
-/** White card holding one part of a recipe, with its title. */
-export function RecipeCard({ title, action, children }: RecipeCardProps) {
-  return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-theme-200 bg-surface p-5 shadow-sm">
-      {(title || action) && (
-        <div className="flex items-center justify-between gap-3">
-          {title && (
-            <h3 className={`min-w-0 truncate ${SECTION_TITLE_CLASS}`}>
-              {title}
-            </h3>
-          )}
-          {action}
-        </div>
-      )}
-      {children}
-    </section>
   );
 }
 

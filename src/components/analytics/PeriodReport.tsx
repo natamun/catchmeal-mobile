@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { GoalBar } from '../home/DaySummary';
+import { Card } from '../ui/Card';
 import { Skeleton } from '../ui/Skeleton';
 import { perWeekLabel, sessionsPhrase, weightSpan } from './periodPhrases';
 import type { PeriodSummary } from './periodSummary';
@@ -46,11 +47,11 @@ interface Props {
 export function PeriodReport({ summary, isLoading }: Props) {
   if (isLoading) {
     return (
-      <section className="flex flex-col gap-3 rounded-2xl border border-theme-200 bg-surface p-5 shadow-sm">
+      <Card>
         <Skeleton className="h-10 w-40" />
         <Skeleton className="h-3 w-full" />
         <Skeleton className="h-4 w-48" />
-      </section>
+      </Card>
     );
   }
 
@@ -58,7 +59,7 @@ export function PeriodReport({ summary, isLoading }: Props) {
     summary;
 
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-theme-200 bg-surface p-5 shadow-sm">
+    <Card>
       <Part>
         <Row label="Calories par jour" />
         {kcal === null ? (
@@ -146,6 +147,6 @@ export function PeriodReport({ summary, isLoading }: Props) {
           </span>
         </Row>
       </Part>
-    </section>
+    </Card>
   );
 }

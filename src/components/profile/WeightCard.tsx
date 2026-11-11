@@ -2,10 +2,10 @@ import { useRef, useState } from 'react';
 
 import { formatKg, formatSince } from '../../utils/format';
 import { AddCircleButton } from '../ui/AddCircleButton';
+import { Card } from '../ui/Card';
 import { ChevronRow } from '../ui/ChevronRow';
 import { LoadError } from '../ui/LoadError';
 import { Skeleton } from '../ui/Skeleton';
-import { SummaryCard } from '../ui/SummaryCard';
 import type { Profile, WeightEntry } from './api';
 import { getAge } from './bmr';
 import { COMPOSITION, formatMeasure } from './measures';
@@ -53,9 +53,9 @@ export function WeightCard({ weighIns, profile, onUpdate }: Props) {
 
   return (
     <>
-      <SummaryCard
+      <Card
         title="Composition corporelle"
-        aside={<AddCircleButton onClick={() => weighIns.openDialog(null)} />}
+        action={<AddCircleButton onClick={() => weighIns.openDialog(null)} />}
       >
         <div className="-mb-3 flex flex-col gap-4">
           {weighIns.isLoading && (
@@ -120,7 +120,7 @@ export function WeightCard({ weighIns, profile, onUpdate }: Props) {
             />
           </div>
         </div>
-      </SummaryCard>
+      </Card>
 
       <PersonDialog
         dialogRef={personRef}

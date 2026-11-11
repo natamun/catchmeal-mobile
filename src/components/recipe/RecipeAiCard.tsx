@@ -4,9 +4,9 @@ import { copyText, shareText } from '../../native/shareText';
 import type { FoodItem } from '../food/types';
 import { useProfile } from '../profile/profileContext';
 import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
+import { Card } from '../ui/Card';
 import { useToast } from '../ui/toastContext';
 import { buildRecipePrompt } from './recipePrompt';
-import { RecipeCard } from './RecipeView';
 import type { Recipe } from './types';
 
 const TITLE = 'Demander à une IA';
@@ -43,7 +43,7 @@ export function RecipeAiCard({ recipe, foodItems }: Props) {
   };
 
   return (
-    <RecipeCard title={TITLE}>
+    <Card title={TITLE}>
       <div className="flex gap-3">
         <button
           type="button"
@@ -62,6 +62,6 @@ export function RecipeAiCard({ recipe, foodItems }: Props) {
           Partager
         </button>
       </div>
-    </RecipeCard>
+    </Card>
   );
 }

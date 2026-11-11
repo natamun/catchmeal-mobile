@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import { SummaryCard } from '../ui/SummaryCard';
+import { Card } from '../ui/Card';
 import { buildDataGraph, grainForWidth } from './buildDataGraph';
 import { ChartSkeleton } from './ChartSkeleton';
 import { MACRO_SERIES, UNSPLIT_SERIES } from './macroSeries';
@@ -113,16 +113,16 @@ export function CalorieChart({ days, from, to, isLoading = false }: Props) {
 
   if (isLoading) {
     return (
-      <SummaryCard title={TITLE}>
+      <Card title={TITLE}>
         <ChartSkeleton />
-      </SummaryCard>
+      </Card>
     );
   }
 
   return (
-    <SummaryCard
+    <Card
       title={TITLE}
-      aside={
+      action={
         <span className="text-sm text-theme-600">{GRAIN_CAPTION[grain]}</span>
       }
     >
@@ -135,6 +135,6 @@ export function CalorieChart({ days, from, to, isLoading = false }: Props) {
         tooltip={(props) => <MacroTooltip {...props} averaged={averaged} />}
         onPlotWidth={setPlotWidth}
       />
-    </SummaryCard>
+    </Card>
   );
 }

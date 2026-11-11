@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react';
 
 import { MACROS } from '../../constants/macros';
 import { useToggleSet } from '../../hooks/useToggleSet';
-import { ListCard, ListCardEmpty, ListCardLoading } from '../ui/ListCard';
+import { Card, CardEmpty, CardLoading } from '../ui/Card';
 import { LoadError } from '../ui/LoadError';
 import { MacroBadge } from '../ui/MacroBadge';
 import {
@@ -78,7 +78,8 @@ export function MealList({
     });
 
   return (
-    <ListCard
+    <Card
+      flush
       className="@container"
       header={
         <>
@@ -91,21 +92,19 @@ export function MealList({
         </>
       }
     >
-      {isLoading && <ListCardLoading />}
+      {isLoading && <CardLoading />}
 
       {loadError && <LoadError message={loadError} onRetry={onRetry} />}
 
       {!isLoading && !loadError && meals.length === 0 && (
-        <ListCardEmpty>Aucun repas enregistré.</ListCardEmpty>
+        <CardEmpty>Aucun repas enregistré.</CardEmpty>
       )}
 
       {!isLoading &&
         !loadError &&
         meals.length > 0 &&
         visibleMeals.length === 0 && (
-          <ListCardEmpty>
-            Aucun repas ne correspond à cette recherche.
-          </ListCardEmpty>
+          <CardEmpty>Aucun repas ne correspond à cette recherche.</CardEmpty>
         )}
 
       <ul className="divide-y divide-theme-200">
@@ -152,6 +151,6 @@ export function MealList({
           );
         })}
       </ul>
-    </ListCard>
+    </Card>
   );
 }

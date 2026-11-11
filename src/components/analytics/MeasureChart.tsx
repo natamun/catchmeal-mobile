@@ -3,8 +3,8 @@ import { useMemo } from 'react';
 import { middayOf } from '../../utils/dateKey';
 import { formatSignedKg as signed } from '../../utils/format';
 import type { DateRange } from '../ui/CalendarButton';
+import { Card } from '../ui/Card';
 import { SelectDropdown } from '../ui/SelectDropdown';
-import { SummaryCard } from '../ui/SummaryCard';
 import { ChartSkeleton } from './ChartSkeleton';
 import { trendOf } from './periodSummary';
 import { TimeLineChart } from './TimeLineChart';
@@ -73,26 +73,26 @@ export function MeasureChart({
 
   if (isLoading) {
     return (
-      <SummaryCard title={TITLE} aside={selector} inlineAside>
+      <Card title={TITLE} action={selector} inlineAction>
         <ChartSkeleton />
-      </SummaryCard>
+      </Card>
     );
   }
 
   if (points.length === 0) {
     return (
-      <SummaryCard title={TITLE} aside={selector} inlineAside>
+      <Card title={TITLE} action={selector} inlineAction>
         <p className="text-sm text-theme-600">
           {measure === 'weight'
             ? 'Aucune pesée sur cette période.'
             : 'Aucune mesure sur cette période.'}
         </p>
-      </SummaryCard>
+      </Card>
     );
   }
 
   return (
-    <SummaryCard title={TITLE} aside={selector} inlineAside>
+    <Card title={TITLE} action={selector} inlineAction>
       <TimeLineChart
         points={points}
         name={label}
@@ -114,6 +114,6 @@ export function MeasureChart({
           )}
         </p>
       )}
-    </SummaryCard>
+    </Card>
   );
 }

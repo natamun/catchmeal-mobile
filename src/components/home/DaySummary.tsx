@@ -1,6 +1,7 @@
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
 
 import { formatKg } from '../../utils/format';
+import { Card } from '../ui/Card';
 import { progressScale } from './progress';
 
 interface Props {
@@ -145,7 +146,7 @@ export function DaySummary(props: Props) {
   };
 
   return (
-    <section className="flex flex-col gap-5 rounded-2xl border border-theme-200 bg-surface p-5 shadow-sm">
+    <Card>
       <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-3">
           <p className="flex items-baseline gap-2">
@@ -186,6 +187,6 @@ export function DaySummary(props: Props) {
           goalWeight={props.goalWeight}
         />
       </div>
-    </section>
+    </Card>
   );
 }

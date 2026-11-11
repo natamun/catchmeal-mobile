@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { startOfDay } from '../../utils/dateKey';
 import { weeklySessions, type WeekSessions } from '../fitness/progress';
 import type { Workout } from '../fitness/types';
-import { SummaryCard } from '../ui/SummaryCard';
+import { Card } from '../ui/Card';
 import { grainForWidth } from './buildDataGraph';
 import { ChartSkeleton } from './ChartSkeleton';
 import { SERIES_COLORS } from './chartStyle';
@@ -77,19 +77,19 @@ export function WeeklySessionsChart({
 
   if (isLoading) {
     return (
-      <SummaryCard title={TITLE}>
+      <Card title={TITLE}>
         <ChartSkeleton />
-      </SummaryCard>
+      </Card>
     );
   }
 
   if (workouts.length === 0) {
     return (
-      <SummaryCard title={TITLE}>
+      <Card title={TITLE}>
         <p className="text-sm text-theme-600">
           Aucune séance sur cette période.
         </p>
-      </SummaryCard>
+      </Card>
     );
   }
 
@@ -105,9 +105,9 @@ export function WeeklySessionsChart({
   );
 
   return (
-    <SummaryCard
+    <Card
       title={TITLE}
-      aside={
+      action={
         <span className="text-sm text-theme-600">
           {weeksPerBar === 2 ? 'Par 2 semaines' : 'Par semaine'}
         </span>
@@ -129,6 +129,6 @@ export function WeeklySessionsChart({
         height={HEIGHT}
         onPlotWidth={setPlotWidth}
       />
-    </SummaryCard>
+    </Card>
   );
 }

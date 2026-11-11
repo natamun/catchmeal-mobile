@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 
 import { useToggleSet } from '../../hooks/useToggleSet';
-import { ListCard, ListCardEmpty, ListCardLoading } from '../ui/ListCard';
+import { Card, CardEmpty, CardLoading } from '../ui/Card';
 import { LoadError } from '../ui/LoadError';
 import { describeValues } from './format';
 import type { TemplateItem, WorkoutItem, WorkoutTemplate } from './types';
@@ -41,7 +41,8 @@ export function TemplateList({
   const [expandedIds, toggleExpanded] = useToggleSet<number>();
 
   return (
-    <ListCard
+    <Card
+      flush
       header={
         headerAction && (
           <>
@@ -53,10 +54,10 @@ export function TemplateList({
         )
       }
     >
-      {isLoading && <ListCardLoading />}
+      {isLoading && <CardLoading />}
       {loadError && <LoadError message={loadError} onRetry={onRetry} />}
       {!isLoading && !loadError && templates.length === 0 && (
-        <ListCardEmpty>Aucune séance favorite.</ListCardEmpty>
+        <CardEmpty>Aucune séance favorite.</CardEmpty>
       )}
 
       <ul className="divide-y divide-theme-200">
@@ -107,6 +108,6 @@ export function TemplateList({
           );
         })}
       </ul>
-    </ListCard>
+    </Card>
   );
 }

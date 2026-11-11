@@ -20,7 +20,6 @@ import {
 import {
   EmptyPart,
   IngredientRows,
-  RecipeCard,
   ServingNutrition,
   ServingsStepper,
   StepRows,
@@ -35,6 +34,7 @@ import {
 import { addFoodsToShopping } from '../components/shopping/api';
 import { recipeToShopping } from '../components/shopping/lines';
 import { SECONDARY_BUTTON_CLASS } from '../components/ui/buttonStyle';
+import { Card } from '../components/ui/Card';
 import { EditIconButton } from '../components/ui/EditIconButton';
 import { useToast } from '../components/ui/toastContext';
 import { useKeepAwake } from '../hooks/useKeepAwake';
@@ -136,10 +136,10 @@ function RecipeSheet({
           </div>
         }
       />
-      <RecipeCard>
+      <Card>
         <ServingNutrition recipe={recipe} />
-      </RecipeCard>
-      <RecipeCard
+      </Card>
+      <Card
         title="Ingrédients"
         action={<ServingsStepper value={servings} onChange={setServings} />}
       >
@@ -157,21 +157,21 @@ function RecipeSheet({
           <ShoppingCart className="h-4 w-4" />
           Ajouter aux courses
         </button>
-      </RecipeCard>
+      </Card>
       {recipe.cooking && (
-        <RecipeCard title="Cuisson">
+        <Card title="Cuisson">
           <TextBlock>{recipe.cooking}</TextBlock>
-        </RecipeCard>
+        </Card>
       )}
       {recipe.steps.length > 0 && (
-        <RecipeCard title="Préparation">
+        <Card title="Préparation">
           <StepRows steps={recipe.steps} />
-        </RecipeCard>
+        </Card>
       )}
       {recipe.notes && (
-        <RecipeCard title="Autres">
+        <Card title="Autres">
           <TextBlock>{recipe.notes}</TextBlock>
-        </RecipeCard>
+        </Card>
       )}
       <RecipeAiCard recipe={recipe} foodItems={foodItems} />
     </>
@@ -205,21 +205,21 @@ function EditRecipe({
         onClose={onClose}
         action={<DeleteAction editor={editor} />}
       />
-      <RecipeCard>
+      <Card>
         <InfoFields editor={editor} />
-      </RecipeCard>
-      <RecipeCard title="Ingrédients">
+      </Card>
+      <Card title="Ingrédients">
         <IngredientsEditor editor={editor} container={container} />
-      </RecipeCard>
-      <RecipeCard title="Cuisson">
+      </Card>
+      <Card title="Cuisson">
         <CookingField editor={editor} hideLabel />
-      </RecipeCard>
-      <RecipeCard title="Préparation">
+      </Card>
+      <Card title="Préparation">
         <StepsEditor editor={editor} />
-      </RecipeCard>
-      <RecipeCard title="Autres">
+      </Card>
+      <Card title="Autres">
         <NotesField editor={editor} hideLabel />
-      </RecipeCard>
+      </Card>
       <SaveBar editor={editor} onSave={() => void editor.save()} />
     </>
   );

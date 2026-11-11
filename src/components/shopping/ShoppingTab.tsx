@@ -8,9 +8,9 @@ import { PATHS } from '../../routing/paths';
 import { failureMessage } from '../../utils/failureMessage';
 import type { FoodItem } from '../food/types';
 import { AddCircleButton } from '../ui/AddCircleButton';
+import { Card, CardEmpty, CardLoading } from '../ui/Card';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { Input } from '../ui/Input';
-import { ListCard, ListCardEmpty, ListCardLoading } from '../ui/ListCard';
 import { LoadError } from '../ui/LoadError';
 import {
   addLabelToShopping,
@@ -82,7 +82,8 @@ export function ShoppingTab({ foodItems }: ShoppingTabProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <ListCard
+      <Card
+        flush
         header={
           <>
             <div className="min-w-0 flex-1">
@@ -97,7 +98,7 @@ export function ShoppingTab({ foodItems }: ShoppingTabProps) {
           </>
         }
       >
-        {shopping.isLoading && <ListCardLoading />}
+        {shopping.isLoading && <CardLoading />}
 
         {shopping.hasError && (
           <LoadError
@@ -107,10 +108,10 @@ export function ShoppingTab({ foodItems }: ShoppingTabProps) {
         )}
 
         {!shopping.isLoading && !shopping.hasError && lines.length === 0 && (
-          <ListCardEmpty>
+          <CardEmpty>
             Ajoutez des aliments, des repas ou des recettes avec le +, ou
             écrivez un article ci-dessous.
-          </ListCardEmpty>
+          </CardEmpty>
         )}
 
         <ShoppingChecklist lines={lines} onToggle={toggle} onRemove={remove} />
@@ -139,7 +140,7 @@ export function ShoppingTab({ foodItems }: ShoppingTabProps) {
             <Plus className="h-5 w-5" />
           </button>
         </form>
-      </ListCard>
+      </Card>
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 

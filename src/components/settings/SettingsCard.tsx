@@ -8,7 +8,7 @@ import {
 } from '../../native/weighInReminder';
 import { updateProfile } from '../profile/api';
 import { useProfile } from '../profile/profileContext';
-import { SummaryCard } from '../ui/SummaryCard';
+import { Card } from '../ui/Card';
 import { Switch } from '../ui/Switch';
 import { useToast } from '../ui/toastContext';
 
@@ -84,7 +84,7 @@ export function SettingsCard() {
   };
 
   return (
-    <SummaryCard title="Paramètres">
+    <Card title="Paramètres">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
           <p className="text-base font-medium text-theme-800">
@@ -118,6 +118,6 @@ export function SettingsCard() {
           Version {version}
         </p>
       )}
-    </SummaryCard>
+    </Card>
   );
 }

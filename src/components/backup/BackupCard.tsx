@@ -7,8 +7,8 @@ import { PATHS } from '../../routing/paths';
 import { failureMessage } from '../../utils/failureMessage';
 import { useProfile } from '../profile/profileContext';
 import { DANGER_BUTTON_CLASS, SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
+import { Card } from '../ui/Card';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
-import { SummaryCard } from '../ui/SummaryCard';
 import { useToast } from '../ui/toastContext';
 import { readBackupFile, restoreData, saveData, shareData } from './api';
 
@@ -91,7 +91,7 @@ export function BackupCard() {
   };
 
   return (
-    <SummaryCard title="Sauvegarde">
+    <Card title="Sauvegarde">
       <p className="text-sm text-theme-600">
         Les données restent uniquement sur ce téléphone. Enregistrez une
         sauvegarde régulièrement, et partagez-la sur un Drive pour en garder une
@@ -147,6 +147,6 @@ export function BackupCard() {
         isPending={isBusy}
         onConfirm={() => void handleRestore()}
       />
-    </SummaryCard>
+    </Card>
   );
 }

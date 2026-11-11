@@ -10,7 +10,7 @@ import {
 } from '../profile/api';
 import { useProfile } from '../profile/profileContext';
 import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
-import { SummaryCard } from '../ui/SummaryCard';
+import { Card } from '../ui/Card';
 import { useToast } from '../ui/toastContext';
 import { buildAiContext } from './aiContext';
 import type { DashboardDay } from './types';
@@ -74,7 +74,7 @@ export function AiContextCard({ from, to, days, isLoading = false }: Props) {
     run((text) => shareText(TITLE, text), 'Partage impossible');
 
   return (
-    <SummaryCard title={TITLE}>
+    <Card title={TITLE}>
       <div className="flex gap-3">
         <button
           type="button"
@@ -95,6 +95,6 @@ export function AiContextCard({ from, to, days, isLoading = false }: Props) {
           Partager
         </button>
       </div>
-    </SummaryCard>
+    </Card>
   );
 }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { updateProfile } from '../profile/api';
 import { useProfile } from '../profile/profileContext';
-import { SummaryCard } from '../ui/SummaryCard';
+import { Card } from '../ui/Card';
 import { useToast } from '../ui/toastContext';
 import { DEFAULT_THEME, THEMES } from './themeList';
 
@@ -33,7 +33,7 @@ export function ThemeCard() {
   };
 
   return (
-    <SummaryCard title="Apparence">
+    <Card title="Apparence">
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
         {THEMES.map(({ id }) => (
           <button
@@ -55,6 +55,6 @@ export function ThemeCard() {
           </button>
         ))}
       </div>
-    </SummaryCard>
+    </Card>
   );
 }

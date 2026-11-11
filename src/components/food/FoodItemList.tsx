@@ -4,7 +4,7 @@ import { ChevronRight } from 'lucide-react';
 import { MACROS } from '../../constants/macros';
 import { useToggleSet } from '../../hooks/useToggleSet';
 import { roundDecimals } from '../../utils/decimals';
-import { ListCard, ListCardEmpty, ListCardLoading } from '../ui/ListCard';
+import { Card, CardEmpty, CardLoading } from '../ui/Card';
 import { LoadError } from '../ui/LoadError';
 import { MacroBadge } from '../ui/MacroBadge';
 import {
@@ -84,7 +84,8 @@ export function FoodItemList({
     });
 
   return (
-    <ListCard
+    <Card
+      flush
       className="@container"
       header={
         <>
@@ -97,21 +98,19 @@ export function FoodItemList({
         </>
       }
     >
-      {isLoading && <ListCardLoading />}
+      {isLoading && <CardLoading />}
 
       {loadError && <LoadError message={loadError} onRetry={onRetry} />}
 
       {!isLoading && !loadError && activeItems.length === 0 && (
-        <ListCardEmpty>Aucun aliment enregistré.</ListCardEmpty>
+        <CardEmpty>Aucun aliment enregistré.</CardEmpty>
       )}
 
       {!isLoading &&
         !loadError &&
         activeItems.length > 0 &&
         visibleItems.length === 0 && (
-          <ListCardEmpty>
-            Aucun aliment ne correspond à cette recherche.
-          </ListCardEmpty>
+          <CardEmpty>Aucun aliment ne correspond à cette recherche.</CardEmpty>
         )}
 
       <ul className="divide-y divide-theme-200">
@@ -164,6 +163,6 @@ export function FoodItemList({
           );
         })}
       </ul>
-    </ListCard>
+    </Card>
   );
 }

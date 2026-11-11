@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 
 import { MACROS } from '../../constants/macros';
 import { formatMinutes } from '../../utils/format';
-import { ListCard, ListCardEmpty, ListCardLoading } from '../ui/ListCard';
+import { Card, CardEmpty, CardLoading } from '../ui/Card';
 import { LoadError } from '../ui/LoadError';
 import { MacroBadge } from '../ui/MacroBadge';
 import {
@@ -80,7 +80,8 @@ export function RecipeList({
     });
 
   return (
-    <ListCard
+    <Card
+      flush
       className="@container"
       header={
         <>
@@ -95,21 +96,19 @@ export function RecipeList({
         </>
       }
     >
-      {isLoading && <ListCardLoading />}
+      {isLoading && <CardLoading />}
 
       {loadError && <LoadError message={loadError} onRetry={onRetry} />}
 
       {!isLoading && !loadError && active.length === 0 && (
-        <ListCardEmpty>Aucune recette enregistrée.</ListCardEmpty>
+        <CardEmpty>Aucune recette enregistrée.</CardEmpty>
       )}
 
       {!isLoading &&
         !loadError &&
         active.length > 0 &&
         visible.length === 0 && (
-          <ListCardEmpty>
-            Aucune recette ne correspond à cette recherche.
-          </ListCardEmpty>
+          <CardEmpty>Aucune recette ne correspond à cette recherche.</CardEmpty>
         )}
 
       <ul className="divide-y divide-theme-200">
@@ -160,6 +159,6 @@ export function RecipeList({
           );
         })}
       </ul>
-    </ListCard>
+    </Card>
   );
 }

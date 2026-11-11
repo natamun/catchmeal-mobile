@@ -12,8 +12,8 @@ import { TrainingDayDialog } from '../fitness/TrainingDayDialog';
 import type { Workout } from '../fitness/types';
 import { draftsOf, type ItemDraft } from '../fitness/workoutDraft';
 import { AddCircleButton } from '../ui/AddCircleButton';
+import { Card } from '../ui/Card';
 import { EditIconButton } from '../ui/EditIconButton';
-import { ListCard } from '../ui/ListCard';
 
 interface Props {
   /** The day shown by the journal. */
@@ -58,7 +58,7 @@ export function TrainingDayCard({ date }: Props) {
 
   return (
     <>
-      <ListCard>
+      <Card flush>
         <div
           className={`flex items-center justify-between gap-3 px-5 py-4 ${session ? 'border-b border-theme-100' : ''}`}
         >
@@ -106,7 +106,7 @@ export function TrainingDayCard({ date }: Props) {
             .
           </p>
         )}
-      </ListCard>
+      </Card>
 
       <TrainingDayDialog
         dialogRef={dialogRef}

@@ -2,11 +2,11 @@ import { useRef, useState } from 'react';
 import { ChevronDown, TriangleAlert } from 'lucide-react';
 
 import { formatKg, formatShortDate } from '../../utils/format';
+import { Card } from '../ui/Card';
 import { ChevronRow } from '../ui/ChevronRow';
 import { PillTabs } from '../ui/PillTabs';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { Skeleton } from '../ui/Skeleton';
-import { SummaryCard } from '../ui/SummaryCard';
 import type { Profile, WeightEntry } from './api';
 import { GoalDialog } from './GoalDialog';
 import { GOAL_TYPE_OPTIONS } from './goalTypes';
@@ -203,7 +203,7 @@ export function GoalsCard({ goals, profile, history, onUpdate }: Props) {
 
   return (
     <>
-      <SummaryCard title="Mon objectif">
+      <Card title="Mon objectif">
         {goals.isLoading ? (
           <Skeleton className="h-24 w-full" />
         ) : (
@@ -257,7 +257,7 @@ export function GoalsCard({ goals, profile, history, onUpdate }: Props) {
             </div>
           </div>
         )}
-      </SummaryCard>
+      </Card>
 
       <GoalDialog
         dialogRef={dialogRef}

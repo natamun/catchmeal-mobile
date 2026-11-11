@@ -10,8 +10,8 @@ import {
 } from '../meal/types';
 import type { Recipe } from '../recipe/types';
 import { AddCircleButton } from '../ui/AddCircleButton';
+import { Card } from '../ui/Card';
 import { EditIconButton } from '../ui/EditIconButton';
-import { ListCard } from '../ui/ListCard';
 import { LoadError } from '../ui/LoadError';
 
 interface JournalRow {
@@ -119,7 +119,7 @@ export function DailyMealList({
   const editableMeals = isLoading ? loadedMeals : meals;
 
   return (
-    <ListCard>
+    <Card flush>
       {loadError && <LoadError message={loadError} onRetry={onRetry} />}
 
       <div className={`divide-y divide-theme-200 ${loadError ? 'hidden' : ''}`}>
@@ -194,6 +194,6 @@ export function DailyMealList({
           );
         })}
       </div>
-    </ListCard>
+    </Card>
   );
 }

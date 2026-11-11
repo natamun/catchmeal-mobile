@@ -2,7 +2,7 @@ import { useRef, useState, type ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
-import { ListCard, ListCardEmpty, ListCardLoading } from '../ui/ListCard';
+import { Card, CardEmpty, CardLoading } from '../ui/Card';
 import { LoadError } from '../ui/LoadError';
 import { SearchInput } from '../ui/SearchInput';
 import { CreateExerciseRow } from './CreateExerciseRow';
@@ -76,7 +76,8 @@ export function ExerciseList({
   };
 
   return (
-    <ListCard
+    <Card
+      flush
       header={
         <>
           <SearchInput
@@ -89,7 +90,7 @@ export function ExerciseList({
         </>
       }
     >
-      {isLoading && <ListCardLoading />}
+      {isLoading && <CardLoading />}
       {loadError && <LoadError message={loadError} onRetry={onRetry} />}
 
       {canCreate && (
@@ -104,16 +105,14 @@ export function ExerciseList({
       )}
 
       {!isLoading && !loadError && active.length === 0 && !canCreate && (
-        <ListCardEmpty>Aucun exercice enregistré.</ListCardEmpty>
+        <CardEmpty>Aucun exercice enregistré.</CardEmpty>
       )}
       {!isLoading &&
         !loadError &&
         active.length > 0 &&
         visible.length === 0 &&
         !canCreate && (
-          <ListCardEmpty>
-            Aucun exercice ne correspond à cette recherche.
-          </ListCardEmpty>
+          <CardEmpty>Aucun exercice ne correspond à cette recherche.</CardEmpty>
         )}
 
       {SECTIONS.map(({ label, kinds }) => {
@@ -150,6 +149,6 @@ export function ExerciseList({
           </section>
         );
       })}
-    </ListCard>
+    </Card>
   );
 }
