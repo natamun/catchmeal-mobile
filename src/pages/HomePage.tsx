@@ -2,13 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Zap } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router';
 
-import { CalorieSummary } from '../components/home/CalorieSummary';
 import { DailyMealForm } from '../components/home/DailyMealForm';
 import { DailyMealList } from '../components/home/DailyMealList';
-import { MacroBreakdown } from '../components/home/MacroBreakdown';
+import { DaySummary } from '../components/home/DaySummary';
 import { QuickAddDialog } from '../components/home/QuickAddDialog';
 import { TrainingDayCard } from '../components/home/TrainingDayCard';
-import { WeightWidget } from '../components/home/WeightWidget';
 import { buildDrafts, type MealItemDraft } from '../components/meal/draft';
 import { mealTotals, type Meal, type MealType } from '../components/meal/types';
 import { getWeightHistory, type WeightEntry } from '../components/profile/api';
@@ -36,10 +34,10 @@ interface SectionEdit {
 }
 
 /**
- * The journal of a day (?date= in the URL): calorie and macro progress, latest
- * weigh-in and the four meal sections. Adding to a section
- * opens its own page; editing a section opens DailyMealForm with all its meals
- * merged.
+ * The journal of a day (?date= in the URL): calorie and macro progress with
+ * the latest weigh-in (DaySummary), the four meal sections and the session.
+ * Adding to a section opens its own page; editing a section opens
+ * DailyMealForm with all its meals merged.
  */
 export default function HomePage() {
   const { profile } = useProfile();
@@ -142,29 +140,21 @@ export default function HomePage() {
             key={selectedDate.toDateString()}
             className="flex animate-fade-in-up flex-col gap-4 md:gap-6"
           >
-            <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
-              <CalorieSummary
-                consumed={Math.round(dayTotals.kcal)}
-                goal={profile.dailyCalorieGoal ?? 2000}
-                isLoading={isLoading}
-                unavailable={unavailable}
-              />
-              <MacroBreakdown
-                protein={Math.round(dayTotals.protein)}
-                proteinGoal={profile.dailyProteinGoal ?? 150}
-                carbs={Math.round(dayTotals.carbs)}
-                carbsGoal={profile.dailyCarbsGoal ?? 250}
-                fat={Math.round(dayTotals.fat)}
-                fatGoal={profile.dailyFatGoal ?? 65}
-                isLoading={isLoading}
-                unavailable={unavailable}
-              />
-              <WeightWidget
-                history={weightHistory}
-                hasError={weightError}
-                goalWeight={goalWeight}
-              />
-            </div>
+            <DaySummary
+              consumed={Math.round(dayTotals.kcal)}
+              goal={profile.dailyCalorieGoal ?? 2000}
+              protein={Math.round(dayTotals.protein)}
+              proteinGoal={profile.dailyProteinGoal ?? 150}
+              carbs={Math.round(dayTotals.carbs)}
+              carbsGoal={profile.dailyCarbsGoal ?? 250}
+              fat={Math.round(dayTotals.fat)}
+              fatGoal={profile.dailyFatGoal ?? 65}
+              isLoading={isLoading}
+              unavailable={unavailable}
+              weightHistory={weightHistory}
+              weightError={weightError}
+              goalWeight={goalWeight}
+            />
             <DailyMealList
               meals={meals}
               foodItems={foodItems}
