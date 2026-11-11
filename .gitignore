@@ -16,4 +16,4 @@ dist
 .password
 *.jks
 *.keystore
-release/
+/release/
