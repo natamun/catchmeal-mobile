@@ -14,12 +14,12 @@ From the repository root:
 - `node .claude/tools/devapp.mjs eval "<js>"`: run JavaScript in the app, for example `document.documentElement.dataset.theme = 'solarized-light'` to look at a light theme, or a proposal selector click. Read-only intent: never write to the database, never call a save.
 - `node .claude/tools/devapp.mjs shot <scratchpad>/<name>.png`, then read the PNG to look at it.
 
-If the app is not running or the phone is locked, stop and say so: the user unlocks it. Do not tap through the interface with `adb shell input`, except to scroll (`adb shell input swipe 540 1800 540 800 300`) when a screen is longer than one capture.
+If the app is not running or the phone is locked, stop and say so: the user unlocks it. Do not tap through the interface with `adb shell input`, except to scroll (`adb shell input swipe 540 1800 540 800 300`) when a screen is longer than one capture. To open a dialog, sheet or picker, click its opening button with `eval` (`document.querySelector(...).click()`); never click a button that saves, deletes or confirms.
 
 ## Method
 
 1. Read `.claude/skills/catchmeal-ui/SKILL.md` and `references/review.md`.
-2. Capture only what the caller asked for, at most 8 screenshots: each screen or proposal in the default theme, plus one light theme, plus the states asked (empty, long text, keyboard open).
+2. Capture only what the caller asked for, at most 8 screenshots per batch (the caller sends more batches for a full audit): each screen or proposal in the default theme, plus one light theme, plus the states asked (empty, long text, keyboard open).
 3. Judge what code cannot show: balance, spacing, hierarchy, alignment, contrast, what draws the eye first, anything cut or overlapping.
 
 ## Report

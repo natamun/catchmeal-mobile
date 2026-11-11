@@ -1,6 +1,6 @@
 # Reviewing a screen or comparing proposals
 
-Read the code of the screen first; then, for balance, spacing and the overall feel, ask `ui-inspector` for screenshots. Structure before cosmetics: a well coloured screen with the wrong structure is still wrong.
+Read the code of the screen first; then, for balance, spacing and the overall feel, ask `ui-inspector` for screenshots. Capture exactly the scope asked. Reviewing a screen covers everything it opens (its dialogs, sheets, pickers and flow pages, and the bottom of the page when it scrolls): list them from the code and capture all of them, in as many batches as it takes. Reviewing one dialog or one piece covers only that piece and its states. Structure before cosmetics: a well coloured screen with the wrong structure is still wrong.
 
 ## Checklist
 
