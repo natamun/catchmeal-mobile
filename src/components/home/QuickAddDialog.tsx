@@ -1,6 +1,4 @@
 import { useState, type RefObject } from 'react';
-import * as Popover from '@radix-ui/react-popover';
-import { ChevronRight } from 'lucide-react';
 
 import { useFormValidation } from '../../hooks/useFormValidation';
 import { toDateKey } from '../../utils/dateKey';
@@ -15,9 +13,9 @@ import {
 import { MEAL_TYPE_LABELS, type MealType } from '../meal/types';
 import { BaseDialog } from '../ui/BaseDialog';
 import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
-import { DropdownPanel } from '../ui/DropdownPanel';
 import { FieldError } from '../ui/FieldError';
 import { Input } from '../ui/Input';
+import { SelectDropdown } from '../ui/SelectDropdown';
 
 const MEAL_TYPE_OPTIONS = (Object.keys(MEAL_TYPE_LABELS) as MealType[]).map(
   (value) => ({ value, label: MEAL_TYPE_LABELS[value] }),
@@ -68,8 +66,6 @@ export function QuickAddDialog({
     attemptSubmit,
     resetValidation,
   } = useFormValidation(EMPTY_QUICK_ADD_FORM, validateQuickAddForm);
-  const [dialogNode, setDialogNode] = useState<HTMLDialogElement | null>(null);
-  const [categoryOpen, setCategoryOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -77,7 +73,6 @@ export function QuickAddDialog({
     setMealType(defaultMealType());
     setForm(EMPTY_QUICK_ADD_FORM);
     resetValidation();
-    setCategoryOpen(false);
     setError(null);
   };
 
@@ -113,66 +108,34 @@ export function QuickAddDialog({
   };
 
   return (
-    <BaseDialog
-      dialogRef={dialogRef}
-      title="Ajout rapide"
-      onClose={reset}
-      onDialogNode={setDialogNode}
-    >
+    <BaseDialog dialogRef={dialogRef} title="Ajout rapide" onClose={reset}>
       <form
         onSubmit={(e) => void handleSubmit(e)}
         noValidate
         autoComplete="off"
         className="flex flex-col gap-5"
       >
-        <Popover.Root open={categoryOpen} onOpenChange={setCategoryOpen}>
-          <div className="flex flex-col gap-1">
-            <label
-              htmlFor="quick-add-meal-type"
-              className="text-xs text-theme-600"
-            >
-              Catégorie
-            </label>
-            <Popover.Trigger asChild>
-              <button
-                id="quick-add-meal-type"
-                type="button"
-                className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-theme-200 bg-surface px-4 py-2.75 text-base text-theme-800 transition-colors hover:bg-theme-50 data-[state=open]:bg-theme-50"
-              >
-                {MEAL_TYPE_LABELS[mealType]}
-                <ChevronRight
-                  className={`h-4 w-4 text-theme-400 transition-transform ${categoryOpen ? 'rotate-90' : ''}`}
-                />
-              </button>
-            </Popover.Trigger>
-          </div>
-          <DropdownPanel container={dialogNode} matchAnchorWidth moveFocus>
-            {MEAL_TYPE_OPTIONS.map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => {
-                  setMealType(value);
-                  setCategoryOpen(false);
-                }}
-                className={`cursor-pointer border-t border-theme-100 px-4 py-2 text-left text-sm transition-colors first:border-t-0 hover:bg-theme-50 ${
-                  value === mealType
-                    ? 'font-semibold text-theme-800'
-                    : 'text-theme-600'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </DropdownPanel>
-        </Popover.Root>
+        <div className="flex flex-col gap-1">
+          <label
+            htmlFor="quick-add-meal-type"
+            className="text-xs text-theme-500"
+          >
+            Catégorie
+          </label>
+          <SelectDropdown
+            id="quick-add-meal-type"
+            value={mealType}
+            options={MEAL_TYPE_OPTIONS}
+            onChange={(value) => setMealType(value as MealType)}
+          />
+        </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {NUTRITION_FIELDS.map(({ field, label }) => (
             <div key={field} className="relative flex flex-col gap-1">
               <label
                 htmlFor={`quick-add-${field}`}
-                className="text-xs text-theme-600"
+                className="text-xs text-theme-500"
               >
                 {label}
               </label>
