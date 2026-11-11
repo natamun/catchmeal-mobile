@@ -10,7 +10,8 @@
     "lint:check": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"*.{ts,js}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"*.{ts,js}\"",
-    "test": "vitest run"
+    "test": "vitest run",
+    "knip": "knip"
   },
   "dependencies": {
     "@capacitor-community/sqlite": "^8.1.1",
@@ -50,6 +51,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
+    "knip": "^6.45.1",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "typescript": "~6.0.2",

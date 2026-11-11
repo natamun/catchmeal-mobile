@@ -44,6 +44,7 @@ npm ci
 | `make check` | Format check, lint, build and tests, like the CI |
 | `make format` | Formats the code |
 | `make lint` | Fixes what the linter can |
+| `make knip` | Lists unused files, exports and dependencies |
 | `make phone` | Builds the development app and installs it on the phone |
 | `make apk` | Builds the development app as an APK |
 | `make dev` + `make live` | Live development, in two terminals |

@@ -38,6 +38,10 @@ testVerbose:
 
 check: formatCheck lintCheck build test
 
+# Unused files, exports and dependencies, worth a look before a release.
+knip:
+	$(APP) knip
+
 #-----	Phone (connected with adb)	-----#
 
 # Builds the development app, "CatCHMeal dev", and installs it on the phone
@@ -85,5 +89,5 @@ live: hasPhone
 hasPhone:
 	@test -n "$(PHONE)" || { echo "No phone found: check adb devices"; exit 1; }
 
-.PHONY: all format formatCheck lint lintCheck build test testVerbose check \
+.PHONY: all format formatCheck lint lintCheck build test testVerbose check knip \
 	phone apk release installRelease dev live hasPhone hasKey
