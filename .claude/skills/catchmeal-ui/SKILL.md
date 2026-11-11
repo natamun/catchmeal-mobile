@@ -41,7 +41,7 @@ CatCHMeal is a phone app (Capacitor web view, Galaxy S21+, one hand, often at th
 - **Step buttons are explicit**: "+10" and "+1" beside a typed value, never ambiguous symbols like "++" or "--".
 - **Search fields have a clear (×) button** once they hold text.
 - **List rows keep one height**: a long name truncates on one line; the full name is in the item's sheet.
-- **Text alignment**: left by default. Long prose (recipe steps, notes) may be justified, only with `hyphens: auto` and `lang="fr"`, or the narrow lines get large gaps.
+- **Text alignment**: left, long prose included (recipe steps, notes), never justified: on a phone it leaves large gaps between words, even with hyphenation. Long prose gets `text-wrap: pretty` and a relaxed line height.
 
 ## Words on screen
 
