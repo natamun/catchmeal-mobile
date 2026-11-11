@@ -19,10 +19,18 @@ export function MacroTooltip({ active, payload, label, averaged }: Props) {
     return null;
   }
 
+  const title = averaged ? `Du ${point.from} au ${point.date}` : label;
+
+  if (point.loggedDays === 0) {
+    return (
+      <TooltipFrame title={title}>
+        <p className="text-sm text-theme-600">Aucun repas noté</p>
+      </TooltipFrame>
+    );
+  }
+
   return (
-    <TooltipFrame
-      title={averaged ? `Du ${point.from} au ${point.date}` : label}
-    >
+    <TooltipFrame title={title}>
       <ul className="flex flex-col gap-0.5">
         {MACRO_SERIES.map(({ key, label: name, fill }) => (
           <TooltipRow key={key} color={fill} name={name}>
@@ -32,7 +40,9 @@ export function MacroTooltip({ active, payload, label, averaged }: Props) {
       </ul>
       <p className="mt-1.5 flex justify-between gap-4 border-t border-theme-200 pt-1.5 text-sm">
         <span className="text-theme-600">
-          {averaged ? 'Moyenne par jour' : 'Total'}
+          {averaged
+            ? `Moyenne sur ${point.loggedDays} ${point.loggedDays > 1 ? 'jours notés' : 'jour noté'}`
+            : 'Total'}
         </span>
         <span className="font-semibold text-theme-800 tabular-nums">
           {point.kcal} kcal

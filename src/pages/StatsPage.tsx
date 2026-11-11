@@ -58,7 +58,7 @@ export default function StatsPage() {
             />
           </div>
 
-          <CalorieChart days={days} isLoading={isLoading} />
+          <CalorieChart days={days} from={from} to={to} isLoading={isLoading} />
           <MeasureChart
             measure={measure}
             onMeasureChange={setMeasure}

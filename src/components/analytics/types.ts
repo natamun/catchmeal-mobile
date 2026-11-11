@@ -24,6 +24,8 @@ export type DashboardDay = {
 export type DataGraph = {
   from: string;
   date: string;
+  /** Days of the group with a logged meal. */
+  loggedDays: number;
   kcal: number;
   protein: number;
   carbs: number;

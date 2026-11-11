@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 
 import { SummaryCard } from '../ui/SummaryCard';
-import { buildDataGraph } from './buildDataGraph';
+import { buildDataGraph, grainForWidth } from './buildDataGraph';
 import { ChartSkeleton } from './ChartSkeleton';
 import {
   AXIS_LINE,
@@ -40,7 +40,6 @@ const GRAIN_CAPTION: Record<Grain, string> = {
 };
 
 const INITIAL_WIDTH = 530;
-const PX_PER_POINT = 24;
 const MAX_BAR_SIZE = 25;
 const TOP_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
 const KCAL_MARGIN = { top: 8, right: 8, bottom: 0, left: 0 };
@@ -53,18 +52,6 @@ const TOP_SERIES: string[] = [
   MACRO_SERIES[MACRO_SERIES.length - 1].dataKey,
   UNSPLIT_SERIES.dataKey,
 ];
-
-/**
- * Groups the days so each bar keeps at least 24 px: one bar per day when it
- * fits, else per week, else per two weeks.
- */
-function grainForWidth(w: number, dataLength: number): Grain {
-  const plotWidth = w - AXIS_WIDTH - KCAL_MARGIN.right;
-  const maxPoints = Math.floor(plotWidth / PX_PER_POINT);
-  if (dataLength <= maxPoints) return 'day';
-  if (Math.ceil(dataLength / 7) <= maxPoints) return 'week';
-  return 'biWeek';
-}
 
 /**
  * Round graduations for the calorie axis: the step (50, 100... 5000) that
@@ -139,27 +126,29 @@ const renderSegment = (props: BarShapeProps) => <MacroSegment {...props} />;
 
 interface Props {
   days: DashboardDay[];
+  /** The period (YYYY-MM-DD): every calendar day of it gets its place. */
+  from: string;
+  to: string;
   isLoading?: boolean;
 }
 
 /**
  * Stacked bar chart of the calories per day, split by macro. Days are grouped
- * by week or two weeks when the period is too long for the width of the chart.
+ * by calendar week or two weeks when the period is too long for the width of
+ * the chart.
  */
-export function CalorieChart({ days, isLoading = false }: Props) {
+export function CalorieChart({ days, from, to, isLoading = false }: Props) {
   const [width, setWidth] = useState(INITIAL_WIDTH);
   const tooltipArea = useChartTooltip();
 
-  const dataLength = days.length;
-
   const grain = useMemo<Grain>(
-    () => grainForWidth(width, dataLength),
-    [width, dataLength],
+    () => grainForWidth(width - AXIS_WIDTH - KCAL_MARGIN.right, from, to),
+    [width, from, to],
   );
 
   const data = useMemo<DataGraph[]>(
-    () => buildDataGraph(days, grain),
-    [days, grain],
+    () => buildDataGraph(days, from, to, grain),
+    [days, from, to, grain],
   );
 
   const kcalData = useMemo(() => data.map(splitByMacro), [data]);
