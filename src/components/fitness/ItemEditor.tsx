@@ -67,7 +67,7 @@ export function ItemEditor({ item, onChange, onRemove }: Props) {
                   }
                 />
               </div>
-              <span className="text-sm text-theme-500">kg</span>
+              <span className="text-sm text-theme-600">kg</span>
               {item.sets.length > 1 && (
                 <button
                   type="button"

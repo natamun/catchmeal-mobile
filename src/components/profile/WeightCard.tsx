@@ -187,7 +187,7 @@ export function WeightCard({ onHistory }: Props) {
                   <span className="text-4xl font-bold text-theme-800">
                     {formatKg(latest.weight)}
                   </span>
-                  <span className="mb-1 text-theme-500">kg</span>
+                  <span className="mb-1 text-theme-600">kg</span>
                 </div>
                 <span className="mb-1 flex items-center gap-1.5 rounded-full bg-theme-100 px-3 py-1 text-xs font-medium whitespace-nowrap text-theme-700">
                   <CalendarDays className="h-3.5 w-3.5 shrink-0" />

@@ -45,7 +45,7 @@ export function TemplateList({
       header={
         headerAction && (
           <>
-            <h2 className="min-w-0 flex-1 text-sm font-semibold tracking-wide text-theme-500 uppercase">
+            <h2 className="min-w-0 flex-1 text-sm font-semibold text-theme-500">
               Mes séances favorites
             </h2>
             {headerAction}

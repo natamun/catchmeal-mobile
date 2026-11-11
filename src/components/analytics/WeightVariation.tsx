@@ -57,7 +57,7 @@ export function WeightVariation({ days, isLoading = false }: Props) {
             {sign}
             {formatKg(Math.abs(change))}
           </span>
-          <span className="mb-1 text-theme-500">kg</span>
+          <span className="mb-1 text-theme-600">kg</span>
         </div>
         <p className="mb-1 flex items-center gap-1 text-right text-sm text-theme-600">
           <TrendIcon className="h-4 w-4 shrink-0" />

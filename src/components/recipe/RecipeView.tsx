@@ -33,7 +33,7 @@ export function ServingsStepper({
 }: ServingsStepperProps) {
   return (
     <div className="flex items-center gap-2 select-none">
-      {prefix && <span className="text-sm text-theme-500">{prefix}</span>}
+      {prefix && <span className="text-sm text-theme-600">{prefix}</span>}
       <button
         type="button"
         disabled={value <= 1}
@@ -83,7 +83,7 @@ export function RecipeCard({ title, action, children }: RecipeCardProps) {
 export function ServingNutrition({ recipe }: { recipe: Recipe }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-xs text-theme-500">Par portion</span>
+      <span className="text-xs text-theme-600">Par portion</span>
       <MacroSummary totals={perServing(recipe)} />
     </div>
   );

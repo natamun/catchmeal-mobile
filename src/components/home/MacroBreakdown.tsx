@@ -37,7 +37,7 @@ function Bar({
     <div>
       <div className="mb-1 flex justify-between text-sm">
         <span className="font-medium text-theme-600">{label}</span>
-        <span className="flex items-center gap-1 text-theme-500">
+        <span className="flex items-center gap-1 text-theme-600">
           {isLoading ? (
             <span className="h-4 w-8 animate-pulse rounded bg-theme-100" />
           ) : unavailable ? (

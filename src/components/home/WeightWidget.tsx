@@ -63,7 +63,7 @@ export function WeightWidget({ history, hasError = false, goalWeight }: Props) {
             <span className="text-4xl font-bold text-theme-800">
               {formatKg(current.weight)}
             </span>
-            <span className="mb-1 text-theme-500">kg</span>
+            <span className="mb-1 text-theme-600">kg</span>
           </div>
           {previous !== null && change !== null && (
             <div className="mb-1 text-right">

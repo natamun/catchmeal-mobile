@@ -192,7 +192,7 @@ export function IngredientsEditor({ editor, container }: FloatingPartProps) {
               className="flex w-full cursor-pointer items-center justify-between border-t border-theme-100 px-4 py-2 text-left text-sm text-theme-800 transition-colors first:border-t-0 hover:bg-theme-50"
             >
               <span className="min-w-0 flex-1 truncate">{food.name}</span>
-              <span className="shrink-0 text-xs text-theme-500">
+              <span className="shrink-0 text-xs text-theme-600">
                 {food.kcal} kcal
               </span>
             </button>
@@ -351,7 +351,7 @@ export function SaveBar({ editor, onSave }: SaveBarProps) {
     <div className="flex flex-col gap-3">
       {form.ingredients.length > 0 && (
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs text-theme-500">Par portion</span>
+          <span className="text-xs text-theme-600">Par portion</span>
           <MacroSummary totals={formPerServing(form)} />
         </div>
       )}

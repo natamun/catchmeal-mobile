@@ -61,7 +61,7 @@ export function QuantityStepper({
       <span className="text-base font-semibold whitespace-nowrap text-theme-800">
         {text}
       </span>
-      {detail && <span className="text-xs text-theme-500">{detail}</span>}
+      {detail && <span className="text-xs text-theme-600">{detail}</span>}
     </>
   );
 
@@ -83,7 +83,7 @@ export function QuantityStepper({
           }}
           className="h-full min-w-0 flex-1 rounded-lg border border-theme-400 bg-surface px-3 text-center text-base font-semibold text-theme-800 tabular-nums outline-none"
         />
-        <span className="max-w-28 shrink-0 truncate text-sm text-theme-500">
+        <span className="max-w-28 shrink-0 truncate text-sm text-theme-600">
           {typing.unit}
         </span>
       </div>

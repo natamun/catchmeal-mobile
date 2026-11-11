@@ -1,3 +1,2 @@
 /** Style of every form label: small green capitals. */
-export const LABEL_CLASS =
-  'text-xs font-semibold tracking-wide text-theme-500 uppercase';
+export const LABEL_CLASS = 'text-sm font-medium text-theme-500';

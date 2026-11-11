@@ -484,7 +484,7 @@ export function FoodItemForm({
                     data-invalid={isInvalid('portionQuantity')}
                     className="pr-11"
                   />
-                  <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-base text-theme-500">
+                  <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-base text-theme-600">
                     {UNIT_LABELS[form.baseUnit]}
                   </span>
                 </div>

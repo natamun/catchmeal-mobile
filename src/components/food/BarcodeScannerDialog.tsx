@@ -141,7 +141,7 @@ export default function BarcodeScannerDialog({
       <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-theme-50">
         {renderCamera()}
       </div>
-      <p className="text-center text-sm text-theme-500">
+      <p className="text-center text-sm text-theme-600">
         Placez le code-barres dans le cadre
       </p>
     </BaseDialog>

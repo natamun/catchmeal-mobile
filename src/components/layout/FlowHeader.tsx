@@ -35,7 +35,7 @@ export function FlowHeader({
       </button>
       <div className="min-w-0 flex-1">
         <h2 className="truncate text-lg font-bold text-theme-800">{title}</h2>
-        <p className="truncate text-sm text-theme-500">{subtitle}</p>
+        <p className="truncate text-sm text-theme-600">{subtitle}</p>
       </div>
       {action}
     </div>

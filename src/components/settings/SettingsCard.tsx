@@ -90,7 +90,7 @@ export function SettingsCard() {
           <p className="text-base font-medium text-theme-800">
             Rappel de pesée
           </p>
-          <p className="text-sm text-theme-500">Chaque dimanche à 8 h</p>
+          <p className="text-sm text-theme-600">Chaque dimanche à 8 h</p>
         </div>
         <Switch
           isOn={isOn ?? false}
@@ -103,7 +103,7 @@ export function SettingsCard() {
           <p className="text-base font-medium text-theme-800">
             Alerte de masse maigre
           </p>
-          <p className="text-sm text-theme-500">
+          <p className="text-sm text-theme-600">
             En perte de poids, prévient si elle baisse trop vite
           </p>
         </div>

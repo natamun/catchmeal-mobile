@@ -88,7 +88,7 @@ export function TrainingDayCard({ date }: Props) {
                 <span className="truncate text-sm font-semibold text-theme-800">
                   {item.exerciseName}
                 </span>
-                <span className="truncate text-xs text-theme-600">
+                <span className="truncate text-xs text-theme-500">
                   {describeValues(item)}
                 </span>
               </li>
@@ -97,7 +97,7 @@ export function TrainingDayCard({ date }: Props) {
         )}
 
         {workouts !== null && !session && lastBefore && (
-          <p className="-mt-1 px-5 pb-4 text-sm text-theme-500">
+          <p className="-mt-1 px-5 pb-4 text-sm text-theme-600">
             Dernière séance :{' '}
             {formatSince(
               startOfDay(lastBefore.performedOn).toISOString(),

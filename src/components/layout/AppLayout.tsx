@@ -29,7 +29,7 @@ const PAGE =
   'mx-auto max-w-6xl px-6 pt-6 pb-8 pointer-coarse:pb-[calc(var(--spacing-bottom-nav)+2rem+env(safe-area-inset-bottom))]';
 
 const LOADING = (
-  <div className="flex h-40 items-center justify-center text-sm text-theme-500">
+  <div className="flex h-40 items-center justify-center text-sm text-theme-600">
     Chargement...
   </div>
 );

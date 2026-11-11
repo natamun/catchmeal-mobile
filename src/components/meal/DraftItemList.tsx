@@ -41,7 +41,7 @@ function UnitToggle({ unit, portion, inPortions, onChange }: UnitToggleProps) {
       className={`${TOGGLE_CLASS} ${
         inPortions === value
           ? 'bg-theme-500 text-on-accent'
-          : 'text-theme-500 hover:bg-theme-50'
+          : 'text-theme-600 hover:bg-theme-50'
       }`}
     >
       {label}

@@ -129,7 +129,7 @@ export function ExerciseList({
         if (rows.length === 0) return null;
         return (
           <section key={label}>
-            <h3 className="border-b border-theme-200 bg-theme-50 px-5 py-2 text-xs font-semibold tracking-wide text-theme-500 uppercase">
+            <h3 className="border-b border-theme-200 bg-theme-50 px-5 py-2 text-xs font-semibold text-theme-500">
               {label}
             </h3>
             <ul className="divide-y divide-theme-200">

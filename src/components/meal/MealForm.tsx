@@ -331,7 +331,7 @@ export function MealForm({ dialogRef, foodItems, editingMeal }: MealFormProps) {
                   <span className="min-w-0 flex-1 truncate">
                     {foodItem.name}
                   </span>
-                  <span className="shrink-0 text-xs text-theme-500">
+                  <span className="shrink-0 text-xs text-theme-600">
                     {foodItem.kcal} kcal
                   </span>
                 </button>

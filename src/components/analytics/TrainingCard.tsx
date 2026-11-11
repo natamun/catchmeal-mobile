@@ -61,7 +61,7 @@ export function TrainingCard({ workouts, isLoading = false }: Props) {
               <span className="text-4xl font-bold text-theme-800">
                 {summary.sessions}
               </span>
-              <span className="mb-1 text-theme-500">
+              <span className="mb-1 text-theme-600">
                 {summary.sessions > 1 ? 'séances' : 'séance'}
               </span>
             </div>

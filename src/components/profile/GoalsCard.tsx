@@ -342,7 +342,7 @@ export function GoalsCard({ profile, history, onReady }: Props) {
       )}
       <table className="mt-4 w-full text-sm">
         <thead>
-          <tr className="text-xs text-theme-500">
+          <tr className="text-xs text-theme-600">
             <th className="pb-2 text-left font-medium" />
             <th className="pb-2 text-right font-medium">Actuel</th>
             <th className="pb-2 text-right font-medium">Recommandé</th>

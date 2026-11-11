@@ -123,7 +123,7 @@ function TemplateForm({
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <p className="text-sm text-theme-500">
+              <p className="text-sm text-theme-600">
                 Reprend les séries de la dernière fois.
               </p>
             </li>

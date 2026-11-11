@@ -39,7 +39,7 @@ export function NutritionAverages({
           <div className="flex items-end justify-between gap-3">
             <div className="flex items-end gap-2">
               <span className="text-4xl font-bold text-theme-800">{kcal}</span>
-              <span className="mb-1 text-theme-500">kcal</span>
+              <span className="mb-1 text-theme-600">kcal</span>
             </div>
             <p className="mb-1 flex items-center gap-1 text-right text-sm text-theme-600">
               <CalendarDays className="h-4 w-4 shrink-0" />

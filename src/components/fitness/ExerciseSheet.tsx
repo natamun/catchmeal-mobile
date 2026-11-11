@@ -43,7 +43,7 @@ function Tile({
     <>
       <span className="block text-xs text-theme-600">{label}</span>
       <span className="block font-semibold text-theme-800">{value}</span>
-      {note && <span className="block text-xs text-theme-500">{note}</span>}
+      {note && <span className="block text-xs text-theme-600">{note}</span>}
     </>
   );
   if (!onSelect) return <div className={`${TILE} bg-theme-50`}>{content}</div>;
@@ -135,7 +135,7 @@ export function ExerciseSheet({
               {exercise.kind === 'STRENGTH' ? (
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between gap-3">
-                    <h4 className="text-xs font-semibold tracking-wide text-theme-500 uppercase">
+                    <h4 className="text-xs font-semibold text-theme-500">
                       Repères
                     </h4>
                     <InfoBubble>
@@ -151,7 +151,7 @@ export function ExerciseSheet({
                         <strong>Volume</strong> : répétitions × charge,
                         additionnées sur une séance. Ici la meilleure séance.
                       </p>
-                      <p className="text-theme-500">
+                      <p className="text-theme-600">
                         Touche une case pour voir sa courbe.
                       </p>
                     </InfoBubble>
@@ -202,7 +202,7 @@ export function ExerciseSheet({
               )}
 
               <div className="flex flex-col gap-1.5">
-                <h4 className="text-xs font-semibold tracking-wide text-theme-500 uppercase">
+                <h4 className="text-xs font-semibold text-theme-500">
                   Dernières séances
                 </h4>
                 <ul className="divide-y divide-theme-100">

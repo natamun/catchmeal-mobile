@@ -93,7 +93,7 @@ function ExerciseForm({ exercise, onSaved }: FormProps) {
           onChange={setKind}
           className="self-start"
         />
-        <p className="text-sm text-theme-500">{KIND_HINTS[kind]}</p>
+        <p className="text-sm text-theme-600">{KIND_HINTS[kind]}</p>
       </div>
 
       {error && <p className="text-sm text-red-500">{error}</p>}

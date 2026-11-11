@@ -129,7 +129,7 @@ export function QuickAddDialog({
           <div className="flex flex-col gap-1">
             <label
               htmlFor="quick-add-meal-type"
-              className="text-xs text-theme-500"
+              className="text-xs text-theme-600"
             >
               Catégorie
             </label>
@@ -172,7 +172,7 @@ export function QuickAddDialog({
             <div key={field} className="relative flex flex-col gap-1">
               <label
                 htmlFor={`quick-add-${field}`}
-                className="text-xs text-theme-500"
+                className="text-xs text-theme-600"
               >
                 {label}
               </label>

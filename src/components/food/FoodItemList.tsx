@@ -133,11 +133,11 @@ export function FoodItemList({
                 <p className="min-w-0 flex-1 truncate text-sm font-semibold text-theme-800">
                   {item.name}
                   {item.brand && (
-                    <span className="ml-1.5 text-xs font-normal text-theme-500 @max-[400px]:hidden">
+                    <span className="ml-1.5 text-xs font-normal text-theme-600 @max-[400px]:hidden">
                       {item.brand}
                     </span>
                   )}
-                  <span className="ml-1.5 text-xs font-normal text-theme-500 @max-[400px]:hidden">
+                  <span className="ml-1.5 text-xs font-normal text-theme-600 @max-[400px]:hidden">
                     ({formatBaseQuantity(item)})
                   </span>
                 </p>
@@ -160,7 +160,7 @@ export function FoodItemList({
                   {macros.map((m) => (
                     <MacroBadge key={m.label} {...m} />
                   ))}
-                  <span className="hidden shrink-0 items-center gap-1.5 text-xs font-normal text-theme-500 @max-[400px]:flex">
+                  <span className="hidden shrink-0 items-center gap-1.5 text-xs font-normal text-theme-600 @max-[400px]:flex">
                     <span className="text-theme-300">|</span>
                     {formatBaseQuantity(item)}
                   </span>

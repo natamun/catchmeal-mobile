@@ -25,9 +25,7 @@ export function SummaryCard({
       <div
         className={`mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 ${inlineAside ? '' : 'justify-between'}`}
       >
-        <h2 className="text-sm font-semibold tracking-wide text-theme-500 uppercase">
-          {title}
-        </h2>
+        <h2 className="text-sm font-semibold text-theme-500">{title}</h2>
         {aside}
       </div>
       {children}
