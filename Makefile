@@ -8,6 +8,9 @@ VERSION = $(shell node -p "require('./package.json').version")
 # The release key, ignored by git (see Releases in CONTRIBUTING.md).
 KEYSTORE = catchmeal-release.jks
 RELEASE_APK = release/catchmeal-$(VERSION).apk
+# The Android SDK, for Capacitor's installer. ~/.bashrc sets it for a terminal,
+# but returns early in a non-interactive shell (scripts, Claude Code).
+export ANDROID_HOME ?= $(HOME)/Android/Sdk
 # First phone in `adb devices`, so Capacitor does not ask which device to use.
 PHONE = $(shell adb devices 2>/dev/null | awk 'NR > 1 && $$2 == "device" { print $$1; exit }')
 
