@@ -34,7 +34,7 @@ export function ConfirmDialog({
   return (
     <dialog
       ref={dialogRef}
-      className="dialog-fade m-auto w-[calc(100vw-2rem)] max-w-sm rounded-2xl border-none bg-surface p-6 shadow-lg backdrop:backdrop-blur-sm"
+      className="dialog-fade m-auto w-[calc(100vw-2rem)] max-w-sm rounded-2xl border-none bg-surface p-6 shadow-lg"
     >
       <h3 className="text-lg font-bold text-theme-800">{title}</h3>
       <p className="mt-2 text-sm text-theme-600">{description}</p>

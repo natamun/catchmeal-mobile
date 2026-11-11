@@ -22,8 +22,9 @@ interface BottomSheetProps {
  * other dialog and the Android back button closes it; a tap on the backdrop or
  * a swipe down on its header closes it too. The header (handle, title, close
  * button) stays in place and is the only part that drags the sheet; the content
- * under it only scrolls, so a long list never fights with the swipe. The backdrop is only dimmed, not blurred: a blur
- * over a dialog that already blurs made the opening stutter on the phone.
+ * under it only scrolls, so a long list never fights with the swipe. The
+ * backdrop is only dimmed, like the dialogs': a blur under a sliding sheet
+ * made the opening stutter on the phone.
  */
 export function BottomSheet({
   open,

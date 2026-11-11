@@ -70,7 +70,7 @@ export function BaseDialog({
           closeDialog();
         }
       }}
-      className={`dialog-fade m-auto w-[calc(100vw-2rem)] ${MAX_WIDTH_CLASS[maxWidth]} overflow-hidden rounded-2xl border-none bg-surface p-0 shadow-lg backdrop:backdrop-blur-sm`}
+      className={`dialog-fade m-auto w-[calc(100vw-2rem)] ${MAX_WIDTH_CLASS[maxWidth]} overflow-hidden rounded-2xl border-none bg-surface p-0 shadow-lg`}
     >
       <div className="flex max-h-[calc(100dvh-3rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex-col">
         {/* The header stays out of the scroll, so the close button never leaves. */}
