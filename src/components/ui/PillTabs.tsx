@@ -27,7 +27,7 @@ export function PillTabs<T extends string>({
       {options.map((option) => (
         <label
           key={option.value}
-          className={`tap-area relative flex cursor-pointer items-center justify-center rounded-lg py-1.5 text-sm font-medium text-theme-600 transition-colors has-checked:animate-pill-select has-checked:bg-theme-500 has-checked:text-on-accent ${fill ? 'min-w-0 flex-1 px-1' : 'px-3'}`}
+          className={`tap-area relative flex cursor-pointer items-center justify-center rounded-lg py-1.5 text-sm font-medium text-theme-600 transition-colors not-has-checked:hover:bg-theme-100 has-checked:animate-pill-select has-checked:bg-theme-500 has-checked:text-on-accent ${fill ? 'min-w-0 flex-1 px-1' : 'px-3'}`}
         >
           <input
             type="radio"
