@@ -1,14 +1,13 @@
 import { useMemo, useRef, useState } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import * as Slider from '@radix-ui/react-slider';
-import { ChevronRight, Filter, Search } from 'lucide-react';
+import { ChevronRight, Filter } from 'lucide-react';
 
 import { MACROS } from '../../constants/macros';
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { BaseDialog } from './BaseDialog';
 import { PRIMARY_BUTTON_CLASS } from './buttonStyle';
 import { DropdownPanel } from './DropdownPanel';
-import { Input } from './Input';
 import {
   EMPTY_FILTER_CRITERIA,
   type FilterCriteria,
@@ -17,6 +16,7 @@ import {
   type Macros,
   type SortOption,
 } from './macroFilter';
+import { SearchInput } from './SearchInput';
 import { SelectDropdown } from './SelectDropdown';
 
 type MacroDraft = Record<MacroKey, MacroFilter>;
@@ -221,25 +221,24 @@ export function MacroSearchBar({
 
   return (
     <div className="relative flex-1">
-      <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-theme-400" />
-      <Input
+      <SearchInput
         ref={inputRef}
-        type="text"
         data-hides-nav
-        placeholder="Rechercher..."
-        className="pr-10 pl-9"
         value={criteria.query}
-        onChange={(e) => updateQuery(e.target.value)}
+        onValueChange={updateQuery}
+        trailing={
+          <button
+            type="button"
+            onClick={openFilterDialog}
+            aria-label="Trier et filtrer"
+            className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-theme-400 transition-colors hover:bg-theme-100 hover:text-theme-600"
+          >
+            <Filter
+              className={`h-5 w-5 ${hasActiveFilters ? 'fill-theme-400' : ''}`}
+            />
+          </button>
+        }
       />
-      <button
-        type="button"
-        onClick={openFilterDialog}
-        className="tap-area absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-theme-400 transition-colors hover:text-theme-600"
-      >
-        <Filter
-          className={`h-4 w-4 ${hasActiveFilters ? 'fill-theme-400' : ''}`}
-        />
-      </button>
 
       <BaseDialog
         dialogRef={filterDialogRef}

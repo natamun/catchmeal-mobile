@@ -15,6 +15,7 @@ import { FieldError } from '../ui/FieldError';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
 import { MacroSummary } from '../ui/MacroSummary';
+import { SearchInput } from '../ui/SearchInput';
 import { useToast } from '../ui/toastContext';
 import { createMeal, deleteMeal, updateMeal } from './api';
 import {
@@ -306,12 +307,10 @@ export function MealForm({ dialogRef, foodItems, editingMeal }: MealFormProps) {
                   </Popover.Portal>
                 )}
               </Popover.Root>
-              <Input
+              <SearchInput
                 id="meal-item-search"
-                type="text"
-                placeholder="Rechercher..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onValueChange={setSearch}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
                 data-invalid={submitAttempted && Boolean(itemsError)}

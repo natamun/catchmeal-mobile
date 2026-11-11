@@ -1,10 +1,10 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { ChevronRight, Search } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
-import { Input } from '../ui/Input';
 import { ListCard, ListCardEmpty, ListCardLoading } from '../ui/ListCard';
 import { LoadError } from '../ui/LoadError';
+import { SearchInput } from '../ui/SearchInput';
 import { CreateExerciseRow } from './CreateExerciseRow';
 import { describeValues } from './format';
 import { isSameName, matchesSearch } from './search';
@@ -79,18 +79,12 @@ export function ExerciseList({
     <ListCard
       header={
         <>
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-theme-400" />
-            <Input
-              ref={inputRef}
-              type="text"
-              data-hides-nav
-              placeholder="Rechercher..."
-              className="pl-9"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
+          <SearchInput
+            ref={inputRef}
+            data-hides-nav
+            value={query}
+            onValueChange={setQuery}
+          />
           {headerAction}
         </>
       }

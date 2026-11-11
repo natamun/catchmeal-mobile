@@ -4,7 +4,7 @@ import * as Popover from '@radix-ui/react-popover';
 import { failureMessage } from '../../utils/failureMessage';
 import { DropdownPanel } from '../ui/DropdownPanel';
 import { LABEL_CLASS } from '../ui/fieldStyle';
-import { Input } from '../ui/Input';
+import { SearchInput } from '../ui/SearchInput';
 import { useToast } from '../ui/toastContext';
 import { createExercise } from './api';
 import { CreateExerciseRow } from './CreateExerciseRow';
@@ -67,13 +67,11 @@ export function ExercisePicker({ exercises, dialogNode, onPick }: Props) {
         <label htmlFor={id} className={LABEL_CLASS}>
           Ajouter un exercice
         </label>
-        <Input
+        <SearchInput
           ref={inputRef}
           id={id}
-          type="text"
-          placeholder="Rechercher..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onValueChange={setSearch}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />

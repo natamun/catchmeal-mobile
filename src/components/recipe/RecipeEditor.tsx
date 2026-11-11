@@ -16,6 +16,7 @@ import { FieldError } from '../ui/FieldError';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
 import { MacroSummary } from '../ui/MacroSummary';
+import { SearchInput } from '../ui/SearchInput';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { formPerServing, moveStep, newStep, RECIPE_LIMITS } from './recipeForm';
 import { ServingsStepper } from './RecipeView';
@@ -169,12 +170,10 @@ export function IngredientsEditor({ editor, container }: FloatingPartProps) {
               Nouvel aliment
             </button>
           </div>
-          <Input
+          <SearchInput
             id="recipe-ingredient-search"
-            type="text"
-            placeholder="Rechercher..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onValueChange={setSearch}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             data-invalid={Boolean(errors.ingredients)}
