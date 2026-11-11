@@ -51,7 +51,7 @@ interface FloatingPartProps extends PartProps {
 }
 
 /** Name, category, servings and preparation time. */
-export function InfoFields({ editor, container }: FloatingPartProps) {
+export function InfoFields({ editor }: Pick<FloatingPartProps, 'editor'>) {
   const { form, update, errors } = editor;
   return (
     <div className="flex flex-col gap-4">
@@ -84,7 +84,6 @@ export function InfoFields({ editor, container }: FloatingPartProps) {
             onChange={(value) =>
               update({ category: (value || null) as RecipeCategory | null })
             }
-            container={container}
           />
         </div>
         <div className="relative flex flex-col gap-1.5">

@@ -110,7 +110,6 @@ function validate(form: FormState): Partial<Record<Field, string>> {
  */
 export function ProfileCard({ profile, onUpdate }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [dialogNode, setDialogNode] = useState<HTMLDialogElement | null>(null);
 
   const initForm = (): FormState => ({
     height: profile.height?.toString() ?? '',
@@ -144,7 +143,6 @@ export function ProfileCard({ profile, onUpdate }: Props) {
     setForm(initForm());
     resetValidation();
     setSaveError(null);
-    setDialogNode(dialogRef.current);
     dialogRef.current?.showModal();
   }
 
@@ -242,7 +240,6 @@ export function ProfileCard({ profile, onUpdate }: Props) {
               value={form.gender}
               options={GENDER_OPTIONS}
               onChange={(v) => setForm((p) => ({ ...p, gender: v }))}
-              container={dialogNode}
               placeholder="Sélectionner"
             />
           </div>
@@ -263,7 +260,6 @@ export function ProfileCard({ profile, onUpdate }: Props) {
               value={form.activityLevel}
               options={ACTIVITY_OPTIONS}
               onChange={(v) => setForm((p) => ({ ...p, activityLevel: v }))}
-              container={dialogNode}
               placeholder="Sélectionner"
             />
           </div>
@@ -277,7 +273,6 @@ export function ProfileCard({ profile, onUpdate }: Props) {
               value={form.goalType}
               options={GOAL_TYPE_OPTIONS}
               onChange={(v) => setForm((p) => ({ ...p, goalType: v }))}
-              container={dialogNode}
               placeholder="Sélectionner"
             />
           </div>
@@ -294,7 +289,6 @@ export function ProfileCard({ profile, onUpdate }: Props) {
                 form.targetBodyFat ? Number(form.targetBodyFat) : null,
               )}
               onChange={(v) => setForm((p) => ({ ...p, targetBodyFat: v }))}
-              container={dialogNode}
             />
             {form.targetBodyFat && (
               <p className="text-xs text-theme-600">

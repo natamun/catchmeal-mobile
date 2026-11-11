@@ -1,13 +1,11 @@
 import { useMemo, useRef, useState } from 'react';
-import * as Popover from '@radix-ui/react-popover';
 import * as Slider from '@radix-ui/react-slider';
-import { ChevronRight, Filter } from 'lucide-react';
+import { Filter } from 'lucide-react';
 
 import { MACROS } from '../../constants/macros';
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { BaseDialog } from './BaseDialog';
 import { PRIMARY_BUTTON_CLASS } from './buttonStyle';
-import { DropdownPanel } from './DropdownPanel';
 import {
   EMPTY_FILTER_CRITERIA,
   type FilterCriteria,
@@ -150,8 +148,6 @@ export function MacroSearchBar({
     EMPTY_FILTER_CRITERIA.sort,
   );
   const [draftCategory, setDraftCategory] = useState<string | null>(null);
-  const [isSortOpen, setIsSortOpen] = useState(false);
-  const [dialogNode, setDialogNode] = useState<HTMLDialogElement | null>(null);
   const filterDialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -244,51 +240,26 @@ export function MacroSearchBar({
         dialogRef={filterDialogRef}
         title="Trier et filtrer"
         maxWidth="sm"
-        onClose={() => setIsSortOpen(false)}
-        onDialogNode={setDialogNode}
       >
-        <Popover.Root open={isSortOpen} onOpenChange={setIsSortOpen}>
-          <Popover.Trigger asChild>
-            <button
-              type="button"
-              className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-theme-200 bg-surface px-4 py-2.75 text-base text-theme-800 transition-colors hover:bg-theme-50 data-[state=open]:bg-theme-50"
-            >
-              {SORT_OPTIONS.find((o) => o.value === currentSortValue)?.label}
-              <ChevronRight
-                className={`h-4 w-4 text-theme-400 transition-transform ${isSortOpen ? 'rotate-90' : ''}`}
-              />
-            </button>
-          </Popover.Trigger>
-          <DropdownPanel container={dialogNode} matchAnchorWidth>
-            {SORT_OPTIONS.map(({ value, label, option }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => {
-                  setDraftSort(option);
-                  setIsSortOpen(false);
-                }}
-                className={`cursor-pointer border-t border-theme-100 px-4 py-2 text-left text-sm transition-colors first:border-t-0 hover:bg-theme-50 ${
-                  value === currentSortValue
-                    ? 'font-semibold text-theme-800'
-                    : 'text-theme-600'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </DropdownPanel>
-        </Popover.Root>
+        <SelectDropdown
+          title="Trier par"
+          value={currentSortValue}
+          options={SORT_OPTIONS}
+          onChange={(value) => {
+            const sort = SORT_OPTIONS.find((o) => o.value === value);
+            if (sort) setDraftSort(sort.option);
+          }}
+        />
 
         {categories.length > 0 && (
           <SelectDropdown
             value={draftCategory ?? ALL_CATEGORIES}
+            title="Catégorie"
             options={[
               { value: ALL_CATEGORIES, label: 'Toutes les catégories' },
               ...categories,
             ]}
             onChange={(value) => setDraftCategory(value || null)}
-            container={dialogNode}
           />
         )}
 

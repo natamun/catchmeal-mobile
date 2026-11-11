@@ -206,7 +206,7 @@ function EditRecipe({
         action={<DeleteAction editor={editor} />}
       />
       <RecipeCard>
-        <InfoFields editor={editor} container={container} />
+        <InfoFields editor={editor} />
       </RecipeCard>
       <RecipeCard title="Ingrédients">
         <IngredientsEditor editor={editor} container={container} />

@@ -248,6 +248,7 @@ export function GoalsCard({ profile, history, onReady }: Props) {
   const paceSelect =
     paces.length > 1 ? (
       <SelectDropdown
+        title="Rythme"
         size="sm"
         value={String(pace)}
         options={paces.map((option) => ({
@@ -255,7 +256,6 @@ export function GoalsCard({ profile, history, onReady }: Props) {
           label: formatPace(option),
         }))}
         onChange={(value) => void savePace(value)}
-        container={document.body}
         className="min-w-0 flex-1 whitespace-nowrap"
       />
     ) : null;

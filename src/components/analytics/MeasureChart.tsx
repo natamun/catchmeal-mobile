@@ -101,12 +101,12 @@ export function MeasureChart({
   const selector = (
     <span className="flex min-w-0 flex-1 basis-40">
       <SelectDropdown
+        title="Mesure"
         size="sm"
         className="min-w-0 flex-1 whitespace-nowrap"
         value={measure}
         options={MEASURES}
         onChange={(value) => onMeasureChange(value as MeasureKey)}
-        container={document.body}
       />
     </span>
   );
