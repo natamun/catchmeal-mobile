@@ -36,6 +36,13 @@ interface TimePoint {
   time: number;
 }
 
+/** The value of the straight trend line at a moment, from its two ends. */
+function trendAt([start, end]: TimePoint[], time: number) {
+  if (end.time === start.time) return start.value;
+  const share = (time - start.time) / (end.time - start.time);
+  return start.value + share * (end.value - start.value);
+}
+
 /** Date on the axis, as DD/MM. */
 function formatTick(time: number) {
   return new Date(time).toLocaleDateString('fr-FR', {
@@ -61,6 +68,12 @@ interface Props {
  */
 export function TimeLineChart({ points, name, unit, period, trend }: Props) {
   const tooltipArea = useChartTooltip();
+  // One data set for both lines: a line with data of its own throws off which
+  // point a touch picks, so the trend is read at each point's moment instead.
+  const data = points.map((point) => ({
+    ...point,
+    trend: trend ? trendAt(trend, point.time) : null,
+  }));
   const scale = measureScale(
     [...points, ...(trend ?? [])].map(({ value }) => value),
   );
@@ -73,7 +86,7 @@ export function TimeLineChart({ points, name, unit, period, trend }: Props) {
     <div ref={tooltipArea}>
       <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
         <LineChart
-          data={points}
+          data={data}
           margin={{ top: 8, right: 16, bottom: 0, left: 0 }}
         >
           <CartesianGrid stroke={GRID_STROKE} vertical={false} />
@@ -83,6 +96,10 @@ export function TimeLineChart({ points, name, unit, period, trend }: Props) {
             type="number"
             scale="time"
             domain={timeDomain}
+            // On a time axis, a touch snaps to the graduations: one per point
+            // lets it reach every point. Overlapping labels are skipped.
+            ticks={points.map(({ time }) => time)}
+            interval="preserveStartEnd"
             tickFormatter={formatTick}
             tick={X_TICK}
             minTickGap={MIN_TICK_GAP}
@@ -107,9 +124,8 @@ export function TimeLineChart({ points, name, unit, period, trend }: Props) {
           />
           {trend && (
             <Line
-              data={trend}
               type="linear"
-              dataKey="value"
+              dataKey="trend"
               stroke={TREND_COLOR}
               strokeWidth={2}
               strokeDasharray="6 4"

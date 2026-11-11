@@ -32,6 +32,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - The journal's date picker stretches to the quick add button.
 - A dialog no longer shows a focus ring around its close button when it opens.
 - A weekly calorie bar covers its calendar week, Monday to Sunday: a forgotten day no longer stretches it, and its detail says how many days were logged.
+- A touch on the Évolution chart picks the point under the finger, not always the same one.
 - Every chart date reads 06/11: the calorie and Évolution charts wrote 06-11.
 
 ## [0.9.3] - 2026-11-09
