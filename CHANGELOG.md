@@ -2,6 +2,36 @@
 
 What changed in each version of CatCHMeal, the latest first. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the version numbers follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Dates are picked in a calendar sheet from the bottom, in the theme's colours.
+- Options are picked in a sheet from the bottom instead of a small list, the quick add category included.
+- A search clears with one tap.
+- A confirmation appears when exercises are added to a session.
+
+### Changed
+
+- The top of Home gathers the day's calories, macros and weight in one block. The bars take the theme's accent and stop sharply at the goal once it is passed.
+- A dialog's delete moved into a ⋯ menu, apart from its close button.
+- Save buttons name what they save.
+- The interface speaks impersonally.
+- Quantity steps read -10, -1, +1 and +10.
+- Titles and labels are no longer in capitals.
+- Calories in lists are plain text, without a pill.
+- Restaurer, Vider and the recipe trash are red.
+- Recipe steps are aligned left, with balanced lines and more space.
+- The profile summary no longer shows the activity level.
+- The buttons in dialog and page headers are larger, and the pill tabs react to a touch.
+
+### Fixed
+
+- The picker's Suivant bar stays at the bottom, even with a short list.
+- The servings stepper stays on the Ingrédients line.
+- The journal's date picker stretches to the quick add button.
+- A dialog no longer shows a focus ring around its close button when it opens.
+
 ## [0.9.3] - 2026-11-09
 
 ### Added
