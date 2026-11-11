@@ -9,7 +9,7 @@ interface SelectionBarProps {
  */
 export function SelectionBar({ count, onNext }: SelectionBarProps) {
   return (
-    <div className="sticky bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 mx-3 flex items-center justify-between gap-3 rounded-2xl border border-theme-200 bg-surface p-3 shadow-lg md:mx-auto md:w-full md:max-w-md">
+    <div className="sticky bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 mx-3 mt-auto flex items-center justify-between gap-3 rounded-2xl border border-theme-200 bg-surface p-3 shadow-lg md:mx-auto md:w-full md:max-w-md">
       <span className="text-sm text-theme-600">
         {count === 0
           ? 'Aucune sélection'

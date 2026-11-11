@@ -51,7 +51,9 @@ export function FlowLayer({ children }: { children: ReactNode }) {
           ref={scrollerRef}
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         >
-          <div className="mx-auto max-w-6xl px-6 pb-6">{children}</div>
+          <div className="mx-auto flex min-h-full max-w-6xl flex-col px-6 pb-6">
+            {children}
+          </div>
         </div>
       </div>
     </FlowContext.Provider>
