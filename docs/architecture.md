@@ -28,8 +28,18 @@ There is no store library. Three mechanisms:
 ## Screens and navigation
 
 - `App.tsx` declares the routes. The 5 tabs (Home, Food, Fitness, Stats, Profile) have routes whose element is `null`: `components/layout/AppLayout.tsx` draws them itself as a swipeable carousel (`useSwipeTabs`). Tabs are lazy-loaded, stay mounted once shown, and off-screen tabs are `inert`; all are prepared 300 ms after start.
-- Flow pages (journal add, training add, recipe view and edit, shopping add) render through `<Outlet>` inside `FlowLayer`, an overlay above the tabs, with `FlowHeader`.
+- Flow pages (journal add and edit, training add and edit, library meal, recipe view and edit, shopping add) render through `<Outlet>` inside `FlowLayer`, an overlay above the tabs, with `FlowHeader`. Editing a section of the journal (`/home/edit/:mealType`), the session of a day (`/home/training/edit`) or a library meal (`/food/meal/:mealId`) is a page, not a dialog. `FlowFooter` sticks the totals, an error and the save button to the bottom of such a page.
 - `routing/paths.ts` holds every path (`PATHS`); `routing/navigation.ts` has `useGoBack`. The Android back button is handled in `native/androidBackButton.ts`.
+
+## Shared UI pieces
+
+In `components/ui/`:
+
+- **`Card`**: the one card of the app (frame, padding, optional title and action, ruled header, `flush` for edge-to-edge lists). It replaces `ListCard`, `SummaryCard` and the recipe card.
+- **`EditableList`**: the items of a meal or a session being edited, one line each (name, quantity, kcal). A tap opens a `BottomSheet` with the full name, a `ConfirmRemoveButton`, the live kcal and macros and the controls (stepper, sets). The list itself never moves.
+- **`ConfirmRemoveButton`**: a trash that asks twice. The first tap arms it as "Retirer ?", the second confirms, and it calms down after 3 s.
+- **`SearchPicker`**: a field that opens a full-screen search of a library, in a native `<dialog>` fading in (so the Android back button closes it). The field is at the top and the results under it, out of the keyboard's way. A tap adds a result and the search stays open; items already added are checked. It replaces `DropdownPanel`, and `@radix-ui/react-popover` is no longer a dependency.
+- **`MacroSummary`** is built from `MacroBadges` (the three macros) and `KcalPill` (the calories), which can be used alone.
 
 ## Example: logging a meal
 
