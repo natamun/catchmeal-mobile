@@ -62,4 +62,4 @@ Before showing a proposal, check that it has none of these unless it was chosen 
 4. **Look and compare**: ask `ui-inspector` for screenshots of each proposal (with a long name, an empty day, a light theme), then compare with `references/review.md` and give your recommendation. Give the user what to try on the phone.
 5. Once the user picks, remove the other two and the selector, then commit the chosen one alone.
 
-For a small change (a spacing, a label, one button), skip the proposals: apply the rules and the checklist. Then hand the user a short list of what to check on the phone; capture with `ui-inspector` only when they ask.
+For a small change (a spacing, a label, one button), skip the proposals: apply the rules and the checklist. Then hand the user a short list of what to check on the phone, and commit once they validate; capture with `ui-inspector` only when they ask.
