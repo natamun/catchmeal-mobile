@@ -43,11 +43,11 @@ interface DateNavigatorProps {
 
 /**
  * Day picker of the journal: arrows for the previous and next day, and the date
- * in the middle, which opens a calendar.
+ * in the middle, which opens a calendar. It takes the width left in its row.
  */
 export function DateNavigator({ value, onChange }: DateNavigatorProps) {
   return (
-    <div className="flex gap-1.5 self-start rounded-xl border border-theme-200 bg-surface p-1.5 max-2xs:w-full">
+    <div className="flex min-w-0 flex-1 gap-1.5 rounded-xl border border-theme-200 bg-surface p-1.5">
       <button
         type="button"
         onClick={() => onChange(shiftDay(value, -1))}
@@ -58,8 +58,8 @@ export function DateNavigator({ value, onChange }: DateNavigatorProps) {
       <CalendarButton
         value={value}
         onChange={onChange}
-        className="tap-area relative w-36 rounded-lg bg-theme-500 px-3 py-1.5 text-center text-sm font-medium text-on-accent capitalize transition-colors hover:bg-theme-600 max-2xs:w-full"
-        wrapperClassName="max-2xs:flex-1"
+        className="tap-area relative h-full w-full rounded-lg bg-theme-500 px-3 py-1.5 text-center text-sm font-medium text-on-accent capitalize transition-colors hover:bg-theme-600"
+        wrapperClassName="flex-1"
       >
         {formatLabel(value)}
       </CalendarButton>
