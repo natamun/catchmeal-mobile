@@ -1,14 +1,17 @@
 import {
-  useRef,
   useState,
-  type ComponentProps,
   type KeyboardEventHandler,
   type MouseEventHandler,
   type ReactNode,
   type Ref,
 } from 'react';
 import { fr } from 'date-fns/locale/fr';
-import DatePicker from 'react-datepicker';
+import DatePicker, {
+  type ReactDatePickerCustomHeaderProps,
+} from 'react-datepicker';
+
+import { BottomSheet } from './BottomSheet';
+import { CalendarHeader } from './CalendarHeader';
 
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -70,7 +73,6 @@ interface SharedProps {
   wrapperClassName?: string;
   min?: Date;
   max?: Date;
-  placement?: ComponentProps<typeof DatePicker>['popperPlacement'];
 }
 
 interface DayProps extends SharedProps {
@@ -84,74 +86,113 @@ interface RangeProps extends SharedProps {
 }
 
 /**
- * A button that opens a French calendar (weeks start on Monday). Two modes: one
- * day (`value` and `onChange`) or a period (`range` and `onRangeChange`). For a
- * period, the first click is kept aside until the second one completes it.
+ * A button that opens a French calendar (weeks start on Monday) in a sheet from
+ * the bottom. Two modes: one day (`value` and `onChange`) or a period (`range`
+ * and `onRangeChange`). For a period, the first tap is kept aside until the
+ * second one completes it; the sheet closes once the choice is complete.
  */
 export function CalendarButton(props: DayProps | RangeProps) {
-  const { children, className, wrapperClassName, min, max, placement } = props;
-  const pickerRef = useRef<DatePicker>(null);
+  const { children, className, wrapperClassName, min, max } = props;
   const [isOpen, setIsOpen] = useState(false);
   const [pendingStart, setPendingStart] = useState<Date | null>(null);
+  const close = () => {
+    setIsOpen(false);
+    setPendingStart(null);
+  };
 
   const calendar = {
-    onCalendarOpen: () => setIsOpen(true),
-    onCalendarClose: () => {
-      setIsOpen(false);
-      setPendingStart(null);
-    },
+    inline: true,
     minDate: min,
     maxDate: max,
     locale: fr,
     calendarStartDay: 1,
+    // Always six weeks: a shorter month would move the arrows under the thumb.
+    fixedHeight: true,
     calendarClassName: 'kcal-datepicker',
-    wrapperClassName,
-    portalId: 'datepicker-portal',
-    popperPlacement: placement,
-    customInput: (
-      <CalendarTrigger
-        isOpen={isOpen}
-        onClose={() => pickerRef.current?.setOpen(false)}
-        className={className}
-      >
-        {children}
-      </CalendarTrigger>
+    renderCustomHeader: ({
+      monthDate,
+      decreaseMonth,
+      increaseMonth,
+      prevMonthButtonDisabled,
+      nextMonthButtonDisabled,
+    }: ReactDatePickerCustomHeaderProps) => (
+      <CalendarHeader
+        title={monthDate.toLocaleDateString('fr-FR', {
+          month: 'long',
+          year: 'numeric',
+        })}
+        onPrevious={decreaseMonth}
+        onNext={increaseMonth}
+        previousDisabled={prevMonthButtonDisabled}
+        nextDisabled={nextMonthButtonDisabled}
+      />
     ),
   } as const;
 
+  let title: string;
+  let picker: ReactNode;
   if ('range' in props) {
     const { range, onRangeChange } = props;
-
-    return (
+    title = pendingStart ? 'Choisir la fin' : 'Choisir le début';
+    picker = (
       <DatePicker
-        ref={pickerRef}
         {...calendar}
         selectsRange
         swapRange
+        openToDate={range.to}
         startDate={pendingStart ?? range.from}
         endDate={pendingStart ? null : range.to}
         onChange={([start, end]: [Date | null, Date | null]) => {
           setPendingStart(end ? null : start);
           if (start && end) {
             onRangeChange({ from: start, to: end });
+            close();
           }
         }}
       />
     );
+  } else {
+    const { value, onChange } = props;
+    title = 'Choisir un jour';
+    picker = (
+      <>
+        <DatePicker
+          {...calendar}
+          selected={value}
+          onChange={(date: Date | null) => {
+            if (date) {
+              onChange(date);
+              close();
+            }
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => {
+            onChange(new Date());
+            close();
+          }}
+          className="h-11 w-full cursor-pointer rounded-xl border border-theme-200 text-sm font-medium text-theme-700 transition-colors hover:bg-theme-50"
+        >
+          Aujourd’hui
+        </button>
+      </>
+    );
   }
 
-  const { value, onChange } = props;
-
   return (
-    <DatePicker
-      ref={pickerRef}
-      {...calendar}
-      selected={value}
-      onChange={(date: Date | null) => {
-        if (date) {
-          onChange(date);
-        }
-      }}
-    />
+    <div className={wrapperClassName}>
+      <CalendarTrigger
+        isOpen={isOpen}
+        onClose={close}
+        onClick={() => setIsOpen(true)}
+        className={className}
+      >
+        {children}
+      </CalendarTrigger>
+      <BottomSheet open={isOpen} onClose={close} title={title}>
+        {picker}
+      </BottomSheet>
+    </div>
   );
 }

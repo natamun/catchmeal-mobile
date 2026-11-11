@@ -1,26 +1,25 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { subYears } from 'date-fns';
 import { fr } from 'date-fns/locale/fr';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 
 import 'react-datepicker/dist/react-datepicker.css';
 
 import { toDateKey } from '../../utils/dateKey';
+import { BottomSheet } from '../ui/BottomSheet';
 import { CalendarTrigger } from '../ui/CalendarButton';
+import { CalendarHeader } from '../ui/CalendarHeader';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 
 type View = 'year' | 'month' | 'day';
 
-const YEARS_PER_PAGE = 20;
-const ARROW_CLASS =
-  'flex h-6 w-6 cursor-pointer items-center justify-center text-theme-400 transition-colors hover:text-theme-600 disabled:pointer-events-none disabled:opacity-30';
+const SHEET_TITLE: Record<View, string> = {
+  year: 'Année de naissance',
+  month: 'Mois de naissance',
+  day: 'Jour de naissance',
+};
 
-/**
- * Clicks on the label don't count as clicks outside, so they don't close the
- * calendar.
- */
-const KEEP_OPEN_CLASS = 'birth-date-keep-open';
+const YEARS_PER_PAGE = 20;
 
 interface Props {
   id: string;
@@ -31,126 +30,103 @@ interface Props {
 
 /**
  * Birth date picker that goes year, then month, then day, so an old date takes
- * three clicks instead of hundreds. It opens 20 years back when empty, and the
- * future is blocked.
+ * three taps instead of hundreds, in a sheet from the bottom like the other
+ * calendars. It opens 20 years back when empty, and the future is blocked.
  */
 export function BirthDatePicker({ id, label, value, onChange }: Props) {
-  const pickerRef = useRef<DatePicker>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [view, setView] = useState<View>('year');
   const today = new Date();
   const selected = value ? new Date(`${value}T12:00:00`) : null;
+  const close = () => {
+    setIsOpen(false);
+    setView('year');
+  };
 
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={id} className={`${LABEL_CLASS} ${KEEP_OPEN_CLASS}`}>
+      <label htmlFor={id} className={LABEL_CLASS}>
         {label}
       </label>
       <div className="flex flex-col">
-        <DatePicker
-          ref={pickerRef}
+        <CalendarTrigger
           id={id}
-          selected={selected}
-          openToDate={selected ?? subYears(today, YEARS_PER_PAGE)}
-          maxDate={today}
-          onSelect={(date: Date | null) => {
-            if (!date) {
-              return;
-            }
-            if (view === 'day') {
-              onChange(toDateKey(date));
-            } else {
-              setView(view === 'year' ? 'month' : 'day');
-            }
-          }}
-          onCalendarOpen={() => setIsOpen(true)}
-          onCalendarClose={() => {
-            setIsOpen(false);
-            setView('year');
-          }}
-          showYearPicker={view === 'year'}
-          showMonthYearPicker={view === 'month'}
-          yearItemNumber={YEARS_PER_PAGE}
-          shouldCloseOnSelect={view === 'day'}
-          locale={fr}
-          calendarStartDay={1}
-          calendarClassName="kcal-datepicker"
-          popperPlacement="bottom-end"
-          popperProps={{ strategy: 'fixed' }}
-          outsideClickIgnoreClass={KEEP_OPEN_CLASS}
-          renderCustomHeader={({
-            date,
-            decreaseMonth,
-            increaseMonth,
-            decreaseYear,
-            increaseYear,
-            prevMonthButtonDisabled,
-            nextMonthButtonDisabled,
-            visibleYearsRange,
-          }) => {
-            const byMonth = view === 'day';
-            const lastYear = visibleYearsRange?.endYear ?? date.getFullYear();
-            const title = visibleYearsRange
-              ? `${visibleYearsRange.startYear} – ${visibleYearsRange.endYear}`
-              : date.toLocaleDateString(
-                  'fr-FR',
-                  byMonth
-                    ? { month: 'long', year: 'numeric' }
-                    : { year: 'numeric' },
-                );
+          isOpen={isOpen}
+          onClose={close}
+          onClick={() => setIsOpen(true)}
+          className="w-full rounded-xl border border-theme-200 bg-surface px-4 py-2.75 text-left text-base text-theme-800 transition-colors hover:bg-theme-50 data-[open=true]:bg-theme-50"
+        >
+          {selected ? (
+            selected.toLocaleDateString('fr-FR')
+          ) : (
+            <span className="text-theme-800/50">Date</span>
+          )}
+        </CalendarTrigger>
+        <BottomSheet open={isOpen} onClose={close} title={SHEET_TITLE[view]}>
+          <DatePicker
+            inline
+            selected={selected}
+            openToDate={selected ?? subYears(today, YEARS_PER_PAGE)}
+            maxDate={today}
+            onSelect={(date: Date | null) => {
+              if (!date) {
+                return;
+              }
+              if (view === 'day') {
+                onChange(toDateKey(date));
+                close();
+              } else {
+                setView(view === 'year' ? 'month' : 'day');
+              }
+            }}
+            showYearPicker={view === 'year'}
+            showMonthYearPicker={view === 'month'}
+            yearItemNumber={YEARS_PER_PAGE}
+            locale={fr}
+            calendarStartDay={1}
+            calendarClassName="kcal-datepicker"
+            renderCustomHeader={({
+              date,
+              decreaseMonth,
+              increaseMonth,
+              decreaseYear,
+              increaseYear,
+              prevMonthButtonDisabled,
+              nextMonthButtonDisabled,
+              visibleYearsRange,
+            }) => {
+              const byMonth = view === 'day';
+              const lastYear = visibleYearsRange?.endYear ?? date.getFullYear();
+              const title = visibleYearsRange
+                ? `${visibleYearsRange.startYear} – ${visibleYearsRange.endYear}`
+                : date.toLocaleDateString(
+                    'fr-FR',
+                    byMonth
+                      ? { month: 'long', year: 'numeric' }
+                      : { year: 'numeric' },
+                  );
 
-            return (
-              <div className="flex items-center justify-between px-2">
-                <button
-                  type="button"
-                  onClick={byMonth ? decreaseMonth : decreaseYear}
-                  disabled={byMonth && prevMonthButtonDisabled}
-                  className={ARROW_CLASS}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                {view === 'year' ? (
-                  <span className="react-datepicker__current-month">
-                    {title}
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setView(byMonth ? 'month' : 'year')}
-                    className="react-datepicker__current-month cursor-pointer transition-colors hover:text-theme-600"
-                  >
-                    {title}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={byMonth ? increaseMonth : increaseYear}
-                  disabled={
+              return (
+                <CalendarHeader
+                  title={title}
+                  onTitleClick={
+                    view === 'year'
+                      ? undefined
+                      : () => setView(byMonth ? 'month' : 'year')
+                  }
+                  onPrevious={byMonth ? decreaseMonth : decreaseYear}
+                  onNext={byMonth ? increaseMonth : increaseYear}
+                  previousDisabled={byMonth && prevMonthButtonDisabled}
+                  nextDisabled={
                     byMonth
                       ? nextMonthButtonDisabled
                       : lastYear >= today.getFullYear()
                   }
-                  className={ARROW_CLASS}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            );
-          }}
-          customInput={
-            <CalendarTrigger
-              isOpen={isOpen}
-              onClose={() => pickerRef.current?.setOpen(false)}
-              className="w-full rounded-xl border border-theme-200 bg-surface px-4 py-2.75 text-left text-base text-theme-800 transition-colors hover:bg-theme-50 data-[open=true]:bg-theme-50"
-            >
-              {selected ? (
-                selected.toLocaleDateString('fr-FR')
-              ) : (
-                <span className="text-theme-800/50">Date</span>
-              )}
-            </CalendarTrigger>
-          }
-        />
+                />
+              );
+            }}
+          />
+        </BottomSheet>
       </div>
     </div>
   );
