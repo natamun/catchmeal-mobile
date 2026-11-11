@@ -29,7 +29,7 @@ export async function enableReminder() {
       {
         id: REMINDER_ID,
         title: 'Pesée du dimanche',
-        body: "C'est l'heure de te peser.",
+        body: "C'est l'heure de la pesée.",
         schedule: {
           on: { weekday: Weekday.Sunday, hour: 8, minute: 0 },
           allowWhileIdle: true,

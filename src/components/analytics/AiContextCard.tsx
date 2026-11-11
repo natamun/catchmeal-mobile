@@ -67,7 +67,7 @@ export function AiContextCard({ from, to, days, isLoading = false }: Props) {
   const copy = () =>
     run(async (text) => {
       await copyText(text);
-      showToast('Copié : colle-le dans ton IA', Copy);
+      showToast('Copié, à coller dans une IA', Copy);
     }, 'Copie impossible');
 
   const share = () =>

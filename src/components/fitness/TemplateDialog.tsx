@@ -124,7 +124,7 @@ function TemplateForm({
                 </button>
               </div>
               <p className="text-sm text-theme-500">
-                Reprend tes séries de la dernière fois.
+                Reprend les séries de la dernière fois.
               </p>
             </li>
           ))}
@@ -135,7 +135,7 @@ function TemplateForm({
         {error && <p className="text-sm text-red-500">{error}</p>}
         {hasDeleteFailed && (
           <p className="text-sm text-red-500">
-            Impossible de supprimer la séance. Réessaie.
+            Impossible de supprimer la séance. Réessayez.
           </p>
         )}
         <button

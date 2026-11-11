@@ -28,7 +28,7 @@ export function RecipeAiCard({ recipe, foodItems }: Props) {
   const copy = async () => {
     try {
       await copyText(prompt());
-      showToast('Copié : colle-le dans ton IA', Copy);
+      showToast('Copié, à coller dans une IA', Copy);
     } catch {
       showToast('Copie impossible');
     }

@@ -298,7 +298,7 @@ export function ProfileCard({ profile, onUpdate }: Props) {
             />
             {form.targetBodyFat && (
               <p className="text-xs text-theme-500">
-                Le poids cible se calcule depuis ta masse maigre, à chaque
+                Le poids cible se calcule depuis la masse maigre, à chaque
                 pesée.
               </p>
             )}

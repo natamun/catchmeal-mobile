@@ -140,16 +140,16 @@ export function ExerciseSheet({
                     </h4>
                     <InfoBubble>
                       <p>
-                        <strong>Record</strong> : la charge la plus lourde que
-                        tu aies soulevée.
+                        <strong>Record</strong> : la charge la plus lourde
+                        soulevée.
                       </p>
                       <p>
-                        <strong>1RM</strong> : la charge que tu pourrais
-                        soulever une seule fois, estimée depuis tes séries.
+                        <strong>1RM</strong> : la charge qui pourrait être
+                        soulevée une seule fois, estimée depuis les séries.
                       </p>
                       <p>
                         <strong>Volume</strong> : répétitions × charge,
-                        additionnées sur une séance. Ici ta meilleure séance.
+                        additionnées sur une séance. Ici la meilleure séance.
                       </p>
                       <p className="text-theme-500">
                         Touche une case pour voir sa courbe.

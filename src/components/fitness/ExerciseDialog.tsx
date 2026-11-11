@@ -132,7 +132,7 @@ export function ExerciseDialog({ dialogRef, openCount, exercise }: Props) {
       dialogRef.current?.close();
       showToast('Exercice supprimé');
     } catch {
-      showToast('Suppression impossible, réessaie.');
+      showToast('Suppression impossible, réessayez.');
     } finally {
       setIsDeleting(false);
       confirmDialogRef.current?.close();

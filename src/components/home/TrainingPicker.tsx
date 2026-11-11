@@ -85,7 +85,7 @@ export function TrainingPicker({ day, onClose, onAdded }: Props) {
       )
       .catch(() => {
         if (!controller.signal.aborted) {
-          setLoadError('Impossible de charger la bibliothèque. Réessaie.');
+          setLoadError('Impossible de charger la bibliothèque. Réessayez.');
         }
       });
     return () => controller.abort();

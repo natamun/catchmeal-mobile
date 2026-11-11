@@ -63,15 +63,15 @@ function alertAdvice(
 ) {
   const slowest = Math.min(...PACES[goalType]);
   if (alert === 'FAT_GAIN') {
-    return `Tu prends plus de gras que de masse maigre ces dernières semaines : ${
+    return `Plus de gras que de masse maigre pris ces dernières semaines : ${
       pace > slowest
-        ? `passe à ${formatPace(slowest)}`
-        : 'baisse un peu tes calories'
+        ? `passer à ${formatPace(slowest)}`
+        : 'baisser un peu les calories'
     }.`;
   }
-  return `Ta masse maigre baisse vite ces dernières semaines : ${
-    pace > slowest ? `ralentis à ${formatPace(slowest)}, ` : ''
-  }atteins bien tes protéines et garde la muscu.`;
+  return `La masse maigre baisse vite ces dernières semaines : ${
+    pace > slowest ? `ralentir à ${formatPace(slowest)}, ` : ''
+  }atteindre les protéines et garder la musculation.`;
 }
 
 const formatDay = (date: Date) =>
@@ -223,7 +223,7 @@ export function GoalsCard({ profile, history, onReady }: Props) {
         : `${formatMeasure(Math.abs(gap), 'kg')} ${gap > 0 ? 'à perdre' : 'à prendre'}${aim}${reachDate ? `, vers le ${formatDay(reachDate)}` : ''}`;
   const bodyFatHint =
     profile.targetBodyFat !== null && fatFreeMass === null
-      ? `Ajoute ta masse grasse à une pesée pour viser ${profile.targetBodyFat} % de gras.`
+      ? `Ajouter la masse grasse à une pesée pour viser ${profile.targetBodyFat} % de gras.`
       : null;
 
   const since = goalStart ? new Date(goalStart) : null;
