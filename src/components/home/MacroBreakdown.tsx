@@ -1,5 +1,5 @@
 import { SummaryCard } from '../ui/SummaryCard';
-import { progressLaps } from './progress';
+import { progressScale } from './progress';
 
 interface Macros {
   protein: number;
@@ -13,7 +13,8 @@ interface Macros {
 }
 
 /**
- * Progress bar of one macro; beyond the goal, a second color shows the excess.
+ * Progress bar of one macro. Beyond the goal, the bar is the value, a notch
+ * marks the goal and the excess after it takes the second accent.
  */
 function Bar({
   label,
@@ -28,10 +29,9 @@ function Bar({
   isLoading: boolean;
   unavailable: boolean;
 }) {
-  const { lap, extraLap } = progressLaps(
-    isLoading || unavailable ? 0 : value,
-    goal,
-  );
+  const shown = isLoading || unavailable ? 0 : value;
+  const { reached, goalAt } = progressScale(shown, goal);
+  const excess = shown - goal;
 
   return (
     <div>
@@ -43,20 +43,25 @@ function Bar({
           ) : unavailable ? (
             '–'
           ) : (
-            `${value}g`
+            <span className="font-medium text-theme-800">{value}</span>
           )}
-          <span>/ {goal}g</span>
+          <span>/ {goal} g</span>
+          {excess > 0 && (
+            <span className="font-medium text-accent-2">· +{excess}</span>
+          )}
         </span>
       </div>
       <div className="relative h-2 overflow-hidden rounded-full bg-theme-100">
         <div
           className="h-full bg-theme-400"
-          style={{ width: `${lap * 100}%` }}
+          style={{ width: `${Math.min(reached, goalAt) * 100}%` }}
         />
-        <div
-          className="absolute inset-y-0 left-0 bg-theme-500"
-          style={{ width: `${extraLap * 100}%` }}
-        />
+        {excess > 0 && (
+          <div
+            className="absolute inset-y-0 right-0 border-l-2 border-surface bg-accent-2"
+            style={{ left: `${goalAt * 100}%` }}
+          />
+        )}
       </div>
     </div>
   );

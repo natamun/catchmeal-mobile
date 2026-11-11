@@ -1,6 +1,6 @@
 import { StatTile } from '../ui/StatTile';
 import { SummaryCard } from '../ui/SummaryCard';
-import { progressLaps } from './progress';
+import { progressScale } from './progress';
 
 interface Props {
   consumed: number;
@@ -11,10 +11,12 @@ interface Props {
 
 const RADIUS = 42;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+/** Space left on the ring where the goal sits, once it is passed. */
+const GOAL_GAP = 2;
 
 /**
- * Calories of the day in a ring: the calories left, or the excess drawn as a
- * second lap in another color.
+ * Calories of the day in a ring: the calories left, or, beyond the goal, a ring
+ * of the calories eaten where the excess after the goal takes the second accent.
  */
 export function CalorieSummary({
   consumed,
@@ -24,10 +26,16 @@ export function CalorieSummary({
 }: Props) {
   const over = consumed > goal;
   const difference = Math.abs(goal - consumed);
-  const { lap, extraLap } = progressLaps(
+  const { reached, goalAt } = progressScale(
     isLoading || unavailable ? 0 : consumed,
     goal,
   );
+  const gap = over && !unavailable ? GOAL_GAP : 0;
+  const baseLength = Math.max(
+    Math.min(reached, goalAt) * CIRCUMFERENCE - gap,
+    0,
+  );
+  const excessLength = Math.max((1 - goalAt) * CIRCUMFERENCE - gap, 0);
 
   return (
     <SummaryCard title="Calories du jour">
@@ -48,7 +56,7 @@ export function CalorieSummary({
               r={RADIUS}
               fill="none"
               strokeWidth="10"
-              strokeDasharray={`${lap * CIRCUMFERENCE} ${CIRCUMFERENCE}`}
+              strokeDasharray={`${baseLength} ${CIRCUMFERENCE}`}
               className="stroke-theme-400"
             />
             <circle
@@ -57,8 +65,9 @@ export function CalorieSummary({
               r={RADIUS}
               fill="none"
               strokeWidth="10"
-              strokeDasharray={`${extraLap * CIRCUMFERENCE} ${CIRCUMFERENCE}`}
-              className="stroke-theme-500"
+              strokeDasharray={`${excessLength} ${CIRCUMFERENCE}`}
+              strokeDashoffset={-(goalAt * CIRCUMFERENCE + gap / 2)}
+              className="stroke-accent-2"
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
