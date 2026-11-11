@@ -36,11 +36,12 @@ interface TimePoint {
   time: number;
 }
 
-/** Date on the axis, as DD-MM. */
+/** Date on the axis, as DD/MM. */
 function formatTick(time: number) {
-  return new Date(time)
-    .toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
-    .replace('/', '-');
+  return new Date(time).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+  });
 }
 
 interface Props {

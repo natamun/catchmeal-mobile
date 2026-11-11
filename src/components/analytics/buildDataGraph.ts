@@ -18,8 +18,8 @@ export function averageOf(days: DashboardDay[], key: NumericKey) {
   );
 }
 
-/** "2026-10-20" becomes "20-10". */
-const shortDate = (day: string) => day.slice(5).split('-').reverse().join('-');
+/** "2026-10-20" becomes "20/10". */
+const shortDate = (day: string) => day.slice(5).split('-').reverse().join('/');
 
 /**
  * Groups consecutive days by `grain` (1, 7 or 14 days) and averages each value
