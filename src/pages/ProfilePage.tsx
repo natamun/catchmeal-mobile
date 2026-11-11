@@ -1,41 +1,43 @@
-import { useCallback, useState } from 'react';
-
 import { BackupCard } from '../components/backup/BackupCard';
-import type { WeightEntry } from '../components/profile/api';
 import { GoalsCard } from '../components/profile/GoalsCard';
-import { ProfileCard } from '../components/profile/ProfileCard';
 import { useProfile } from '../components/profile/profileContext';
+import { useGoals } from '../components/profile/useGoals';
+import { useWeighIns } from '../components/profile/useWeighIns';
 import { WeightCard } from '../components/profile/WeightCard';
 import { SettingsCard } from '../components/settings/SettingsCard';
 import { ThemeCard } from '../components/theme/ThemeCard';
 
 /**
- * Profile page: body measures, body composition, goals, theme, settings and
- * backup. It shows once the weigh-ins and the measured expenditure are read: drawn
- * before, the short loading cards let the bottom ones flash at the top.
+ * Profile page: the body (latest weigh-in, history, the person's profile),
+ * the goal, theme, settings and backup. It shows once the weigh-ins and the
+ * measured expenditure are read: drawn before, the short loading cards let
+ * the bottom ones flash at the top.
  */
 export default function ProfilePage() {
   const { profile, updateProfile } = useProfile();
-  const [history, setHistory] = useState<WeightEntry[]>();
-  const [isGoalsReady, setIsGoalsReady] = useState(false);
-  const markGoalsReady = useCallback(() => setIsGoalsReady(true), []);
-  const isReady = history !== undefined && isGoalsReady;
+  const weighIns = useWeighIns();
+  const goals = useGoals(profile, weighIns.history);
+  const isReady = !weighIns.isLoading && goals.isMeasureRead;
 
   return (
     <div
       className={`flex flex-col gap-6 ${isReady ? 'animate-fade-in-up' : 'invisible'}`}
     >
-      <ProfileCard profile={profile} onUpdate={updateProfile} />
-
-      <WeightCard onHistory={setHistory} />
-
-      <GoalsCard profile={profile} history={history} onReady={markGoalsReady} />
-
+      <WeightCard
+        weighIns={weighIns}
+        profile={profile}
+        onUpdate={updateProfile}
+      />
+      <GoalsCard
+        goals={goals}
+        profile={profile}
+        history={weighIns.history}
+        onUpdate={updateProfile}
+      />
       <ThemeCard />
-
       <SettingsCard />
-
       <BackupCard />
+      {weighIns.dialogs}
     </div>
   );
 }

@@ -23,12 +23,13 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - Calories in lists are plain text, without a pill.
 - Restaurer, Vider and the recipe trash are red.
 - Recipe steps are aligned left, with balanced lines and more space.
-- The profile summary no longer shows the activity level.
 - The buttons in dialog and page headers are larger, and the pill tabs react to a touch.
 - The top of Stats sums up the period in one block: the average calories against the goal, a weekday against a weekend day, the protein against the goal, the weight from the first to the last weigh-in with its pace per week, and the sessions per week. The Sport tiles are gone.
 - The Stats period fits on one row, its dates written 13/10.
 - The Évolution chart no longer blows a few hundred grams up to its full height.
 - Behind a dialog the page is only dimmed, no longer blurred, so a picker opens over it without stuttering.
+- The Profile is two blocks. The body block shows the latest weigh-in, then rows to the weigh-in history and to the profile (gender, age, height, activity). The goal block picks the goal in full width and the pace as pills with its kg per week, opens on what is left to lose or gain with a bar from the start to the target and its date, and folds how the goals are computed. The target and the daily goals are edited in their own dialog.
+- A weigh-in opens with a tap on its row; it shows its date, weight and body fat on one line.
 - The sessions chart is lower, shows from three weeks on, groups two weeks per bar when they do not fit, and follows the finger like the calorie chart.
 
 ### Fixed
