@@ -10,9 +10,10 @@ Read the code of the screen first; then, for balance, spacing and the overall fe
 - Selection lists have a search when they can grow.
 
 **Touch and layout**
-- Every target is at least 44 px, with enough space between neighbours.
+- Every target is at least 44 px (`tap-area` counts), with no overlapping touch areas.
 - One direction per section; no card in a card.
-- Long real strings (a 40-character food name, a big number, 4-digit kcal) truncate or wrap cleanly at 360 px wide.
+- Long real strings (a 40-character food name, a big number, 4-digit kcal) truncate on one line in list rows and wrap cleanly elsewhere, at 360 px wide.
+- Nothing moves under the thumb when the content changes (a longer month, a message, a list that loads).
 - The keyboard does not cover the field being typed in, nor the button to confirm.
 
 **Hierarchy**
@@ -23,9 +24,10 @@ Read the code of the screen first; then, for balance, spacing and the overall fe
 - Tokens only, works in a dark and a light theme.
 - One radius per kind of element, one icon weight, type sizes from the existing scale.
 - Two controls doing the same job look the same.
+- An edit view shows at least what the read view shows; controls sharing a row share its width; no title is cut by its action.
 
 **States**
-- Default, pressed, disabled, and loading when the action waits.
+- Default, pressed (every tappable, third-party pieces included), disabled, and loading when the action waits.
 - Field errors in `FieldError`, nothing shifts; destructive actions in red and confirmed.
 - Empty state and loading state present; a toast confirms a save.
 

@@ -14,30 +14,33 @@ CatCHMeal is a phone app (Capacitor web view, Galaxy S21+, one hand, often at th
 - `swiss-red` is the brand (logo, "CH"): never for a UI state.
 - **Inter** for everything, lucide icons at one stroke weight. No emoji as icons.
 - Reuse `src/components/ui` (BaseDialog, Input, FieldError, PillTabs, QuantityStepper, Toast, SummaryCard...) before writing a new piece. A new shared piece goes there, with JSDoc.
-- The `hover:` variant also fires on `:active`, so it gives touch feedback: use it for pressed states.
+- The `hover:` variant also fires on `:active`, so it gives touch feedback: every tappable element has a pressed state, those of third-party pieces included (calendar arrows).
 
 ## Mobile rules (hard)
 
-1. **Touch targets at least 44 px** (`h-11` or more, or padding that gets there). Some existing buttons are `h-10` or `h-8`: fix them when you touch the screen.
+1. **Touch targets at least 44 px** (`h-11` or more, padding that gets there, or `tap-area`, which keeps a small icon and widens the area it answers to 48 px). Two touch areas never overlap. Some existing buttons are `h-10` or `h-8`: fix them when you touch the screen.
 2. **Errors and destructive actions in red**, whatever the theme.
 3. **Every screen has its empty and loading states.** First use points at the main action; "no results" names the search and offers a way out.
-4. **Nothing moves when an error appears**: errors float in `FieldError`, a dialog or a form never changes height because of a message. Never block typing: accept the input, show the error after.
+4. **Nothing moves under the thumb**: errors float in `FieldError`; a dialog, a sheet or a form never changes height because of a message or of its content (a calendar always shows six weeks), so no control slides under the next tap. Never block typing: accept the input, show the error after.
 5. **One direction per section**: a section stacks vertically or scrolls horizontally, never both. Never a card inside a card: group with space instead.
 
 ## Guidance (judgement)
 
 - **One screen, one job.** Write the screen's intent in one sentence before coding; if you cannot, it does too much. The main action is the most visible thing on the screen, ideally in the thumb's reach (lower half).
 - **Hierarchy in three tiers** at most: the main figure or content, the supporting content, the metadata (smaller and dimmer, `theme-400`/`theme-600`).
+- **The accent marks actions, active states, section titles, field labels and the second line of list rows** (sentence case); help sentences and descriptions stay grey. Without it, a screen looks flat.
 - **Space on a 4 px grid** (Tailwind steps). Related things close, groups apart.
 - **One radius per kind of thing**: reuse the radius of the existing component of the same kind (cards and dialogs `rounded-2xl`, round buttons `rounded-full`); do not add a new one.
 - **Motion answers an action** (opening, confirming, swiping) and follows its direction; never linear easing; reuse the animations in `src/index.css`. No decorative entrance on every block.
 - **A gesture always has a visible control too** (swiping between tabs and the tab bar). A toast is the exception: it also leaves by itself.
 - **Form length decides the container**: a short edit fits a dialog; a long or multi-step form is a flow page (`FlowLayer`), not a tall dialog.
-- **Pickers use a mobile pattern** (a sheet from the bottom, an inline strip), not a small bubble under the field.
+- **Pickers use a mobile pattern** (`BottomSheet`, or an inline strip), not a small bubble under the field. A sheet closes with its ×, the back button, a tap outside and a swipe down.
 - **Similar things behave the same**: if tapping an exercise opens its stats, tapping a food should too. Same list, same row, same gesture.
+- **An edit view shows at least what the read view shows** (the kcal of each entry). **Controls sharing a row share its width**, with no empty gap between them, and an action never cuts the title beside it.
 - **Every stat earns its place**: say what decision it helps the user make, or what motivates them. A figure nobody acts on goes.
 - **Step buttons are explicit**: "+10" and "+1" beside a typed value, never ambiguous symbols like "++" or "--".
 - **Search fields have a clear (×) button** once they hold text.
+- **List rows keep one height**: a long name truncates on one line; the full name is in the item's sheet.
 - **Text alignment**: left by default. Long prose (recipe steps, notes) may be justified, only with `hyphens: auto` and `lang="fr"`, or the narrow lines get large gaps.
 
 ## Words on screen
@@ -59,4 +62,4 @@ Before showing a proposal, check that it has none of these unless it was chosen 
 4. **Look and compare**: ask `ui-inspector` for screenshots of each proposal (with a long name, an empty day, a light theme), then compare with `references/review.md` and give your recommendation. Give the user what to try on the phone.
 5. Once the user picks, remove the other two and the selector, then commit the chosen one alone.
 
-For a small change (a spacing, a label, one button), skip the proposals: apply the rules and the checklist.
+For a small change (a spacing, a label, one button), skip the proposals: apply the rules and the checklist. Then hand the user a short list of what to check on the phone; capture with `ui-inspector` only when they ask.
