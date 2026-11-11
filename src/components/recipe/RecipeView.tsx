@@ -129,13 +129,13 @@ export function IngredientRows({
 /** The steps of the preparation, numbered. */
 export function StepRows({ steps }: { steps: string[] }) {
   return (
-    <ol className="flex flex-col gap-3">
+    <ol className="flex flex-col gap-4">
       {steps.map((step, index) => (
         <li key={index} className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-theme-100 text-xs font-bold text-theme-600">
             {index + 1}
           </span>
-          <p className="min-w-0 flex-1 text-sm whitespace-pre-line text-theme-800">
+          <p className="min-w-0 flex-1 text-sm leading-relaxed text-pretty whitespace-pre-line text-theme-800">
             {step}
           </p>
         </li>
@@ -147,7 +147,9 @@ export function StepRows({ steps }: { steps: string[] }) {
 /** Free text written by the user, its line breaks kept. */
 export function TextBlock({ children }: { children: string }) {
   return (
-    <p className="text-sm whitespace-pre-line text-theme-800">{children}</p>
+    <p className="text-sm leading-relaxed text-pretty whitespace-pre-line text-theme-800">
+      {children}
+    </p>
   );
 }
 
