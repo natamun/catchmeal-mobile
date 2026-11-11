@@ -196,6 +196,7 @@ export function TemplateDialog({
         title={template ? 'Modifier la séance' : 'Nouvelle séance favorite'}
         onDialogNode={setDialogNode}
         onClose={() => setHasDeleteFailed(false)}
+        deleteLabel="Supprimer la séance"
         onDelete={
           template ? () => confirmDialogRef.current?.showModal() : undefined
         }

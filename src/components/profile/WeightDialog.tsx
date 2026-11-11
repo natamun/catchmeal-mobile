@@ -231,6 +231,7 @@ export function WeightDialog({
         title={entry ? `Pesée du ${day}` : 'Nouvelle pesée'}
         maxWidth="sm"
         onClose={() => setHasDeleteFailed(false)}
+        deleteLabel="Supprimer la pesée"
         onDelete={
           entry ? () => confirmDialogRef.current?.showModal() : undefined
         }

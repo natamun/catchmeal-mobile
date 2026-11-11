@@ -334,6 +334,7 @@ export function FoodItemForm({
       <BaseDialog
         dialogRef={dialogRef}
         title={editingItem ? 'Modifier un aliment' : 'Ajouter un aliment'}
+        deleteLabel="Supprimer l’aliment"
         onDelete={
           editingItem ? () => confirmDialogRef.current?.showModal() : undefined
         }

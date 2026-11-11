@@ -145,6 +145,7 @@ export function ExerciseDialog({ dialogRef, openCount, exercise }: Props) {
         dialogRef={dialogRef}
         title={exercise ? "Modifier l'exercice" : 'Nouvel exercice'}
         maxWidth="sm"
+        deleteLabel="Supprimer l’exercice"
         onDelete={
           exercise ? () => confirmDialogRef.current?.showModal() : undefined
         }

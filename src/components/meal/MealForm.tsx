@@ -207,6 +207,7 @@ export function MealForm({ dialogRef, foodItems, editingMeal }: MealFormProps) {
         dialogRef={dialogRef}
         title={editingMeal ? 'Modifier un repas' : 'Ajouter un repas'}
         onDialogNode={setDialogNode}
+        deleteLabel="Supprimer le repas"
         onDelete={
           editingMeal ? () => confirmDialogRef.current?.showModal() : undefined
         }

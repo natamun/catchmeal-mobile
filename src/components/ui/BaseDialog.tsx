@@ -1,5 +1,7 @@
-import { useCallback, type ReactNode, type RefObject } from 'react';
-import { Trash2, X } from 'lucide-react';
+import { useCallback, useState, type ReactNode, type RefObject } from 'react';
+import { Ellipsis, Trash2, X } from 'lucide-react';
+
+import { BottomSheet } from './BottomSheet';
 
 const MAX_WIDTH_CLASS = {
   sm: 'max-w-sm',
@@ -14,8 +16,10 @@ interface BaseDialogProps {
   dialogRef: RefObject<HTMLDialogElement | null>;
   title: string;
   maxWidth?: keyof typeof MAX_WIDTH_CLASS;
-  /** Shows a trash button next to the close button. */
+  /** Adds a "⋯" button that opens a sheet with this delete action, in red. */
   onDelete?: () => void;
+  /** What the delete action says, such as "Supprimer l'aliment". */
+  deleteLabel?: string;
   onClose?: () => void;
   onDialogNode?: (node: HTMLDialogElement | null) => void;
   children: ReactNode;
@@ -25,7 +29,9 @@ interface BaseDialogProps {
  * Modal used by every dialog of the app: a native <dialog> opened with
  * showModal(), with a title, a close button and scrollable content. A click on
  * the blurred backdrop closes it (that click lands on the <dialog> element
- * itself). With `onDelete`, a trash button sits next to the close button.
+ * itself). With `onDelete`, a "⋯" button next to the close button opens a
+ * sheet from the bottom with the delete action in red: the header stays calm,
+ * and a rare action is never one tap away from the close button.
  *
  * `onDialogNode` hands the <dialog> element to the dropdowns, which must render
  * inside it to stay usable above the modal.
@@ -35,10 +41,12 @@ export function BaseDialog({
   title,
   maxWidth = 'lg',
   onDelete,
+  deleteLabel = 'Supprimer',
   onClose,
   onDialogNode,
   children,
 }: BaseDialogProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const setRefs = useCallback(
     (node: HTMLDialogElement | null) => {
       dialogRef.current = node;
@@ -67,14 +75,15 @@ export function BaseDialog({
           <h3 className="min-w-0 truncate text-lg font-bold text-theme-800">
             {title}
           </h3>
-          <div className="-my-2 -mr-2 flex shrink-0 items-center gap-2">
+          <div className="-my-2 -mr-2 flex shrink-0 items-center gap-1">
             {onDelete && (
               <button
                 type="button"
-                onClick={onDelete}
-                className={`${HEADER_BUTTON_CLASS} hover:text-red-500`}
+                onClick={() => setIsMenuOpen(true)}
+                aria-label="Plus d'actions"
+                className={`${HEADER_BUTTON_CLASS} hover:text-theme-600`}
               >
-                <Trash2 className="h-6 w-6" />
+                <Ellipsis className="h-6 w-6" />
               </button>
             )}
             <button
@@ -89,6 +98,25 @@ export function BaseDialog({
 
         {children}
       </div>
+      {onDelete && (
+        <BottomSheet
+          open={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+          title={title}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              setIsMenuOpen(false);
+              onDelete();
+            }}
+            className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-1 text-left text-base font-medium text-red-500 transition-colors hover:bg-red-500/10"
+          >
+            <Trash2 className="h-5 w-5 shrink-0" />
+            {deleteLabel}
+          </button>
+        </BottomSheet>
+      )}
     </dialog>
   );
 }
