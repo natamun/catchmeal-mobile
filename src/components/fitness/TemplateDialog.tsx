@@ -143,7 +143,7 @@ function TemplateForm({
           disabled={isSubmitting}
           className={PRIMARY_BUTTON_CLASS}
         >
-          {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+          {isSubmitting ? 'Enregistrement...' : 'Enregistrer la séance'}
         </button>
       </div>
     </form>

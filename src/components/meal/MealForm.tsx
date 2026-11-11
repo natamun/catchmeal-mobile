@@ -358,7 +358,7 @@ export function MealForm({ dialogRef, foodItems, editingMeal }: MealFormProps) {
               disabled={isSubmitting}
               className={PRIMARY_BUTTON_CLASS}
             >
-              {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+              {isSubmitting ? 'Enregistrement...' : 'Enregistrer le repas'}
             </button>
           </div>
         </form>

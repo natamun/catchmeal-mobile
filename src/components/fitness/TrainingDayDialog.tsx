@@ -118,7 +118,7 @@ export function TrainingDayReview({
           {isSubmitting
             ? 'Enregistrement...'
             : isEdit
-              ? 'Enregistrer'
+              ? 'Enregistrer la séance'
               : 'Ajouter à la séance'}
         </button>
       </div>

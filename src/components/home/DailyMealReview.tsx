@@ -107,7 +107,7 @@ export function DailyMealReview({
           {isSubmitting
             ? 'Enregistrement...'
             : isEdit
-              ? 'Enregistrer'
+              ? 'Enregistrer le repas'
               : 'Ajouter au journal'}
         </button>
       </div>

@@ -362,7 +362,7 @@ export function SaveBar({ editor, onSave }: SaveBarProps) {
         disabled={isSubmitting}
         className={PRIMARY_BUTTON_CLASS}
       >
-        {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+        {isSubmitting ? 'Enregistrement...' : 'Enregistrer la recette'}
       </button>
     </div>
   );

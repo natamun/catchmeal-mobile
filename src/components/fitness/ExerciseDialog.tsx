@@ -103,7 +103,7 @@ function ExerciseForm({ exercise, onSaved }: FormProps) {
         disabled={isSubmitting}
         className={PRIMARY_BUTTON_CLASS}
       >
-        {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+        {isSubmitting ? 'Enregistrement...' : 'Enregistrer l’exercice'}
       </button>
     </form>
   );

@@ -386,7 +386,7 @@ export function ProfileCard({ profile, onUpdate }: Props) {
             disabled={saving}
             className={`col-span-2 mt-2 ${PRIMARY_BUTTON_CLASS}`}
           >
-            {saving ? 'Enregistrement...' : 'Enregistrer'}
+            {saving ? 'Enregistrement...' : 'Enregistrer le profil'}
           </button>
         </div>
       </BaseDialog>

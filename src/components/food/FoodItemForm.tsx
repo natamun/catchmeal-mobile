@@ -504,7 +504,7 @@ export function FoodItemForm({
             disabled={isSubmitting}
             className={PRIMARY_BUTTON_CLASS}
           >
-            {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+            {isSubmitting ? 'Enregistrement...' : 'Enregistrer l’aliment'}
           </button>
         </form>
       </BaseDialog>
