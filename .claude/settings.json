@@ -1,0 +1,64 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make check)",
+      "Bash(make format)",
+      "Bash(make lint)",
+      "Bash(make build)",
+      "Bash(make test)",
+      "Bash(make testVerbose)",
+      "Bash(make knip)",
+      "Bash(make phone)",
+      "Bash(make apk)",
+      "Bash(make release)",
+      "Bash(npm run *)",
+      "Bash(npx vitest *)",
+      "Bash(npx tsc *)",
+      "Bash(npx eslint *)",
+      "Bash(npx prettier *)",
+      "Bash(npx cap *)",
+      "Bash(node .claude/tools/devapp.mjs *)",
+      "Bash(adb devices)",
+      "Bash(adb exec-out screencap *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ],
+    "ask": [
+      "Bash(make installRelease)",
+      "Bash(adb uninstall *)",
+      "Bash(adb shell pm clear *)",
+      "Edit(./CLAUDE.md)",
+      "Write(./CLAUDE.md)",
+      "Edit(./.claude/**)",
+      "Write(./.claude/**)"
+    ],
+    "deny": [
+      "Read(./node_modules/**)",
+      "Read(./dist/**)",
+      "Read(./release/**)",
+      "Read(./android/build/**)",
+      "Read(./android/app/build/**)",
+      "Read(./android/.gradle/**)",
+      "Read(./android/app/src/main/assets/public/**)",
+      "Read(./android/capacitor-cordova-android-plugins/**)",
+      "Read(./package-lock.json)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-edited-file.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}
