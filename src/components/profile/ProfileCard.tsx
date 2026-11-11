@@ -68,7 +68,6 @@ function summarize(profile: Profile) {
     GENDER_OPTIONS.find((o) => o.value === profile.gender)?.label,
     profile.birthDate ? `${getAge(profile.birthDate)} ans` : undefined,
     profile.height === null ? undefined : formatMeasure(profile.height, 'cm'),
-    ACTIVITY_OPTIONS.find((o) => o.value === profile.activityLevel)?.label,
     GOAL_TYPE_OPTIONS.find((o) => o.value === profile.goalType)?.label,
   ].filter(Boolean);
 
