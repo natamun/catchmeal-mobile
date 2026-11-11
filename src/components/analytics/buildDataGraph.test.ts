@@ -20,6 +20,7 @@ const eaten = (day: string, kcal: number, goalKcal: number | null = null) =>
     bodyWater: null,
     muscleMass: null,
     goalKcal,
+    goalProtein: null,
     objective: null,
   }) satisfies DashboardDay;
 

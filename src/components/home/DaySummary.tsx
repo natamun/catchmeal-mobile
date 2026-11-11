@@ -32,7 +32,7 @@ const formatNumber = (value: number) => value.toLocaleString('fr-FR');
  * Progress against a goal in the accent. Beyond the goal, the bar is the value:
  * the accent stops square at the goal and the excess takes the second accent.
  */
-function Bar({
+export function GoalBar({
   value,
   goal,
   height,
@@ -158,7 +158,7 @@ export function DaySummary(props: Props) {
             {empty ? '–' : formatNumber(consumed)} / {formatNumber(goal)}
           </span>
         </div>
-        <Bar value={empty ? 0 : consumed} goal={goal} height="h-3" />
+        <GoalBar value={empty ? 0 : consumed} goal={goal} height="h-3" />
       </div>
       <dl className="grid grid-cols-3 gap-4">
         {MACROS.map(({ key, label: macroLabel }) => {
@@ -174,7 +174,7 @@ export function DaySummary(props: Props) {
                 </span>{' '}
                 / {macros[key].goal} g
               </dd>
-              <Bar value={value} goal={macros[key].goal} height="h-1.5" />
+              <GoalBar value={value} goal={macros[key].goal} height="h-1.5" />
             </div>
           );
         })}

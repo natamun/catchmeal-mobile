@@ -1,6 +1,6 @@
 /**
- * One day of stats, with null when nothing was logged. goalKcal is the calorie
- * goal in force that day.
+ * One day of stats, with null when nothing was logged. goalKcal and
+ * goalProtein are the goals in force that day.
  */
 export type DashboardDay = {
   day: string;
@@ -14,6 +14,7 @@ export type DashboardDay = {
   bodyWater: number | null;
   muscleMass: number | null;
   goalKcal: number | null;
+  goalProtein: number | null;
   objective: string | null;
 };
 

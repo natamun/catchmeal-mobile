@@ -4,15 +4,15 @@ import { measureScale } from './measureScale';
 
 describe('measureScale', () => {
   it('zooms on the curve, leaving a small margin', () => {
-    const { bottom, top } = measureScale([75.2, 76.1, 76.6]);
-    const share = (76.6 - 75.2) / (top - bottom);
+    const { bottom, top } = measureScale([75.2, 76.1, 77]);
+    const share = (77 - 75.2) / (top - bottom);
     expect(bottom).toBeLessThan(75.2);
-    expect(top).toBeGreaterThan(76.6);
+    expect(top).toBeGreaterThan(77);
     expect(share).toBeGreaterThan(0.8);
   });
 
   it('puts round graduations inside the chart', () => {
-    expect(measureScale([75.2, 76.6]).ticks).toEqual([75.5, 76, 76.5]);
+    expect(measureScale([75.2, 77]).ticks).toEqual([75.5, 76, 76.5, 77]);
   });
 
   it('keeps steps of 1, 2 or 5 on wide ranges', () => {
@@ -29,7 +29,7 @@ describe('measureScale', () => {
 
   it('does not blow up a tiny difference to the full height', () => {
     const { bottom, top } = measureScale([75.2, 75.3]);
-    expect(top - bottom).toBeGreaterThanOrEqual(0.5);
+    expect(top - bottom).toBeGreaterThanOrEqual(1.5);
   });
 
   it('gives a flat curve some height around its value', () => {

@@ -5,6 +5,12 @@ export function formatKg(value: number) {
   return value.toLocaleString('fr-FR', { maximumFractionDigits: 1 });
 }
 
+/** A change in kg with its sign: "+0,4", "−1,2", "0". */
+export function formatSignedKg(value: number) {
+  const sign = value > 0 ? '+' : value < 0 ? '−' : '';
+  return `${sign}${formatKg(Math.abs(value))}`;
+}
+
 /** A date such as "Lundi 20 octobre", capitalized. */
 export function formatWeekday(date: Date) {
   const day = date.toLocaleDateString('fr-FR', {

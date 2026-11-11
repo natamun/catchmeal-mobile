@@ -1,13 +1,6 @@
 import { MACROS } from '../../constants/macros';
 import { SERIES_COLORS } from './chartStyle';
 
-/** The DashboardDay field that holds the daily total of each macro. */
-export const MACRO_TOTAL_KEYS = {
-  protein: 'totalProtein',
-  carbs: 'totalCarbs',
-  fat: 'totalFat',
-} as const;
-
 /** One chart series per macro, with its color. */
 export const MACRO_SERIES = MACROS.map(({ key, label }, index) => ({
   key,

@@ -4,9 +4,10 @@ import { roundDecimals } from '../../utils/decimals';
 const PADDING = 0.1;
 /**
  * The smallest height shown, in the measure's unit: a flat curve, or a few
- * hundred grams of difference, must not be blown up to the full chart.
+ * hundred grams of difference (daily noise), must not be blown up to the
+ * full chart.
  */
-const MIN_SPAN = 0.5;
+const MIN_SPAN = 1.5;
 /** About how many graduations the axis aims for. */
 const TARGET_INTERVALS = 4;
 

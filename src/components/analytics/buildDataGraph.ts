@@ -8,7 +8,7 @@ const PX_PER_POINT = 24;
  * Rounded average of one value over days, skipping the days without data; 0
  * when no day has any.
  */
-export function averageOf(days: DashboardDay[], key: NumericKey) {
+function averageOf(days: DashboardDay[], key: NumericKey) {
   const values = days.flatMap((day) => day[key] ?? []);
 
   if (values.length === 0) {

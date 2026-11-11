@@ -1,46 +1,16 @@
 import { useMemo } from 'react';
 
-import { aimedWeeklyKg, goalPaceOf, type GoalType } from '../../data/goals';
 import { middayOf } from '../../utils/dateKey';
-import { formatKg } from '../../utils/format';
-import { linearTrend } from '../../utils/trend';
-import { useProfile } from '../profile/profileContext';
+import { formatSignedKg as signed } from '../../utils/format';
 import type { DateRange } from '../ui/CalendarButton';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { SummaryCard } from '../ui/SummaryCard';
 import { ChartSkeleton } from './ChartSkeleton';
+import { trendOf } from './periodSummary';
 import { TimeLineChart } from './TimeLineChart';
 import type { DashboardDay } from './types';
 
 const TITLE = 'Évolution';
-const DAY_MS = 24 * 60 * 60 * 1000;
-/** A trend needs a few measures spread over two weeks at least. */
-const MIN_TREND_POINTS = 3;
-const MIN_TREND_DAYS = 14;
-
-const signed = (value: number) =>
-  `${value > 0 ? '+' : value < 0 ? '−' : ''}${formatKg(Math.abs(value))}`;
-
-/**
- * The straight line that fits the measures (least squares), from the first
- * to the last, with its change per week; null with too few measures.
- */
-function trendOf(points: { value: number; time: number }[]) {
-  if (points.length < MIN_TREND_POINTS) return null;
-  const first = points[0].time;
-  const last = points.at(-1)!.time;
-  if (last - first < MIN_TREND_DAYS * DAY_MS) return null;
-  const line = linearTrend(
-    points.map(({ value, time }) => ({ day: (time - first) / DAY_MS, value })),
-  );
-  return {
-    ends: [
-      { time: first, value: line.valueAt(0) },
-      { time: last, value: line.valueAt((last - first) / DAY_MS) },
-    ],
-    perWeek: line.slope * 7,
-  };
-}
 
 export type MeasureKey =
   'weight' | 'bodyFat' | 'fatFreeMass' | 'bodyWater' | 'muscleMass';
@@ -64,8 +34,8 @@ interface Props {
 /**
  * Line chart of one body measure over the period, chosen with a select (weight
  * by default), with its trend dashed and its change per week once there are
- * 3 measures over 2 weeks. The weight also tells the change the goal aims at.
- * Dots are hidden beyond 31 points.
+ * 3 measures over 2 weeks; the weight's change per week is in the summary
+ * above, so its caption names the line only. Dots are hidden beyond 31 points.
  */
 export function MeasureChart({
   measure,
@@ -84,20 +54,10 @@ export function MeasureChart({
     [days, measure],
   );
 
-  const { profile } = useProfile();
   const trend = useMemo(() => trendOf(points), [points]);
   const { label, unit } =
     MEASURES.find(({ value }) => value === measure) ?? MEASURES[0];
 
-  const goalType = profile.goalType as GoalType | null;
-  const aimed =
-    measure === 'weight' && goalType && points.length > 0
-      ? aimedWeeklyKg(
-          goalType,
-          goalPaceOf(goalType, profile.goalPace),
-          points.at(-1)!.value,
-        )
-      : null;
   const selector = (
     <span className="flex min-w-0 flex-1 basis-40">
       <SelectDropdown
@@ -143,9 +103,15 @@ export function MeasureChart({
       {trend && (
         <p className="mt-2 flex items-center gap-2 text-xs text-theme-600">
           <span className="w-5 border-t-2 border-dashed border-theme-400" />
-          Tendance : {signed(trend.perWeek)} {unit}/sem.
-          {aimed !== null &&
-            ` · visé : ${aimed === 0 ? 'stable' : `${signed(aimed)} kg/sem.`}`}
+          {measure === 'weight' ? (
+            'Tendance'
+          ) : (
+            <>
+              Tendance : {signed(trend.perWeek)}
+              {'\u00a0'}
+              {unit}/sem.
+            </>
+          )}
         </p>
       )}
     </SummaryCard>

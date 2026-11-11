@@ -4,7 +4,7 @@ import {
   isSameDay,
   subDays,
 } from 'date-fns';
-import { ArrowRight, CalendarDays } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 
 import { CalendarButton, type DateRange } from '../ui/CalendarButton';
 import { PillTabs } from '../ui/PillTabs';
@@ -18,8 +18,9 @@ const PRESETS = [
 
 const DAYS_AROUND_TODAY = 90;
 
+/** "13/10", like the chart axes. */
 function formatDay(date: Date) {
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
 }
 
 /** Which shortcut (7, 30 or 90 days) matches the period, if it ends today. */
@@ -39,39 +40,47 @@ interface PeriodSelectorProps {
 }
 
 /**
- * Period of the stats page: a calendar for any range (up to 90 days around
- * today) and shortcuts for the last 7, 30 or 90 days.
+ * Period of the stats page on one row: a calendar for any range (up to 90
+ * days around today) and shortcuts for the last 7, 30 or 90 days.
  */
 export function PeriodSelector({ period, onChange }: PeriodSelectorProps) {
   const today = new Date();
+  const preset = activePreset(period, today);
+  // The calendar takes the accent only for a range of its own; with a
+  // shortcut, the shortcut is the active choice.
+  const custom = preset === null;
 
   return (
-    <div className="flex flex-wrap justify-between gap-3">
+    <div className="flex gap-2">
       <CalendarButton
         range={period}
         onRangeChange={onChange}
         min={subDays(today, DAYS_AROUND_TODAY)}
         max={addDays(today, DAYS_AROUND_TODAY)}
-        className="group flex rounded-xl border border-theme-200 bg-surface p-1.5 max-xs:w-full"
-        wrapperClassName="max-xs:w-full"
+        className="group flex w-full rounded-xl border border-theme-200 bg-surface p-1.5"
+        wrapperClassName="flex min-w-0 flex-1"
       >
-        <span className="flex items-center gap-2 rounded-lg bg-theme-500 px-3 py-1.5 text-sm font-medium whitespace-nowrap text-on-accent tabular-nums transition-colors group-hover:bg-theme-600 group-data-[open=true]:bg-theme-600 max-xs:flex-1 max-xs:justify-center">
+        <span
+          className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium whitespace-nowrap tabular-nums transition-colors ${
+            custom
+              ? 'bg-theme-500 text-on-accent group-hover:bg-theme-600 group-data-[open=true]:bg-theme-600'
+              : 'text-theme-700 group-hover:bg-theme-100 group-data-[open=true]:bg-theme-100'
+          }`}
+        >
           <CalendarDays className="h-4 w-4 shrink-0" />
-          {!isSameDay(period.from, period.to) && (
-            <>
-              {formatDay(period.from)}
-              <ArrowRight className="h-3.5 w-3.5 shrink-0 text-theme-100" />
-            </>
-          )}
-          {formatDay(period.to)}
+          <span className="truncate">
+            {isSameDay(period.from, period.to)
+              ? formatDay(period.to)
+              : `${formatDay(period.from)} – ${formatDay(period.to)}`}
+          </span>
         </span>
       </CalendarButton>
       <PillTabs
         name="statsPeriod"
         options={PRESETS}
-        value={activePreset(period, today)}
+        value={preset}
         onChange={(days) => onChange(lastDays(Number(days)))}
-        className="max-xs:w-full max-xs:*:flex-1"
+        className="shrink-0"
       />
     </div>
   );

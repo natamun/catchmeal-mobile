@@ -62,6 +62,7 @@ const day = (key: string, values: Partial<DashboardDay>): DashboardDay => ({
   bodyWater: null,
   muscleMass: null,
   goalKcal: null,
+  goalProtein: null,
   objective: null,
   ...values,
 });

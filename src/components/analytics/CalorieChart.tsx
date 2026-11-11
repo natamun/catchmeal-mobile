@@ -1,54 +1,25 @@
 import { useMemo, useState } from 'react';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  Rectangle,
-  ResponsiveContainer,
-  Tooltip,
-  useActiveTooltipLabel,
-  useIsTooltipActive,
-  XAxis,
-  YAxis,
-  type BarShapeProps,
-  type TooltipContentProps,
-} from 'recharts';
 
 import { SummaryCard } from '../ui/SummaryCard';
 import { buildDataGraph, grainForWidth } from './buildDataGraph';
 import { ChartSkeleton } from './ChartSkeleton';
-import {
-  AXIS_LINE,
-  AXIS_WIDTH,
-  CHART_HEIGHT,
-  GRID_STROKE,
-  MIN_TICK_GAP,
-  X_TICK,
-  Y_TICK,
-} from './chartStyle';
-import { legendLabel } from './legendLabel';
 import { MACRO_SERIES, UNSPLIT_SERIES } from './macroSeries';
 import { MacroTooltip } from './MacroTooltip';
+import { INITIAL_PLOT_WIDTH, StackedBarChart } from './StackedBarChart';
 import type { DashboardDay, DataGraph, Grain, KcalPoint } from './types';
-import { useChartTooltip } from './useChartTooltip';
 
+const TITLE = 'Calories et macronutriments';
 const GRAIN_CAPTION: Record<Grain, string> = {
   day: 'Par jour',
   week: 'Moyenne par semaine',
   biWeek: 'Moyenne sur 2 semaines',
 };
 
-const INITIAL_WIDTH = 530;
-const MAX_BAR_SIZE = 25;
-const TOP_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
-const KCAL_MARGIN = { top: 8, right: 8, bottom: 0, left: 0 };
 const SCALE_STEPS = [50, 100, 250, 500, 1000, 1500, 2000, 2500, 5000];
 const MAX_INTERVALS = 5;
 const KCAL_PER_GRAM = { protein: 4, carbs: 4, fat: 9 } as const;
 const ALL_SERIES = [...MACRO_SERIES, UNSPLIT_SERIES];
-const SERIES_ORDER: string[] = ALL_SERIES.map(({ dataKey }) => dataKey);
-const TOP_SERIES: string[] = [
+const TOP_SERIES = [
   MACRO_SERIES[MACRO_SERIES.length - 1].dataKey,
   UNSPLIT_SERIES.dataKey,
 ];
@@ -103,27 +74,6 @@ function splitByMacro(point: DataGraph): KcalPoint {
   };
 }
 
-/**
- * One piece of a stacked bar; the other bars fade while the tooltip shows one
- * of them.
- */
-function MacroSegment(props: BarShapeProps) {
-  const hovering = useIsTooltipActive();
-  const activeLabel = useActiveTooltipLabel();
-  const point = props.payload as KcalPoint;
-  const dimmed = hovering && activeLabel !== point.from;
-
-  return (
-    <Rectangle
-      {...props}
-      className="transition-opacity"
-      opacity={dimmed ? 0.4 : 1}
-    />
-  );
-}
-
-const renderSegment = (props: BarShapeProps) => <MacroSegment {...props} />;
-
 interface Props {
   days: DashboardDay[];
   /** The period (YYYY-MM-DD): every calendar day of it gets its place. */
@@ -133,17 +83,15 @@ interface Props {
 }
 
 /**
- * Stacked bar chart of the calories per day, split by macro. Days are grouped
- * by calendar week or two weeks when the period is too long for the width of
- * the chart.
+ * Stacked bar chart of the calories per day, split by macro. Days are grouped by calendar week or two weeks when
+ * the period is too long for the width of the chart.
  */
 export function CalorieChart({ days, from, to, isLoading = false }: Props) {
-  const [width, setWidth] = useState(INITIAL_WIDTH);
-  const tooltipArea = useChartTooltip();
+  const [plotWidth, setPlotWidth] = useState(INITIAL_PLOT_WIDTH);
 
   const grain = useMemo<Grain>(
-    () => grainForWidth(width - AXIS_WIDTH - KCAL_MARGIN.right, from, to),
-    [width, from, to],
+    () => grainForWidth(plotWidth, from, to),
+    [plotWidth, from, to],
   );
 
   const data = useMemo<DataGraph[]>(
@@ -165,7 +113,7 @@ export function CalorieChart({ days, from, to, isLoading = false }: Props) {
 
   if (isLoading) {
     return (
-      <SummaryCard title="Calories et macronutriments">
+      <SummaryCard title={TITLE}>
         <ChartSkeleton />
       </SummaryCard>
     );
@@ -173,58 +121,20 @@ export function CalorieChart({ days, from, to, isLoading = false }: Props) {
 
   return (
     <SummaryCard
-      title="Calories et macronutriments"
+      title={TITLE}
       aside={
         <span className="text-sm text-theme-600">{GRAIN_CAPTION[grain]}</span>
       }
     >
-      <div ref={tooltipArea}>
-        <ResponsiveContainer
-          width="100%"
-          height={CHART_HEIGHT}
-          onResize={setWidth}
-        >
-          <BarChart data={kcalData} margin={KCAL_MARGIN}>
-            <CartesianGrid stroke={GRID_STROKE} vertical={false} />
-            <XAxis
-              stroke={AXIS_LINE}
-              dataKey="from"
-              tick={X_TICK}
-              minTickGap={MIN_TICK_GAP}
-            />
-            <YAxis
-              stroke={AXIS_LINE}
-              width={AXIS_WIDTH}
-              interval={0}
-              ticks={kcalScale.ticks}
-              domain={[0, kcalScale.top]}
-              tick={Y_TICK}
-            />
-            <Tooltip
-              cursor={false}
-              content={(props: TooltipContentProps) => (
-                <MacroTooltip {...props} averaged={averaged} />
-              )}
-            />
-            {series.map(({ dataKey, label, fill }) => (
-              <Bar
-                key={dataKey}
-                dataKey={dataKey}
-                name={label}
-                stackId="kcal"
-                fill={fill}
-                maxBarSize={MAX_BAR_SIZE}
-                shape={renderSegment}
-                radius={TOP_SERIES.includes(dataKey) ? TOP_RADIUS : 0}
-              />
-            ))}
-            <Legend
-              itemSorter={(item) => SERIES_ORDER.indexOf(String(item.dataKey))}
-              formatter={legendLabel}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      <StackedBarChart
+        data={kcalData}
+        labelKey="from"
+        series={series}
+        roundedKeys={TOP_SERIES}
+        ticks={kcalScale.ticks}
+        tooltip={(props) => <MacroTooltip {...props} averaged={averaged} />}
+        onPlotWidth={setPlotWidth}
+      />
     </SummaryCard>
   );
 }

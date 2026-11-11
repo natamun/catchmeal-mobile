@@ -22,19 +22,20 @@ interface WeightRow {
 
 interface GoalRow {
   daily_calories: number;
+  daily_protein: number | null;
   objective: string | null;
   start_date: string;
 }
 
-const GOAL_COLUMNS = 'daily_calories, objective, start_date';
+const GOAL_COLUMNS = 'daily_calories, daily_protein, objective, start_date';
 
 /**
  * One entry per day from `from` to `to` (YYYY-MM-DD, both included) that has
  * a meal, a weigh-in or a new goal, the oldest first:
  * - the day's calories and macros, rounded, or null without any logged meal;
  * - the last weigh-in of the day, or null;
- * - the calorie goal in force at the end of the day and its objective, which
- *   may come from a goal set before the period.
+ * - the calorie and protein goals in force at the end of the day and their
+ *   objective, which may come from a goal set before the period.
  *
  * Weigh-ins and goals keep their exact moment; their day is the local one, so
  * a weigh-in at 00:30 counts for the day that just started.
@@ -110,6 +111,7 @@ export async function getDashboard(
       bodyWater: weight?.body_water ?? null,
       muscleMass: weight?.muscle_mass ?? null,
       goalKcal: goal?.daily_calories ?? null,
+      goalProtein: goal?.daily_protein ?? null,
       objective: goal?.objective ?? null,
     };
   });

@@ -1,37 +1,23 @@
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-  type TooltipContentProps,
-} from 'recharts';
+import { useState } from 'react';
 
 import { startOfDay } from '../../utils/dateKey';
-import { weeklySessions } from '../fitness/progress';
+import { weeklySessions, type WeekSessions } from '../fitness/progress';
 import type { Workout } from '../fitness/types';
 import { SummaryCard } from '../ui/SummaryCard';
+import { grainForWidth } from './buildDataGraph';
 import { ChartSkeleton } from './ChartSkeleton';
-import {
-  AXIS_LINE,
-  AXIS_WIDTH,
-  CHART_HEIGHT,
-  GRID_STROKE,
-  MIN_TICK_GAP,
-  SERIES_COLORS,
-  X_TICK,
-  Y_TICK,
-} from './chartStyle';
+import { SERIES_COLORS } from './chartStyle';
 import { ChartTooltip } from './ChartTooltip';
-import { legendLabel } from './legendLabel';
-import { useChartTooltip } from './useChartTooltip';
+import { INITIAL_PLOT_WIDTH, StackedBarChart } from './StackedBarChart';
 
-const TITLE = 'Séances par semaine';
-const MAX_BAR_SIZE = 25;
-const TOP_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
+const TITLE = 'Séances';
+/** Lower than the other charts: a count of a few sessions needs little. */
+const HEIGHT = 160;
+const SERIES = [
+  { dataKey: 'strength', label: 'Musculation', fill: SERIES_COLORS[0] },
+  { dataKey: 'cardio', label: 'Cardio', fill: SERIES_COLORS[1] },
+];
+const ROUNDED = ['cardio'];
 
 /** "02/11", the Monday of the week. */
 const weekLabel = (weekStart: string) =>
@@ -40,12 +26,34 @@ const weekLabel = (weekStart: string) =>
     month: '2-digit',
   });
 
-/** "Semaine du 2 nov." */
-const weekTitle = (weekStart: string) =>
-  `Semaine du ${startOfDay(weekStart).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-  })}`;
+const dayMonth = (date: Date) =>
+  date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+/** "Semaine du 2 nov.", or "Du 2 au 15 nov." for two weeks. */
+function barTitle(weekStart: string, weeks: number) {
+  const start = startOfDay(weekStart);
+  if (weeks === 1) return `Semaine du ${dayMonth(start)}`;
+  const end = new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate() + 7 * weeks - 1,
+  );
+  return `Du ${dayMonth(start)} au ${dayMonth(end)}`;
+}
+
+/** Adds the weeks up two by two, from the first one. */
+function pairWeeks(weeks: WeekSessions[]) {
+  const pairs: WeekSessions[] = [];
+  for (let i = 0; i < weeks.length; i += 2) {
+    const [first, second] = weeks.slice(i, i + 2);
+    pairs.push({
+      weekStart: first.weekStart,
+      strength: first.strength + (second?.strength ?? 0),
+      cardio: first.cardio + (second?.cardio ?? 0),
+    });
+  }
+  return pairs;
+}
 
 interface Props {
   workouts: Workout[];
@@ -56,7 +64,8 @@ interface Props {
 
 /**
  * How many sessions each week of the period held, strength ones and cardio
- * ones stacked: the regularity at a glance.
+ * ones stacked: the regularity at a glance. Weeks are added up two by two
+ * when the period is too long for the width of the chart, like the calories.
  */
 export function WeeklySessionsChart({
   workouts,
@@ -64,7 +73,7 @@ export function WeeklySessionsChart({
   to,
   isLoading = false,
 }: Props) {
-  const tooltipArea = useChartTooltip();
+  const [plotWidth, setPlotWidth] = useState(INITIAL_PLOT_WIDTH);
 
   if (isLoading) {
     return (
@@ -84,7 +93,10 @@ export function WeeklySessionsChart({
     );
   }
 
-  const weeks = weeklySessions(workouts, from, to);
+  const weeksPerBar =
+    grainForWidth(plotWidth, from, to, false) === 'biWeek' ? 2 : 1;
+  const weekly = weeklySessions(workouts, from, to);
+  const weeks = weeksPerBar === 2 ? pairWeeks(weekly) : weekly;
   const top = Math.max(2, ...weeks.map((w) => w.strength + w.cardio));
   const step = top > 8 ? 2 : 1;
   const ticks = Array.from(
@@ -93,58 +105,30 @@ export function WeeklySessionsChart({
   );
 
   return (
-    <SummaryCard title={TITLE}>
-      <div ref={tooltipArea}>
-        <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-          <BarChart
-            data={weeks}
-            margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
-          >
-            <CartesianGrid stroke={GRID_STROKE} vertical={false} />
-            <XAxis
-              stroke={AXIS_LINE}
-              dataKey="weekStart"
-              tickFormatter={weekLabel}
-              tick={X_TICK}
-              minTickGap={MIN_TICK_GAP}
-            />
-            <YAxis
-              stroke={AXIS_LINE}
-              width={AXIS_WIDTH}
-              interval={0}
-              allowDecimals={false}
-              ticks={ticks}
-              domain={[0, ticks.at(-1)!]}
-              tick={Y_TICK}
-            />
-            <Tooltip
-              cursor={false}
-              content={(props: TooltipContentProps) => (
-                <ChartTooltip
-                  {...props}
-                  label={weekTitle(String(props.label))}
-                />
-              )}
-            />
-            <Bar
-              dataKey="strength"
-              name="Musculation"
-              stackId="sessions"
-              fill={SERIES_COLORS[0]}
-              maxBarSize={MAX_BAR_SIZE}
-            />
-            <Bar
-              dataKey="cardio"
-              name="Cardio"
-              stackId="sessions"
-              fill={SERIES_COLORS[1]}
-              maxBarSize={MAX_BAR_SIZE}
-              radius={TOP_RADIUS}
-            />
-            <Legend formatter={legendLabel} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+    <SummaryCard
+      title={TITLE}
+      aside={
+        <span className="text-sm text-theme-600">
+          {weeksPerBar === 2 ? 'Par 2 semaines' : 'Par semaine'}
+        </span>
+      }
+    >
+      <StackedBarChart
+        data={weeks}
+        labelKey="weekStart"
+        series={SERIES}
+        roundedKeys={ROUNDED}
+        ticks={ticks}
+        tickFormatter={weekLabel}
+        tooltip={(props) => (
+          <ChartTooltip
+            {...props}
+            label={barTitle(String(props.label), weeksPerBar)}
+          />
+        )}
+        height={HEIGHT}
+        onPlotWidth={setPlotWidth}
+      />
     </SummaryCard>
   );
 }

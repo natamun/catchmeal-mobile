@@ -40,10 +40,15 @@ const weighIn = (at: string, weight: number, bodyFat: number | null = null) =>
     [weight, bodyFat, at],
   );
 
-const setGoal = (at: string, kcal: number, objective: string | null = null) =>
+const setGoal = (
+  at: string,
+  kcal: number,
+  objective: string | null = null,
+  protein: number | null = null,
+) =>
   db.run(
-    'INSERT INTO goal_setting (daily_calories, objective, start_date) VALUES (?, ?, ?)',
-    [kcal, objective, at],
+    'INSERT INTO goal_setting (daily_calories, daily_protein, objective, start_date) VALUES (?, ?, ?, ?)',
+    [kcal, protein, objective, at],
   );
 
 const EMPTY_DAY = {
@@ -57,6 +62,7 @@ const EMPTY_DAY = {
   bodyWater: null,
   muscleMass: null,
   goalKcal: null,
+  goalProtein: null,
   objective: null,
 };
 
@@ -150,6 +156,21 @@ describe('getDashboard', () => {
       ['2026-11-02', 2000],
       ['2026-11-03', 1800],
       ['2026-11-04', 1800],
+    ]);
+  });
+
+  it('gives the protein goal in force each day', async () => {
+    await setGoal('2026-10-20T10:00:00.000Z', 2000, null, 150);
+    await setGoal('2026-11-03T20:00:00.000Z', 1800, 'lose');
+    await logMeal('2026-11-02', 1500);
+    await logMeal('2026-11-04', 1600);
+
+    const days = await getDashboard(db, '2026-11-01', '2026-11-07');
+
+    expect(days.map(({ day, goalProtein }) => [day, goalProtein])).toEqual([
+      ['2026-11-02', 150],
+      ['2026-11-03', null],
+      ['2026-11-04', null],
     ]);
   });
 
