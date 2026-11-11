@@ -141,13 +141,7 @@ function RecipeSheet({
       </RecipeCard>
       <RecipeCard
         title="Ingrédients"
-        action={
-          <ServingsStepper
-            value={servings}
-            onChange={setServings}
-            prefix="Pour"
-          />
-        }
+        action={<ServingsStepper value={servings} onChange={setServings} />}
       >
         <IngredientRows
           recipe={recipe}

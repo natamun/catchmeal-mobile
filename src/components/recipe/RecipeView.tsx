@@ -32,7 +32,7 @@ export function ServingsStepper({
   prefix,
 }: ServingsStepperProps) {
   return (
-    <div className="flex items-center gap-2 select-none">
+    <div className="flex shrink-0 items-center gap-2 select-none">
       {prefix && <span className="text-sm text-theme-600">{prefix}</span>}
       <button
         type="button"
@@ -42,7 +42,7 @@ export function ServingsStepper({
       >
         <Minus className="h-4 w-4" />
       </button>
-      <span className="min-w-22 text-center text-sm font-semibold text-theme-800 tabular-nums">
+      <span className="min-w-19 text-center text-sm font-semibold whitespace-nowrap text-theme-800 tabular-nums">
         {servingsLabel(value)}
       </span>
       <button
@@ -69,8 +69,12 @@ export function RecipeCard({ title, action, children }: RecipeCardProps) {
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-theme-200 bg-surface p-5 shadow-sm">
       {(title || action) && (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          {title && <h3 className={SECTION_TITLE_CLASS}>{title}</h3>}
+        <div className="flex items-center justify-between gap-3">
+          {title && (
+            <h3 className={`min-w-0 truncate ${SECTION_TITLE_CLASS}`}>
+              {title}
+            </h3>
+          )}
           {action}
         </div>
       )}
