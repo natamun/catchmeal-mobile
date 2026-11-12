@@ -17,6 +17,7 @@ import {
   SaveBar,
   StepsEditor,
 } from '../components/recipe/RecipeEditor';
+import { RecipeImportCard } from '../components/recipe/RecipeImportCard';
 import {
   EmptyPart,
   IngredientRows,
@@ -174,7 +175,10 @@ function RecipeSheet({
   );
 }
 
-/** The recipe to write, on its own page, every part stacked. */
+/**
+ * The recipe to write, on its own page, every part stacked, then the card
+ * that writes or changes it with an AI.
+ */
 function EditRecipe({
   recipe,
   copyOf,
@@ -215,6 +219,7 @@ function EditRecipe({
       <Card title="Autres">
         <NotesField editor={editor} hideLabel />
       </Card>
+      <RecipeImportCard editor={editor} />
       <SaveBar editor={editor} onSave={() => void editor.save()} />
     </>
   );
