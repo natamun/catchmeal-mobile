@@ -40,7 +40,7 @@ CatCHMeal is a phone app (Capacitor web view, Galaxy S21+, one hand, often at th
 - **Every stat earns its place**: say what decision it helps the user make, or what motivates them. A figure nobody acts on goes.
 - **Step buttons are explicit**: "+10" and "+1" beside a typed value, never ambiguous symbols like "++" or "--".
 - **Search fields have a clear (×) button** once they hold text.
-- **List rows keep one height**: a long name truncates on one line; the full name is in the item's sheet.
+- **List rows keep one height and no chevron**: a long name truncates on one line, the full name is in the item's sheet, and a tap opens it without an arrow. Only an action row such as Profile's « Modifier les objectifs » (`ChevronRow`) shows one.
 - **Text alignment**: left, long prose included (recipe steps, notes), never justified: on a phone it leaves large gaps between words, even with hyphenation. Long prose gets `text-wrap: pretty` and a relaxed line height.
 
 ## Words on screen
