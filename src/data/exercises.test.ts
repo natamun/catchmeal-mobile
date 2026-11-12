@@ -9,6 +9,7 @@ import {
   archiveExercise,
   createExercise,
   listExercises,
+  setExerciseNotes,
   updateExercise,
 } from './exercises';
 
@@ -52,6 +53,7 @@ describe('createExercise', () => {
       id: exercise.id,
       name: 'Presse inclinée',
       kind: 'STRENGTH',
+      notes: null,
       archived: false,
     });
   });
@@ -141,6 +143,42 @@ describe('updateExercise', () => {
     await archiveExercise(db, exercise.id);
 
     await expect(updateExercise(db, exercise.id, NEW)).rejects.toThrow(
+      "Cet exercice n'existe plus.",
+    );
+  });
+});
+
+describe('setExerciseNotes', () => {
+  it('saves the note trimmed', async () => {
+    const exercise = await createExercise(db, NEW);
+
+    const noted = await setExerciseNotes(db, exercise.id, '  Siège cran 4\n');
+
+    expect(noted.notes).toBe('Siège cran 4');
+  });
+
+  it('removes the note when it is emptied', async () => {
+    const exercise = await createExercise(db, NEW);
+    await setExerciseNotes(db, exercise.id, 'Prise large');
+
+    const cleared = await setExerciseNotes(db, exercise.id, '   ');
+
+    expect(cleared.notes).toBeNull();
+  });
+
+  it('refuses a note longer than 1000 characters', async () => {
+    const exercise = await createExercise(db, NEW);
+
+    await expect(
+      setExerciseNotes(db, exercise.id, 'a'.repeat(1001)),
+    ).rejects.toThrow(DataError);
+  });
+
+  it('refuses an archived exercise', async () => {
+    const exercise = await createExercise(db, NEW);
+    await archiveExercise(db, exercise.id);
+
+    await expect(setExerciseNotes(db, exercise.id, 'Note')).rejects.toThrow(
       "Cet exercice n'existe plus.",
     );
   });

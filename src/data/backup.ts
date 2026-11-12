@@ -7,7 +7,7 @@ const APP = 'CatCHMeal';
  * Version of the file layout. A newer app keeps reading older files; an older
  * app refuses a newer file instead of guessing.
  */
-export const BACKUP_FORMAT = 10;
+export const BACKUP_FORMAT = 11;
 
 /** The format that added the fitness tables. */
 const FITNESS_FORMAT = 2;
@@ -20,7 +20,8 @@ const SHOPPING_FORMAT = 8;
 /** The format that logs cardio in sets. */
 const CARDIO_SETS_FORMAT = 9;
 // Format 10 added the sections of a recipe's ingredients: an older file has
-// none, which restores as null.
+// none, which restores as null. Format 11 added the notes of an exercise, null
+// in an older file.
 
 /** The stored columns of each table, in the order rows are restored. */
 const TABLES = {
@@ -105,7 +106,7 @@ const TABLES = {
     'objective',
     'start_date',
   ],
-  exercise: ['id', 'name', 'kind', 'met', 'archived'],
+  exercise: ['id', 'name', 'kind', 'met', 'notes', 'archived'],
   workout: ['id', 'performed_on', 'name', 'duration_minutes'],
   workout_exercise: [
     'id',

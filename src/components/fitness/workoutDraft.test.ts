@@ -12,6 +12,7 @@ const PRESS: Exercise = {
   id: 1,
   name: 'Presse à cuisses',
   kind: 'STRENGTH',
+  notes: null,
   archived: false,
 };
 const TREADMILL: Exercise = {

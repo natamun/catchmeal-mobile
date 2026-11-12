@@ -168,6 +168,7 @@ export function TrainingPicker({ day, onClose, onAdded }: Props) {
             isEdit={false}
             initialItems={review.items}
             history={library?.workouts ?? []}
+            exercises={library?.exercises ?? []}
             onSaved={onAdded}
           />
         </div>

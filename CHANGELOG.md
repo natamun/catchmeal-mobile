@@ -4,6 +4,10 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 
 ## [Unreleased]
 
+### Added
+
+- Each exercise has a personal note, written straight in its sheet and in the sheet of the session being logged, saved as you type and carried by the backup.
+
 ### Changed
 
 - While logging a session, each exercise's row shows its number of sets instead of a figure that read like repetitions.

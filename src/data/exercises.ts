@@ -5,7 +5,7 @@ import type {
 } from '../components/fitness/types';
 import type { Database, Executor } from '../db/database';
 import { DataError } from './errors';
-import { checkChoice, checkText } from './validation';
+import { checkChoice, checkOptionalText, checkText } from './validation';
 
 const EXERCISE_KINDS: readonly ExerciseKind[] = [
   'STRENGTH',
@@ -19,16 +19,18 @@ interface ExerciseRow {
   id: number;
   name: string;
   kind: ExerciseKind;
+  notes: string | null;
   archived: number;
 }
 
-const COLUMNS = 'id, name, kind, archived';
+const COLUMNS = 'id, name, kind, notes, archived';
 
 function toExercise(row: ExerciseRow): Exercise {
   return {
     id: row.id,
     name: row.name,
     kind: row.kind,
+    notes: row.notes,
     archived: row.archived === 1,
   };
 }
@@ -117,6 +119,23 @@ export async function updateExercise(
     exercise.kind,
     id,
   ]);
+  return (await findExercise(db, id))!;
+}
+
+/**
+ * Writes the personal note of an exercise, trimmed; an empty one removes it.
+ */
+export async function setExerciseNotes(
+  db: Executor,
+  id: number,
+  notes: string,
+) {
+  const text = checkOptionalText(notes, 'note', 1000);
+  const { changes } = await db.run(
+    'UPDATE exercise SET notes = ? WHERE id = ? AND archived = 0',
+    [text, id],
+  );
+  if (changes === 0) throw new DataError(GONE);
   return (await findExercise(db, id))!;
 }
 

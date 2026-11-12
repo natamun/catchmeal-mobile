@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 
-import { listWorkouts } from '../components/fitness/api';
+import { listExercises, listWorkouts } from '../components/fitness/api';
 import { TrainingDayReview } from '../components/fitness/TrainingDayReview';
 import type { Workout } from '../components/fitness/types';
 import { draftsOf } from '../components/fitness/workoutDraft';
 import { useFlow } from '../components/layout/flowContext';
 import { FlowHeader } from '../components/layout/FlowHeader';
+import { useList } from '../hooks/useList';
 import { journalPath, parseDateParam } from '../routing/journal';
 import { useGoBack } from '../routing/navigation';
 import { toDateKey } from '../utils/dateKey';
@@ -26,6 +27,8 @@ export default function TrainingEditPage() {
   const flow = useFlow();
   const [workouts, setWorkouts] = useState<Workout[] | null>(null);
   const [hasError, setHasError] = useState(false);
+  // Followed, unlike the session: a note written here shows at once.
+  const exercises = useList(listExercises);
 
   // Read once: the page edits the session as it was when it opened.
   useEffect(() => {
@@ -61,6 +64,7 @@ export default function TrainingEditPage() {
         isEdit
         initialItems={session ? draftsOf(session) : []}
         history={workouts}
+        exercises={exercises.items}
         onSaved={close}
       />
     );

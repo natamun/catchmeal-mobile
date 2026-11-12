@@ -12,6 +12,7 @@ import {
   type Backup,
 } from './backup';
 import { DataError } from './errors';
+import { setExerciseNotes } from './exercises';
 import { archiveFoodItem, createFoodItem } from './foodItems';
 import { createMeal } from './meals';
 import { getProfile, updateProfile } from './profile';
@@ -95,6 +96,7 @@ async function filledDatabase() {
     leanLossAlert: false,
   });
   const { press, treadmill } = await addTestExercises(db);
+  await setExerciseNotes(db, press, 'Siège cran 4');
   await createTemplate(db, {
     name: 'Tapis incliné',
     items: [{ exerciseId: treadmill }],
@@ -155,6 +157,9 @@ describe('backup', () => {
     expect(backup.recipe).toHaveLength(1);
     expect(backup.recipe_ingredient).toMatchObject([{ section: 'Fruits' }]);
     expect(backup.recipe_step).toHaveLength(2);
+    expect(backup.exercise).toContainEqual(
+      expect.objectContaining({ notes: 'Siège cran 4' }),
+    );
     expect(backup.shopping_item).toHaveLength(2);
     expect(backup.meal).toHaveLength(2);
     expect(backup.meal_item).toHaveLength(4);
@@ -246,6 +251,19 @@ describe('backup', () => {
     expect(
       await target.query('SELECT DISTINCT section FROM recipe_ingredient'),
     ).toEqual([{ section: null }]);
+  });
+
+  it('restores the exercises of a file from before the notes without one', async () => {
+    const old = structuredClone(backup);
+    old.format = 10;
+    for (const exercise of old.exercise!) delete exercise.notes;
+    const target = await freshDatabase();
+
+    await restoreBackup(target, parseBackup(asText(old)));
+
+    expect(await target.query('SELECT DISTINCT notes FROM exercise')).toEqual([
+      { notes: null },
+    ]);
   });
 
   it('turns the lean mass alert on when restoring a file from before it', async () => {

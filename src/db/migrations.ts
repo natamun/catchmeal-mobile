@@ -357,6 +357,14 @@ const RECIPE_SECTIONS_V14 = `
 ALTER TABLE recipe_ingredient ADD COLUMN section TEXT CHECK (section IS NULL OR length(trim(section)) BETWEEN 1 AND 60);
 `;
 
+/**
+ * A personal note on an exercise, kept from one session to the next: the seat
+ * setting, the grip, what to try next time.
+ */
+const EXERCISE_NOTES_V15 = `
+ALTER TABLE exercise ADD COLUMN notes TEXT CHECK (notes IS NULL OR length(trim(notes)) BETWEEN 1 AND 1000);
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: SCHEMA_V1 },
@@ -373,6 +381,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 12, sql: SHOPPING_V12 },
   { version: 13, sql: CARDIO_SETS_V13 },
   { version: 14, sql: RECIPE_SECTIONS_V14 },
+  { version: 15, sql: EXERCISE_NOTES_V15 },
 ];
 
 /**

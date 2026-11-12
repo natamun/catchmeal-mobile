@@ -14,6 +14,8 @@ export interface Exercise {
   id: number;
   name: string;
   kind: ExerciseKind;
+  /** The user's own note, kept from one session to the next. */
+  notes: string | null;
   archived: boolean;
 }
 

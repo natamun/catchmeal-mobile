@@ -8,6 +8,7 @@ import { BaseDialog } from '../ui/BaseDialog';
 import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { InfoBubble } from '../ui/InfoBubble';
 import { StatTile as Tile } from '../ui/StatTile';
+import { ExerciseNotes } from './ExerciseNotes';
 import { describeValues } from './format';
 import {
   cardioMinutes,
@@ -32,17 +33,20 @@ const METRIC_NAMES: Record<ProgressMetric, string> = {
 interface Props {
   dialogRef: RefObject<HTMLDialogElement | null>;
   exercise: Exercise | null;
+  /** Changes at each opening, so a note left half typed starts again. */
+  openCount: number;
   workouts: readonly Workout[];
   onEdit: (exercise: Exercise) => void;
 }
 
 /**
- * The logbook of one exercise: its records or totals, the curve of the one
+ * The logbook of one exercise: its note, its records or totals, the curve of the one
  * picked in the grid, its last sessions, and a way to rename or retype it.
  */
 export function ExerciseSheet({
   dialogRef,
   exercise,
+  openCount,
   workouts,
   onEdit,
 }: Props) {
@@ -87,6 +91,11 @@ export function ExerciseSheet({
     <BaseDialog dialogRef={dialogRef} title={exercise?.name ?? ''}>
       {exercise && (
         <div className="flex flex-col gap-5">
+          <ExerciseNotes
+            key={`${exercise.id}-${openCount}`}
+            exerciseId={exercise.id}
+            notes={exercise.notes}
+          />
           {history.length === 0 ? (
             <p className="text-sm text-theme-600">
               Pas encore de séance avec cet exercice.

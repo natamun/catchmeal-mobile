@@ -30,6 +30,11 @@ export async function updateExercise(id: number, input: ExerciseInput) {
   return changing(exercises.updateExercise(await getDatabase(), id, input));
 }
 
+/** Writes the personal note of an exercise; an empty one removes it. */
+export async function setExerciseNotes(id: number, notes: string) {
+  return changing(exercises.setExerciseNotes(await getDatabase(), id, notes));
+}
+
 /** Archives the exercise: the past sessions keep it. */
 export async function deleteExercise(id: number) {
   return changing(exercises.archiveExercise(await getDatabase(), id));

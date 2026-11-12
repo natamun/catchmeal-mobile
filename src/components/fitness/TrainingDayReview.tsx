@@ -8,15 +8,20 @@ import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { EditableList, type EditableRow } from '../ui/EditableList';
 import { useToast } from '../ui/toastContext';
 import { addToDay, saveDay } from './api';
+import { ExerciseNotes } from './ExerciseNotes';
 import { draftSummary } from './format';
 import { ItemSets } from './ItemEditor';
 import { newRecords } from './records';
-import type { Workout } from './types';
+import type { Exercise, Workout } from './types';
 import { draftsToItems, type ItemDraft } from './workoutDraft';
 
-/** The row of an exercise of the day's session. */
+/**
+ * The row of an exercise of the day's session; its sheet shows the
+ * exercise's note above the sets.
+ */
 function itemRow(
   item: ItemDraft,
+  notes: string | null,
   onChange: (item: ItemDraft) => void,
   onRemove: () => void,
 ): EditableRow {
@@ -24,7 +29,16 @@ function itemRow(
     id: item.key,
     name: item.name,
     value: draftSummary(item),
-    editor: <ItemSets item={item} onChange={onChange} />,
+    editor: (
+      <div className="flex flex-col gap-5">
+        <ExerciseNotes
+          key={item.exerciseId}
+          exerciseId={item.exerciseId}
+          notes={notes}
+        />
+        <ItemSets item={item} onChange={onChange} />
+      </div>
+    ),
     onRemove,
   };
 }
@@ -34,6 +48,8 @@ interface ReviewProps {
   isEdit: boolean;
   initialItems: ItemDraft[];
   history: Workout[];
+  /** The library, for the note of each exercise. */
+  exercises: readonly Exercise[];
   onSaved: () => void;
 }
 
@@ -47,6 +63,7 @@ export function TrainingDayReview({
   isEdit,
   initialItems,
   history,
+  exercises,
   onSaved,
 }: ReviewProps) {
   const showToast = useToast();
@@ -100,6 +117,7 @@ export function TrainingDayReview({
           rows={items.map((item) =>
             itemRow(
               item,
+              exercises.find(({ id }) => id === item.exerciseId)?.notes ?? null,
               (changed) =>
                 setItems((current) =>
                   current.map((other) =>

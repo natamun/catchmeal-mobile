@@ -43,7 +43,13 @@ export default function FitnessPage() {
     openCount: number;
   }>({ template: null, openCount: 0 });
   const sheetRef = useRef<HTMLDialogElement>(null);
-  const [sheetExercise, setSheetExercise] = useState<Exercise | null>(null);
+  // The id, so the sheet follows the library when its note changes.
+  const [sheet, setSheet] = useState<{ id: number | null; openCount: number }>({
+    id: null,
+    openCount: 0,
+  });
+  const sheetExercise =
+    exercises.items.find(({ id }) => id === sheet.id) ?? null;
   const exerciseDialogRef = useRef<HTMLDialogElement>(null);
   const [exerciseDialog, setExerciseDialog] = useState<{
     exercise: Exercise | null;
@@ -67,7 +73,10 @@ export default function FitnessPage() {
   };
 
   const openSheet = (exercise: Exercise) => {
-    setSheetExercise(exercise);
+    setSheet(({ openCount }) => ({
+      id: exercise.id,
+      openCount: openCount + 1,
+    }));
     sheetRef.current?.showModal();
   };
 
@@ -124,6 +133,7 @@ export default function FitnessPage() {
       <ExerciseSheet
         dialogRef={sheetRef}
         exercise={sheetExercise}
+        openCount={sheet.openCount}
         workouts={workouts.items}
         onEdit={(exercise) => {
           sheetRef.current?.close();
