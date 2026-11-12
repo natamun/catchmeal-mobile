@@ -66,9 +66,11 @@ export function SelectDropdown({
           setOpen(true);
         }}
         data-state={open ? 'open' : 'closed'}
-        className={`flex cursor-pointer items-center justify-between border border-theme-200 bg-surface text-left text-theme-800 transition-colors outline-none hover:bg-theme-100 focus:border-theme-400 data-[state=open]:bg-theme-100 ${SIZE[size].trigger} ${className}`}
+        className={`flex cursor-pointer items-center justify-between gap-2 border border-theme-200 bg-surface text-left text-theme-800 transition-colors outline-none hover:bg-theme-100 focus:border-theme-400 data-[state=open]:bg-theme-100 ${SIZE[size].trigger} ${className}`}
       >
-        <span className={selected ? '' : 'text-theme-800/50'}>
+        <span
+          className={`min-w-0 truncate ${selected ? '' : 'text-theme-800/50'}`}
+        >
           {selected?.label ?? placeholder}
         </span>
         <ChevronDown className={`shrink-0 text-theme-400 ${SIZE[size].icon}`} />

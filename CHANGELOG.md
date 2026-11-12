@@ -65,6 +65,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - A touch on the Évolution chart picks the point under the finger, not always the same one.
 - Every chart date reads 06/11: the calorie and Évolution charts wrote 06-11.
 - A dialog's title and close button stay in place while its content scrolls, and a long dialog no longer runs under the status bar.
+- A long recipe category, such as « Accompagnement », no longer overflows: the category takes a whole row, and a choice too long for its field ends with « … ».
 
 ## [0.9.3] - 2026-11-09
 

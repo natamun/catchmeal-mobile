@@ -83,24 +83,26 @@ export function InfoFields({ editor }: PartProps) {
         <FieldError message={errors.name} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="recipe-category" className={LABEL_CLASS}>
-            Catégorie
-          </label>
-          <SelectDropdown
-            id="recipe-category"
-            value={form.category ?? ''}
-            options={CATEGORY_OPTIONS}
-            onChange={(value) =>
-              update({ category: (value || null) as RecipeCategory | null })
-            }
-          />
-        </div>
-        <div className="relative flex flex-col gap-1.5">
-          <label htmlFor="recipe-prep" className={LABEL_CLASS}>
-            Préparation (min)
-          </label>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="recipe-category" className={LABEL_CLASS}>
+          Catégorie
+        </label>
+        <SelectDropdown
+          id="recipe-category"
+          value={form.category ?? ''}
+          options={CATEGORY_OPTIONS}
+          onChange={(value) =>
+            update({ category: (value || null) as RecipeCategory | null })
+          }
+        />
+      </div>
+
+      <div className="relative flex items-center justify-between gap-3">
+        <label htmlFor="recipe-prep" className={LABEL_CLASS}>
+          Préparation (min)
+        </label>
+        {/* As wide as the servings stepper under it, so both line up. */}
+        <div className="w-41 shrink-0">
           <Input
             id="recipe-prep"
             type="text"
@@ -110,9 +112,10 @@ export function InfoFields({ editor }: PartProps) {
             onChange={(e) => update({ prepMinutes: e.target.value })}
             data-invalid={Boolean(errors.prepMinutes)}
             autoComplete="off"
+            className="text-center"
           />
-          <FieldError message={errors.prepMinutes} align="right" />
         </div>
+        <FieldError message={errors.prepMinutes} align="right" />
       </div>
 
       <div className="flex items-center justify-between gap-3">
