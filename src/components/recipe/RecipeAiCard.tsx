@@ -1,15 +1,8 @@
-import { Copy, Share2 } from 'lucide-react';
-
-import { copyText, shareText } from '../../native/shareText';
 import type { FoodItem } from '../food/types';
 import { useProfile } from '../profile/profileContext';
-import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
-import { Card } from '../ui/Card';
-import { useToast } from '../ui/toastContext';
+import { AiCard } from '../ui/AiCard';
 import { buildRecipePrompt } from './recipePrompt';
 import type { Recipe } from './types';
-
-const TITLE = 'Demander à une IA';
 
 interface Props {
   recipe: Recipe;
@@ -22,46 +15,5 @@ interface Props {
  */
 export function RecipeAiCard({ recipe, foodItems }: Props) {
   const { profile } = useProfile();
-  const showToast = useToast();
-  const prompt = () => buildRecipePrompt(recipe, foodItems, profile);
-
-  const copy = async () => {
-    try {
-      await copyText(prompt());
-      showToast('Copié, à coller dans une IA', Copy);
-    } catch {
-      showToast('Copie impossible');
-    }
-  };
-
-  const share = async () => {
-    try {
-      await shareText(TITLE, prompt());
-    } catch {
-      showToast('Partage impossible');
-    }
-  };
-
-  return (
-    <Card title={TITLE}>
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={() => void copy()}
-          className={SECONDARY_BUTTON_CLASS}
-        >
-          <Copy className="h-4 w-4" />
-          Copier
-        </button>
-        <button
-          type="button"
-          onClick={() => void share()}
-          className={SECONDARY_BUTTON_CLASS}
-        >
-          <Share2 className="h-4 w-4" />
-          Partager
-        </button>
-      </div>
-    </Card>
-  );
+  return <AiCard text={() => buildRecipePrompt(recipe, foodItems, profile)} />;
 }

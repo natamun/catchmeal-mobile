@@ -1,7 +1,3 @@
-import { useState } from 'react';
-import { Copy, Share2 } from 'lucide-react';
-
-import { copyText, shareText } from '../../native/shareText';
 import { listWorkouts } from '../fitness/api';
 import {
   getGoalStart,
@@ -9,13 +5,9 @@ import {
   getWeightHistory,
 } from '../profile/api';
 import { useProfile } from '../profile/profileContext';
-import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
-import { Card } from '../ui/Card';
-import { useToast } from '../ui/toastContext';
+import { AiCard } from '../ui/AiCard';
 import { buildAiContext } from './aiContext';
 import type { DashboardDay } from './types';
-
-const TITLE = 'Demander à une IA';
 
 interface Props {
   from: string;
@@ -30,71 +22,25 @@ interface Props {
  */
 export function AiContextCard({ from, to, days, isLoading = false }: Props) {
   const { profile } = useProfile();
-  const showToast = useToast();
-  const [isBusy, setIsBusy] = useState(false);
 
-  const run = async (
-    send: (text: string) => Promise<void>,
-    failure: string,
-  ) => {
-    setIsBusy(true);
-    try {
-      const [measured, weighIns, workouts, goalStart] = await Promise.all([
-        getMeasuredExpenditure().catch(() => null),
-        getWeightHistory().catch(() => []),
-        listWorkouts().catch(() => []),
-        getGoalStart().catch(() => null),
-      ]);
-      await send(
-        buildAiContext({
-          from,
-          to,
-          days,
-          profile,
-          measured,
-          weighIns,
-          goalStart,
-          workouts,
-        }),
-      );
-    } catch {
-      showToast(failure);
-    } finally {
-      setIsBusy(false);
-    }
+  const text = async () => {
+    const [measured, weighIns, workouts, goalStart] = await Promise.all([
+      getMeasuredExpenditure().catch(() => null),
+      getWeightHistory().catch(() => []),
+      listWorkouts().catch(() => []),
+      getGoalStart().catch(() => null),
+    ]);
+    return buildAiContext({
+      from,
+      to,
+      days,
+      profile,
+      measured,
+      weighIns,
+      goalStart,
+      workouts,
+    });
   };
 
-  const copy = () =>
-    run(async (text) => {
-      await copyText(text);
-      showToast('Copié, à coller dans une IA', Copy);
-    }, 'Copie impossible');
-
-  const share = () =>
-    run((text) => shareText(TITLE, text), 'Partage impossible');
-
-  return (
-    <Card title={TITLE}>
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={() => void copy()}
-          disabled={isLoading || isBusy}
-          className={SECONDARY_BUTTON_CLASS}
-        >
-          <Copy className="h-4 w-4" />
-          Copier
-        </button>
-        <button
-          type="button"
-          onClick={() => void share()}
-          disabled={isLoading || isBusy}
-          className={SECONDARY_BUTTON_CLASS}
-        >
-          <Share2 className="h-4 w-4" />
-          Partager
-        </button>
-      </div>
-    </Card>
-  );
+  return <AiCard text={text} disabled={isLoading} />;
 }
