@@ -9,8 +9,10 @@ import {
   archiveFoodItem,
   createFoodItem,
   listFoodItems,
+  listFoodUsage,
   updateFoodItem,
 } from './foodItems';
+import { createMeal } from './meals';
 
 let db: Database;
 
@@ -190,5 +192,62 @@ describe('archiveFoodItem', () => {
 
   it('refuses an unknown food', async () => {
     await expect(archiveFoodItem(db, 999)).rejects.toThrow(DataError);
+  });
+});
+
+describe('listFoodUsage', () => {
+  const log = (foodItemId: number, quantity: number, day: string) =>
+    createMeal(db, {
+      typeMeal: 'LUNCH',
+      loggedAt: day,
+      items: [{ foodItemId, quantity }],
+    });
+
+  it('counts the journal logs of each food, with the latest one', async () => {
+    const apple = await createFoodItem(db, APPLE);
+    await log(apple.id, 150, '2026-11-10');
+    await log(apple.id, 200, '2026-09-01');
+    await log(apple.id, 120, '2026-11-10');
+    await log(apple.id, 80, '2026-06-01');
+
+    expect(await listFoodUsage(db, '2026-11-12')).toEqual([
+      {
+        foodItemId: apple.id,
+        count: 4,
+        last30Days: 2,
+        last90Days: 3,
+        lastDay: '2026-11-10',
+        lastQuantity: 120,
+      },
+    ]);
+  });
+
+  it('counts the 30 and 90 days back from today, today included', async () => {
+    const apple = await createFoodItem(db, APPLE);
+    await log(apple.id, 100, '2026-11-12');
+    await log(apple.id, 100, '2026-10-14');
+    await log(apple.id, 100, '2026-10-13');
+    await log(apple.id, 100, '2026-08-15');
+    await log(apple.id, 100, '2026-08-14');
+
+    const [usage] = await listFoodUsage(db, '2026-11-12');
+
+    expect(usage.last30Days).toBe(2);
+    expect(usage.last90Days).toBe(4);
+  });
+
+  it('leaves out the library meals and the foods never logged', async () => {
+    const apple = await createFoodItem(db, APPLE);
+    await createFoodItem(db, { ...APPLE, name: 'Poire' });
+    await createMeal(db, {
+      name: 'Goûter',
+      items: [{ foodItemId: apple.id, quantity: 100 }],
+    });
+
+    expect(await listFoodUsage(db, '2026-11-12')).toEqual([]);
+  });
+
+  it('refuses a malformed day', async () => {
+    await expect(listFoodUsage(db, '2026-13-01')).rejects.toThrow(DataError);
   });
 });

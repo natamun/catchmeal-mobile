@@ -7,6 +7,7 @@ import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { BaseDialog } from './BaseDialog';
 import { PRIMARY_BUTTON_CLASS } from './buttonStyle';
 import {
+  BY_FREQUENCY,
   EMPTY_FILTER_CRITERIA,
   type FilterCriteria,
   type MacroFilter,
@@ -31,7 +32,15 @@ const MACRO_FIELDS: {
   { key: 'fat', label: 'Lipides', unit: 'g', step: 1 },
 ];
 
-const SORT_OPTIONS: { value: string; label: string; option: SortOption }[] = [
+type SortChoice = { value: string; label: string; option: SortOption };
+
+const FREQUENCY_OPTION: SortChoice = {
+  value: 'frequency-desc',
+  label: 'Les plus loggés',
+  option: BY_FREQUENCY,
+};
+
+const SORT_OPTIONS: SortChoice[] = [
   {
     value: 'name-asc',
     label: 'Nom (A → Z)',
@@ -121,6 +130,8 @@ interface MacroSearchBarProps {
   categories?: { value: string; label: string }[];
   /** What the values are, under the sliders. */
   note?: string;
+  /** Offers the sort by frequency, first. */
+  canSortByFrequency?: boolean;
 }
 
 /** The color of a macro's dots in the lists, none for the calories. */
@@ -140,7 +151,11 @@ export function MacroSearchBar({
   onFilterChange,
   categories = [],
   note = 'Valeurs en grammes',
+  canSortByFrequency = false,
 }: MacroSearchBarProps) {
+  const sortOptions = canSortByFrequency
+    ? [FREQUENCY_OPTION, ...SORT_OPTIONS]
+    : SORT_OPTIONS;
   const [draftMacros, setDraftMacros] = useState<MacroDraft>(
     EMPTY_FILTER_CRITERIA,
   );
@@ -244,9 +259,9 @@ export function MacroSearchBar({
         <SelectDropdown
           title="Trier par"
           value={currentSortValue}
-          options={SORT_OPTIONS}
+          options={sortOptions}
           onChange={(value) => {
-            const sort = SORT_OPTIONS.find((o) => o.value === value);
+            const sort = sortOptions.find((o) => o.value === value);
             if (sort) setDraftSort(sort.option);
           }}
         />

@@ -47,13 +47,27 @@ export const scaledQuantity = (
 const PIECE = { portionName: 'pièce' };
 
 /**
+ * How much of a food in two parts: the main one, "800 g", "200 ml", "2 pièces"
+ * or "4 biscuits" for whole portions, and the weight of those portions,
+ * "48 g", null otherwise.
+ */
+export function amountParts(food: FoodItem, quantity: number) {
+  if (food.baseUnit === 'PIECE') {
+    return { main: portionLabel(PIECE, quantity), weight: null };
+  }
+  const unit = food.baseUnit === 'GRAM' ? 'g' : 'ml';
+  const amount = `${roundDecimals(quantity, 1).toLocaleString('fr-FR')} ${unit}`;
+  const count = wholePortions(food, quantity);
+  return count === null
+    ? { main: amount, weight: null }
+    : { main: portionLabel(food, count), weight: amount };
+}
+
+/**
  * How much of a food, as a cook reads it: "800 g", "200 ml", "2 pièces", or
  * "4 biscuits (48 g)" for whole portions.
  */
 export function amountText(food: FoodItem, quantity: number) {
-  if (food.baseUnit === 'PIECE') return portionLabel(PIECE, quantity);
-  const unit = food.baseUnit === 'GRAM' ? 'g' : 'ml';
-  const amount = `${roundDecimals(quantity, 1).toLocaleString('fr-FR')} ${unit}`;
-  const count = wholePortions(food, quantity);
-  return count === null ? amount : `${portionLabel(food, count)} (${amount})`;
+  const { main, weight } = amountParts(food, quantity);
+  return weight === null ? main : `${main} (${weight})`;
 }

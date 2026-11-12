@@ -7,6 +7,7 @@ import { TimeLineChart } from '../analytics/TimeLineChart';
 import { BaseDialog } from '../ui/BaseDialog';
 import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { InfoBubble } from '../ui/InfoBubble';
+import { StatTile as Tile } from '../ui/StatTile';
 import { describeValues } from './format';
 import {
   cardioMinutes,
@@ -22,45 +23,6 @@ import type { Exercise, Workout } from './types';
 const RECENT = 5;
 
 const shortDay = (day: string) => formatShortDate(startOfDay(day));
-
-const TILE = 'rounded-xl px-3 py-1.5 text-left';
-
-/** One value of the grid, with the day it was reached under it. */
-function Tile({
-  label,
-  value,
-  note,
-  isSelected,
-  onSelect,
-}: {
-  label: string;
-  value: string;
-  note?: string;
-  isSelected?: boolean;
-  onSelect?: () => void;
-}) {
-  const content = (
-    <>
-      <span className="block text-xs text-theme-600">{label}</span>
-      <span className="block font-semibold text-theme-800">{value}</span>
-      {note && <span className="block text-xs text-theme-600">{note}</span>}
-    </>
-  );
-  if (!onSelect) return <div className={`${TILE} bg-theme-50`}>{content}</div>;
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={`${TILE} cursor-pointer transition-colors ${
-        isSelected
-          ? 'bg-theme-100 ring-2 ring-theme-400'
-          : 'bg-theme-50 hover:bg-theme-100'
-      }`}
-    >
-      {content}
-    </button>
-  );
-}
 
 const METRIC_NAMES: Record<ProgressMetric, string> = {
   max: 'Charge max',

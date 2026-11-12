@@ -9,7 +9,8 @@ export interface MacroFilter {
 }
 
 export interface SortOption {
-  field: 'name' | MacroKey;
+  /** 'frequency' only in a list that knows how often its items are logged. */
+  field: 'name' | 'frequency' | MacroKey;
   direction: 'asc' | 'desc';
 }
 
@@ -37,6 +38,12 @@ export const EMPTY_FILTER_CRITERIA: FilterCriteria = {
   carbs: { min: -Infinity, max: Infinity },
   fat: { min: -Infinity, max: Infinity },
   sort: { field: 'name', direction: 'asc' },
+};
+
+/** The most logged first: what a list that knows its usage starts with. */
+export const BY_FREQUENCY: SortOption = {
+  field: 'frequency',
+  direction: 'desc',
 };
 
 /** Whether a value is inside the chosen range. */

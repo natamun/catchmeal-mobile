@@ -17,6 +17,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - A food is duplicated from its ⋯ menu: the new food form opens filled with a copy, without the barcode.
 - A recipe's ingredients move by dragging their handle.
 - A recipe's ingredients can be split into named sections, such as « Poulet » and « Sauce »: in the editor, on the recipe, in the text for an AI and in the backup. The same food can go in two sections, and the search counts it (×2).
+- Tapping a food opens its sheet: its calories and macros on one line, how often it was logged and the latest log. The food lists start with the foods logged most in the last 90 days, and the sort offers « Les plus loggés ».
 
 ### Changed
 

@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 
+import type { FoodUsage } from '../../data/foodItems';
 import { useToggleSet } from '../../hooks/useToggleSet';
-import { listFoodItems } from '../food/api';
+import { listFoodItems, listFoodUsage } from '../food/api';
 import { FoodItemList } from '../food/FoodItemList';
 import type { FoodItem } from '../food/types';
 import { FlowHeader } from '../layout/FlowHeader';
@@ -47,6 +48,7 @@ export function LibraryPicker({
   renderReview,
 }: LibraryPickerProps) {
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
+  const [foodUsage, setFoodUsage] = useState<FoodUsage[]>([]);
   const [templates, setTemplates] = useState<Meal[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,9 +68,11 @@ export function LibraryPicker({
       listFoodItems(controller.signal),
       listMeals(false, controller.signal),
       listRecipes(controller.signal),
+      listFoodUsage(controller.signal),
     ])
-      .then(([foods, meals, library]) => {
+      .then(([foods, meals, library, usage]) => {
         setFoodItems(foods);
+        setFoodUsage(usage);
         setTemplates(meals);
         setRecipes(library);
       })
@@ -138,6 +142,7 @@ export function LibraryPicker({
             items={foodItems}
             isLoading={isLoading}
             loadError={loadError}
+            usage={foodUsage}
             renderAction={(food) => (
               <SelectToggle
                 selected={selectedFoodIds.has(food.id)}

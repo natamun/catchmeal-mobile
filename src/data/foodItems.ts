@@ -7,6 +7,7 @@ import type { Executor } from '../db/database';
 import { DataError } from './errors';
 import {
   checkChoice,
+  checkDateOnly,
   checkNumber,
   checkOptionalNumber,
   checkOptionalText,
@@ -189,4 +190,59 @@ export async function archiveFoodItem(db: Executor, id: number) {
   );
   if (changes === 0) throw new DataError(GONE);
   return (await findFoodItem(db, id))!;
+}
+
+/** How often a food was logged in the journal, for its sheet and the sort. */
+export interface FoodUsage {
+  foodItemId: number;
+  /** Every journal line of the food. */
+  count: number;
+  /** Those of the last 30 days, today included. */
+  last30Days: number;
+  /** Those of the last 90 days, today included: what the lists sort by. */
+  last90Days: number;
+  /** The day of the latest log (YYYY-MM-DD). */
+  lastDay: string;
+  /** The quantity of the latest log, in the food's unit. */
+  lastQuantity: number;
+}
+
+interface UsageRow {
+  food_item_id: number;
+  count: number;
+  last_30_days: number;
+  last_90_days: number;
+  last_day: string;
+  last_quantity: number;
+}
+
+/**
+ * The journal use of every food logged at least once, counted on `today`
+ * (YYYY-MM-DD). Library meals and recipes do not count: only what was eaten.
+ */
+export async function listFoodUsage(db: Executor, today: string) {
+  const day = checkDateOnly(today, 'date du jour');
+  const rows = await db.query<UsageRow>(
+    `SELECT mi.food_item_id AS food_item_id,
+       COUNT(*) AS count,
+       SUM(m.logged_at > date(?, '-30 days')) AS last_30_days,
+       SUM(m.logged_at > date(?, '-90 days')) AS last_90_days,
+       MAX(m.logged_at) AS last_day,
+       (SELECT latest.quantity FROM meal_item latest
+          JOIN meal lm ON lm.id = latest.meal_id
+         WHERE latest.food_item_id = mi.food_item_id AND lm.logged_at IS NOT NULL
+         ORDER BY lm.logged_at DESC, latest.id DESC LIMIT 1) AS last_quantity
+     FROM meal_item mi JOIN meal m ON m.id = mi.meal_id
+     WHERE m.logged_at IS NOT NULL AND mi.food_item_id IS NOT NULL
+     GROUP BY mi.food_item_id`,
+    [day, day],
+  );
+  return rows.map((row): FoodUsage => ({
+    foodItemId: row.food_item_id,
+    count: row.count,
+    last30Days: row.last_30_days,
+    last90Days: row.last_90_days,
+    lastDay: row.last_day,
+    lastQuantity: row.last_quantity,
+  }));
 }

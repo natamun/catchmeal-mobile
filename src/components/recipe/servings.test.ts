@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { FoodItem } from '../food/types';
 import {
+  amountParts,
   amountText,
   perServing,
   recipeMeta,
@@ -76,5 +77,20 @@ describe('amountText', () => {
 
     expect(amountText(biscuit, 48)).toBe('4 biscuits (48 g)');
     expect(amountText(biscuit, 50)).toBe('50 g');
+  });
+});
+
+describe('amountParts', () => {
+  it('splits whole portions from their weight', () => {
+    const biscuit = food({ portionQuantity: 12, portionName: 'biscuit' });
+
+    expect(amountParts(biscuit, 48)).toEqual({
+      main: '4 biscuits',
+      weight: '48 g',
+    });
+    expect(amountParts(biscuit, 50)).toEqual({ main: '50 g', weight: null });
+    expect(
+      amountParts(food({ baseUnit: 'PIECE', baseQuantity: 1 }), 2),
+    ).toEqual({ main: '2 pièces', weight: null });
   });
 });

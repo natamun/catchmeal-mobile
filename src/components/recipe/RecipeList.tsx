@@ -74,7 +74,8 @@ export function RecipeList({
     .sort((a, b) => {
       const { field, direction } = criteria.sort;
       const dir = direction === 'asc' ? 1 : -1;
-      return field === 'name'
+      // Neither list knows how often its items are logged: by name then.
+      return field === 'name' || field === 'frequency'
         ? a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }) * dir
         : (perServing(a)[field] - perServing(b)[field]) * dir;
     });

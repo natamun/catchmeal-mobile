@@ -4,6 +4,7 @@ import * as foodItems from '../../data/foodItems';
 import { createOffLookup } from '../../data/openFoodFacts';
 import { getDatabase } from '../../db/appDatabase';
 import { nativeGet } from '../../native/nativeHttp';
+import { toDateKey } from '../../utils/dateKey';
 import type { FoodItemInput } from './types';
 
 /**
@@ -14,6 +15,16 @@ export async function listFoodItems(signal?: AbortSignal) {
   const items = await foodItems.listFoodItems(await getDatabase());
   throwIfAborted(signal);
   return items;
+}
+
+/** How often each food was logged in the journal, counted on today. */
+export async function listFoodUsage(signal?: AbortSignal) {
+  const usage = await foodItems.listFoodUsage(
+    await getDatabase(),
+    toDateKey(new Date()),
+  );
+  throwIfAborted(signal);
+  return usage;
 }
 
 /** Adds a food to the library. */

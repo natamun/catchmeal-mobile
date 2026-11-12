@@ -71,7 +71,8 @@ export function MealList({
     .sort((a, b) => {
       const { field, direction } = criteria.sort;
       const dir = direction === 'asc' ? 1 : -1;
-      return field === 'name'
+      // Neither list knows how often its items are logged: by name then.
+      return field === 'name' || field === 'frequency'
         ? (a.name ?? '').localeCompare(b.name ?? '') * dir
         : (mealTotals(a)[field] - mealTotals(b)[field]) * dir;
     });
