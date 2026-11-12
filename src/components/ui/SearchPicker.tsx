@@ -20,7 +20,7 @@ interface SearchPickerProps<T> {
   isAdded: (item: T) => boolean;
   /**
    * Given, an added item can be picked again: it shows how many times it is
-   * in the list ("×2") once more than one, and pulses at each pick.
+   * in the list ("×2") once more than one.
    */
   countOf?: (item: T) => number;
   onPick: (item: T) => void;
@@ -36,10 +36,10 @@ interface SearchPickerProps<T> {
 /**
  * A field that opens a search of a library on the whole screen, fading in as
  * a search mode of the page rather than a page of its own: the field at the
- * top, the results right under it, so the
- * keyboard never covers them (in edge-to-edge, Android lays the keyboard over
- * the app instead of shrinking it). A tap adds a result and the search stays
- * open, so several can be added in a row; those already added are checked.
+ * top, the results right under it, so the keyboard never covers them (in
+ * edge-to-edge, Android lays the keyboard over the app instead of shrinking
+ * it). A tap adds a result, its row pulsing, and the search stays open, so
+ * several can be added in a row; those already added are checked.
  * It is a native <dialog>, so the Android back button closes it.
  */
 export function SearchPicker<T>({
@@ -147,9 +147,7 @@ export function SearchPicker<T>({
                         disabled={added && !countOf}
                         onClick={() => {
                           onPick(item);
-                          if (countOf) {
-                            setPulse({ key, picks: (pulse?.picks ?? 0) + 1 });
-                          }
+                          setPulse({ key, picks: (pulse?.picks ?? 0) + 1 });
                         }}
                         className={`-mx-2 flex h-12 w-[calc(100%+1rem)] cursor-pointer items-center gap-3 rounded-xl px-2 text-left transition-colors hover:bg-theme-100 disabled:cursor-default disabled:hover:bg-transparent ${pulsed ? 'animate-pill-select' : ''}`}
                       >

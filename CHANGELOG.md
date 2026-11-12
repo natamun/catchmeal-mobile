@@ -47,6 +47,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - An exercise's sheet shows its best set, such as 10×110 kg, instead of an estimated 1RM that read low on sets not taken to failure. Its explanations open from an info icon right after the Repères title.
 - Recipe steps move by dragging their handle instead of with arrows.
 - The buttons that add a step, a section or the recipe to the shopping list take the whole width.
+- A search result pulses as it is added.
 
 ### Fixed
 
