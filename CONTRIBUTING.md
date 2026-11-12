@@ -152,7 +152,7 @@ erDiagram
         text name
         text type_meal
         text logged_at "local day, null in the library"
-        int source_meal_id FK
+        int source_meal_id FK "never filled"
     }
     meal_item {
         int id PK
