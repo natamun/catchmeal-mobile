@@ -13,7 +13,7 @@ CatCHMeal is a phone app (Capacitor web view, Galaxy S21+, one hand, often at th
 - **12 themes** (`data-theme`, picked in the profile), dark and light (`solarized-light`). A screen must work in all of them: no colour that only reads on graphite.
 - `swiss-red` is the brand (logo, "CH"): never for a UI state.
 - **Inter** for everything, lucide icons at one stroke weight. No emoji as icons.
-- Reuse `src/components/ui` (BaseDialog, Input, FieldError, PillTabs, QuantityStepper, Toast, SummaryCard...) before writing a new piece. A new shared piece goes there, with JSDoc.
+- Reuse `src/components/ui` (BaseDialog, Card, Input, Textarea, FieldError, PillTabs, QuantityStepper, SheetSection, StatTile, Toast...) before writing a new piece. A pattern that comes back on a second screen becomes a piece there, with JSDoc.
 - The `hover:` variant also fires on `:active`, so it gives touch feedback: every tappable element has a pressed state, those of third-party pieces included (calendar arrows). The pressed colour must show on what it sits on: on a card (`surface`) use `theme-100`; `theme-50` is the page background and barely differs from `surface` in dark themes. Screenshots never show a pressed state: check its class against its background in the code.
 
 ## Mobile rules (hard)
