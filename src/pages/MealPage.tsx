@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
-import { useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 
 import { listFoodItems } from '../components/food/api';
 import { useFlow } from '../components/layout/flowContext';
@@ -11,16 +11,29 @@ import type { Meal } from '../components/meal/types';
 import { useList } from '../hooks/useList';
 import { useGoBack } from '../routing/navigation';
 import { PATHS } from '../routing/paths';
+import { mealPath } from '../routing/recipes';
 
 /** The library meals, the journal left out. */
 const listLibraryMeals = (signal: AbortSignal) => listMeals(false, signal);
 
+/** What the page is opened with: a new meal can start as a copy. */
+interface MealState {
+  copyOf?: number;
+}
+
 /**
- * /food/meal/:mealId: a library meal to edit, or "new" to write one. Slides
- * in over the food page.
+ * /food/meal/:mealId: a library meal to edit, or "new" to write one, maybe
+ * as a copy of another. Slides in over the food page.
  */
 export default function MealPage() {
+  // A copy opens on the same route: the page starts again for it.
+  return <MealScreen key={useLocation().key} />;
+}
+
+function MealScreen() {
   const { mealId = '' } = useParams();
+  const state = useLocation().state as MealState | null;
+  const navigate = useNavigate();
   const flow = useFlow();
   const meals = useList(listLibraryMeals);
   const foods = useList(listFoodItems);
@@ -32,6 +45,8 @@ export default function MealPage() {
   // The meal as the page opened on it: it stays while the page slides away
   // once deleted.
   const [opened, setOpened] = useState<Meal | null | undefined>(undefined);
+  const copyOf =
+    (isNew && meals.items.find((meal) => meal.id === state?.copyOf)) || null;
   if (isReady && opened === undefined) {
     setOpened(
       isNew
@@ -69,8 +84,14 @@ export default function MealPage() {
     content = (
       <MealForm
         meal={opened}
+        copyOf={copyOf}
         foodItems={foods.items}
         onClose={close}
+        onCopy={() =>
+          void navigate(mealPath('new'), {
+            state: { copyOf: opened?.id } satisfies MealState,
+          })
+        }
         onDone={close}
       />
     );

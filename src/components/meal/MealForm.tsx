@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Zap } from 'lucide-react';
+import { Copy, Zap } from 'lucide-react';
 
 import { useFormValidation } from '../../hooks/useFormValidation';
 import { useTimeout } from '../../hooks/useTimeout';
 import { parseDecimal } from '../../utils/decimals';
 import { failureMessage } from '../../utils/failureMessage';
+import { copyName } from '../../utils/format';
 import { MAX_LENGTH, maxLengthMessage } from '../../utils/validation';
 import { matchesFood } from '../food/search';
 import type { FoodItem } from '../food/types';
@@ -45,8 +46,12 @@ const LINK_CLASS =
 interface MealFormProps {
   /** The library meal edited, or null to create one. */
   meal: Meal | null;
+  /** For a new meal, the one it starts as a copy of. */
+  copyOf?: Meal | null;
   foodItems: FoodItem[];
   onClose: () => void;
+  /** Opens a new meal filled from this one. */
+  onCopy: () => void;
   /** Saved or deleted: the page can go. */
   onDone: () => void;
 }
@@ -56,12 +61,23 @@ interface MealFormProps {
  * the library with their quantity, and quick adds. Remount it (key) for
  * another meal.
  */
-export function MealForm({ meal, foodItems, onClose, onDone }: MealFormProps) {
-  const [name, setName] = useState(meal?.name ?? '');
+export function MealForm({
+  meal,
+  copyOf,
+  foodItems,
+  onClose,
+  onCopy,
+  onDone,
+}: MealFormProps) {
+  const source = meal ?? copyOf ?? null;
+  const [name, setName] = useState(
+    meal?.name ??
+      (copyOf ? copyName(copyOf.name ?? '', MAX_LENGTH.mealName) : ''),
+  );
   const [nameTouched, setNameTouched] = useState(false);
   const [nameFocused, setNameFocused] = useState(false);
   const [items, setItems] = useState<MealItemDraft[]>(() =>
-    meal ? mealToItems(meal, foodItems) : [],
+    source ? mealToItems(source, foodItems) : [],
   );
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const quickAdd = useFormValidation(
@@ -168,6 +184,9 @@ export function MealForm({ meal, foodItems, onClose, onDone }: MealFormProps) {
           meal && (
             <ActionMenu
               title={meal.name ?? 'Repas'}
+              actions={[
+                { label: 'Dupliquer le repas', icon: Copy, onSelect: onCopy },
+              ]}
               onDelete={() => void handleDelete()}
               deleteLabel="Supprimer le repas"
               buttonClassName={HEADER_ICON_BUTTON_CLASS}

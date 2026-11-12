@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
-import { useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 
 import {
   listExercises,
@@ -15,13 +15,27 @@ import { FlowHeader } from '../components/layout/FlowHeader';
 import { useList } from '../hooks/useList';
 import { useGoBack } from '../routing/navigation';
 import { PATHS } from '../routing/paths';
+import { templatePath } from '../routing/recipes';
+
+/** What the page is opened with: a new favorite can start as a copy. */
+interface TemplateState {
+  copyOf?: number;
+}
 
 /**
  * /fitness/session/:templateId: a favorite session to edit, or "new" to
- * write one. Slides in over the fitness page, like a library meal.
+ * write one, maybe as a copy of another. Slides in over the fitness page,
+ * like a library meal.
  */
 export default function TemplatePage() {
+  // A copy opens on the same route: the page starts again for it.
+  return <TemplateScreen key={useLocation().key} />;
+}
+
+function TemplateScreen() {
   const { templateId = '' } = useParams();
+  const state = useLocation().state as TemplateState | null;
+  const navigate = useNavigate();
   const flow = useFlow();
   const templates = useList(listTemplates);
   const exercises = useList(listExercises);
@@ -37,6 +51,8 @@ export default function TemplatePage() {
   const [opened, setOpened] = useState<WorkoutTemplate | null | undefined>(
     undefined,
   );
+  const copyOf =
+    (isNew && templates.items.find(({ id }) => id === state?.copyOf)) || null;
   if (isReady && opened === undefined) {
     setOpened(
       isNew
@@ -74,9 +90,15 @@ export default function TemplatePage() {
     content = (
       <TemplateForm
         template={opened}
+        copyOf={copyOf}
         exercises={exercises.items}
         latest={latest}
         onClose={close}
+        onCopy={() =>
+          void navigate(templatePath('new'), {
+            state: { copyOf: opened?.id } satisfies TemplateState,
+          })
+        }
         onDone={close}
       />
     );

@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
+import { Copy } from 'lucide-react';
 
 import { failureMessage } from '../../utils/failureMessage';
+import { copyName } from '../../utils/format';
+import { MAX_LENGTH } from '../../utils/validation';
 import { FlowFooter } from '../layout/FlowFooter';
 import { FlowHeader } from '../layout/FlowHeader';
 import { ActionMenu } from '../ui/ActionMenu';
@@ -69,10 +72,14 @@ function itemRow(
 interface Props {
   /** The favorite edited, or null to create one. */
   template: WorkoutTemplate | null;
+  /** For a new favorite, the one it starts as a copy of. */
+  copyOf?: WorkoutTemplate | null;
   exercises: Exercise[];
   /** The last time each exercise was done. */
   latest: Map<number, WorkoutItem>;
   onClose: () => void;
+  /** Opens a new favorite filled from this one. */
+  onCopy: () => void;
   /** Saved or deleted: the page can go. */
   onDone: () => void;
 }
@@ -84,15 +91,21 @@ interface Props {
  */
 export function TemplateForm({
   template,
+  copyOf,
   exercises,
   latest,
   onClose,
+  onCopy,
   onDone,
 }: Props) {
   const showToast = useToast();
-  const [name, setName] = useState(template?.name ?? '');
+  const source = template ?? copyOf ?? null;
+  const [name, setName] = useState(
+    template?.name ??
+      (copyOf ? copyName(copyOf.name, MAX_LENGTH.templateName) : ''),
+  );
   const [items, setItems] = useState<TemplateItemDraft[]>(() =>
-    template ? templateDrafts(template) : [],
+    source ? templateDrafts(source) : [],
   );
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -151,6 +164,13 @@ export function TemplateForm({
           template && (
             <ActionMenu
               title={template.name}
+              actions={[
+                {
+                  label: 'Dupliquer la séance',
+                  icon: Copy,
+                  onSelect: onCopy,
+                },
+              ]}
               onDelete={() => void handleDelete()}
               deleteLabel="Supprimer la séance"
               buttonClassName={HEADER_ICON_BUTTON_CLASS}
@@ -172,7 +192,7 @@ export function TemplateForm({
             id="template-name"
             type="text"
             placeholder="Ex : Full body"
-            maxLength={80}
+            maxLength={MAX_LENGTH.templateName}
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
