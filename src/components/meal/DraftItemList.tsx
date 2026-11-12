@@ -54,6 +54,8 @@ interface DraftItemListProps {
   /** Gives back an item with its quantity or its unit changed. */
   onChange: (item: MealItemDraft) => void;
   onRemove: (id: string) => void;
+  /** Given, each item is dragged by a handle to another place. */
+  onMove?: (from: number, to: number) => void;
   /** Shows each item's calories; the shopping list leaves them out. */
   showKcal?: boolean;
   className?: string;
@@ -158,12 +160,14 @@ export function DraftItemList({
   items,
   onChange,
   onRemove,
+  onMove,
   showKcal = true,
   className = '',
 }: DraftItemListProps) {
   return (
     <EditableList
       rows={items.map((item) => rowOf(item, onChange, onRemove, showKcal))}
+      onMove={onMove}
       className={className}
     />
   );

@@ -179,6 +179,9 @@ export function IngredientsEditor({ editor }: PartProps) {
               ingredients: form.ingredients.filter((item) => item.id !== id),
             })
           }
+          onMove={(from, to) =>
+            update({ ingredients: arrayMove(form.ingredients, from, to) })
+          }
         />
       )}
 
