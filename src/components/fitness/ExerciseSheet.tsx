@@ -64,7 +64,6 @@ function Tile({
 
 const METRIC_NAMES: Record<ProgressMetric, string> = {
   max: 'Charge max',
-  oneRepMax: '1RM estimé',
   volume: 'Volume',
 };
 
@@ -133,8 +132,8 @@ export function ExerciseSheet({
           ) : (
             <>
               {exercise.kind === 'STRENGTH' ? (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-1">
                     <h4 className="text-xs font-semibold text-theme-500">
                       Repères
                     </h4>
@@ -144,27 +143,32 @@ export function ExerciseSheet({
                         soulevée.
                       </p>
                       <p>
-                        <strong>1RM</strong> : la charge qui pourrait être
-                        soulevée une seule fois, estimée depuis les séries.
+                        <strong>Meilleure série</strong> : la série la plus
+                        forte, en comptant charge et répétitions.
                       </p>
                       <p>
                         <strong>Volume</strong> : répétitions × charge,
                         additionnées sur une séance. Ici la meilleure séance.
                       </p>
                       <p className="text-theme-600">
-                        Touche une case pour voir sa courbe.
+                        Toucher Record ou Volume pour voir sa courbe.
                       </p>
                     </InfoBubble>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <Tile label="Séances" value={String(history.length)} />
                     {metricTile('max', 'Record', record?.weightKg, record?.day)}
-                    {metricTile(
-                      'oneRepMax',
-                      '1RM estimé',
-                      record?.oneRepMax,
-                      record?.oneRepMaxDay,
-                    )}
+                    <Tile
+                      label="Meilleure série"
+                      value={
+                        record
+                          ? `${record.bestSet.reps}×${formatKg(record.bestSet.weightKg)} kg`
+                          : '–'
+                      }
+                      note={
+                        record ? `le ${shortDay(record.bestSetDay)}` : undefined
+                      }
+                    />
                     {metricTile(
                       'volume',
                       'Volume',

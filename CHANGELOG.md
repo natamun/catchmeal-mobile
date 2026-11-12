@@ -41,6 +41,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - The Profile is two blocks. The body block shows the latest weigh-in, then rows to the weigh-in history and to the profile (gender, age, height, activity). The goal block picks the goal in full width and the pace as pills with its kg per week, opens on what is left to lose or gain with a bar from the start to the target and its date, and folds how the goals are computed. The target and the daily goals are edited in their own dialog.
 - A weigh-in opens with a tap on its row; it shows its date, weight and body fat on one line.
 - The sessions chart is lower, shows from three weeks on, groups two weeks per bar when they do not fit, and follows the finger like the calorie chart.
+- An exercise's sheet shows its best set, such as 10×110 kg, instead of an estimated 1RM that read low on sets not taken to failure. Its explanations open from an info icon right after the Repères title.
 
 ### Fixed
 

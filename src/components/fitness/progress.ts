@@ -74,8 +74,9 @@ export function strengthExercisesOf(workouts: readonly Workout[]) {
 }
 
 /**
- * The load a set suggests could be lifted once (Epley's formula): it
- * compares 80 kg × 12 with 85 kg × 8, which the heaviest load alone cannot.
+ * The load a set suggests could be lifted once (Epley's formula). Only used
+ * to rank sets, 12 × 80 kg against 8 × 85 kg, never shown: it reads low on
+ * sets not taken to failure.
  */
 export function oneRepMax({ reps, weightKg }: WorkoutSet) {
   return reps === 1 ? weightKg : weightKg * (1 + reps / 30);
@@ -83,9 +84,9 @@ export function oneRepMax({ reps, weightKg }: WorkoutSet) {
 
 /**
  * How a strength exercise is followed over time: the heaviest load of the
- * day, the best estimated one-rep max, or the volume (repetitions × load).
+ * day, or the volume (repetitions × load).
  */
-export type ProgressMetric = 'max' | 'oneRepMax' | 'volume';
+export type ProgressMetric = 'max' | 'volume';
 
 /** The value of each day an exercise was done, oldest first. */
 export function strengthProgress(
@@ -102,11 +103,7 @@ export function strengthProgress(
         byDay.set(workout.performedOn, (current ?? 0) + volumeOf(item.sets));
         continue;
       }
-      const best = Math.max(
-        ...item.sets.map((set) =>
-          metric === 'max' ? set.weightKg : oneRepMax(set),
-        ),
-      );
+      const best = Math.max(...item.sets.map(({ weightKg }) => weightKg));
       byDay.set(
         workout.performedOn,
         current === undefined ? best : Math.max(current, best),

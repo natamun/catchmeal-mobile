@@ -122,14 +122,6 @@ describe('strengthProgress', () => {
     ]);
   });
 
-  it('gives the best estimated one-rep max of each day', () => {
-    // 10 × 90 = 120 beats 1 × 95 and 12 × 80 = 112.
-    expect(strengthProgress(WORKOUTS, 1, 'oneRepMax')).toEqual([
-      { day: '2026-11-01', value: 95 },
-      { day: '2026-11-05', value: 120 },
-    ]);
-  });
-
   it('adds up the volume of each day', () => {
     expect(strengthProgress(WORKOUTS, 1, 'volume')).toEqual([
       { day: '2026-11-01', value: 1300 },

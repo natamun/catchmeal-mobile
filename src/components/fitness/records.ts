@@ -1,13 +1,18 @@
 import { oneRepMax } from './progress';
-import type { Workout, WorkoutItem, WorkoutItemInput } from './types';
+import type {
+  Workout,
+  WorkoutItem,
+  WorkoutItemInput,
+  WorkoutSet,
+} from './types';
 
 export interface StrengthRecord {
   /** The heaviest load ever lifted, and the day. */
   weightKg: number;
   day: string;
-  /** The best estimated one-rep max, and the day. */
-  oneRepMax: number;
-  oneRepMaxDay: string;
+  /** The strongest set, load and repetitions weighed together, and the day. */
+  bestSet: WorkoutSet;
+  bestSetDay: string;
   /** The biggest volume of a session (repetitions × load), and the day. */
   volumeKg: number;
   volumeDay: string;
@@ -56,8 +61,8 @@ export function latestItems(workouts: readonly Workout[]) {
 }
 
 /**
- * The best of a strength exercise: its heaviest load, its best estimated
- * one-rep max and its biggest session volume, each with the first day it
+ * The best of a strength exercise: its heaviest load, its strongest set
+ * and its biggest session volume, each with the first day it
  * was reached. Null when it was never done.
  */
 export function strengthRecord(
@@ -75,13 +80,12 @@ export function strengthRecord(
       record = { ...record, volumeKg: volume, volumeDay: day };
     }
     for (const set of item.sets) {
-      const estimate = Math.round(oneRepMax(set) * 10) / 10;
       if (!record) {
         record = {
           weightKg: set.weightKg,
           day,
-          oneRepMax: estimate,
-          oneRepMaxDay: day,
+          bestSet: set,
+          bestSetDay: day,
           volumeKg: volume,
           volumeDay: day,
         };
@@ -90,8 +94,8 @@ export function strengthRecord(
       if (set.weightKg > record.weightKg) {
         record = { ...record, weightKg: set.weightKg, day };
       }
-      if (estimate > record.oneRepMax) {
-        record = { ...record, oneRepMax: estimate, oneRepMaxDay: day };
+      if (oneRepMax(set) > oneRepMax(record.bestSet)) {
+        record = { ...record, bestSet: set, bestSetDay: day };
       }
     }
   }
