@@ -42,8 +42,9 @@ function ingredientLines(recipe: Recipe, foodItems: FoodItem[]) {
 
 /**
  * The text to paste into an AI chat to talk about a recipe: the goal and
- * the daily targets, the whole recipe with its values per serving, then the
- * questions to ask, the last one for a version ready to be saved.
+ * the daily targets for context only (the recipe book is not a diet plan),
+ * the whole recipe with its values per serving. It ends on
+ * "Ma question :" for the question to be typed after it, like the stats.
  */
 export function buildRecipePrompt(
   recipe: Recipe,
@@ -59,9 +60,13 @@ export function buildRecipePrompt(
 
   const sections = [
     [
-      "Voici une de mes recettes. Donne-moi ton avis et aide-moi à l'améliorer pour mon objectif.",
+      'Voici une de mes recettes, tirée de mon livre de recettes dans mon app. Réponds à ma question à la fin.',
     ],
-    ['## Mon objectif', ...goalLines(profile)],
+    [
+      '## Mon objectif, pour info',
+      ...goalLines(profile),
+      "- La recette n'a pas à coller à cet objectif : ne la change pas pour lui, sauf si je te le demande.",
+    ],
     [
       `## Recette : ${recipe.name}`,
       ...(details.length > 0 ? [`- ${details.join(', ')}`] : []),
@@ -80,13 +85,7 @@ export function buildRecipePrompt(
         ]
       : [],
     recipe.notes ? ['### Autres', recipe.notes] : [],
-    [
-      "## Ce que j'aimerais savoir",
-      '1. Ton avis : équilibre, goût, et intérêt pour mon objectif.',
-      "2. Comment l'améliorer pour mon objectif : plus de protéines, moins de calories, ou des macros mieux réparties.",
-      '3. Ce qui peut gagner en goût ou en temps de préparation.',
-      `4. Une version modifiée avec la quantité exacte de chaque ingrédient, toujours pour ${servings}.`,
-    ],
+    ['Ma question : '],
   ];
 
   return sections

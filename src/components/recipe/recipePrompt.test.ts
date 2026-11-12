@@ -66,14 +66,15 @@ const PROFILE: Profile = {
 };
 
 describe('buildRecipePrompt', () => {
-  it('gives the goal, the whole recipe per serving, then the questions', () => {
+  it('gives the goal, the whole recipe per serving, then the place for the question', () => {
     expect(buildRecipePrompt(CURRY, [CHICKEN, EGG], PROFILE)).toBe(
       [
-        "Voici une de mes recettes. Donne-moi ton avis et aide-moi à l'améliorer pour mon objectif.",
+        'Voici une de mes recettes, tirée de mon livre de recettes dans mon app. Réponds à ma question à la fin.',
         '',
-        '## Mon objectif',
+        '## Mon objectif, pour info',
         '- Objectif : Perdre du gras',
         '- Cibles par jour : 2100 kcal, 150 g de protéines, 230 g de glucides, 70 g de lipides',
+        "- La recette n'a pas à coller à cet objectif : ne la change pas pour lui, sauf si je te le demande.",
         '',
         '## Recette : Curry de poulet',
         '- Plat, préparation 35 min',
@@ -94,11 +95,7 @@ describe('buildRecipePrompt', () => {
         '### Autres',
         'La dinde remplace le poulet.',
         '',
-        "## Ce que j'aimerais savoir",
-        '1. Ton avis : équilibre, goût, et intérêt pour mon objectif.',
-        "2. Comment l'améliorer pour mon objectif : plus de protéines, moins de calories, ou des macros mieux réparties.",
-        '3. Ce qui peut gagner en goût ou en temps de préparation.',
-        '4. Une version modifiée avec la quantité exacte de chaque ingrédient, toujours pour 4 portions.',
+        'Ma question : ',
       ].join('\n'),
     );
   });
