@@ -1,11 +1,11 @@
 import { useState } from 'react';
 
 import { failureMessage } from '../../utils/failureMessage';
+import { isSameName, matchesSearch } from '../ui/search';
 import { SearchPicker } from '../ui/SearchPicker';
 import { useToast } from '../ui/toastContext';
 import { createExercise } from './api';
 import { CreateExerciseRow } from './CreateExerciseRow';
-import { isSameName, matchesSearch } from './search';
 import type { Exercise, ExerciseKind } from './types';
 
 interface Props {

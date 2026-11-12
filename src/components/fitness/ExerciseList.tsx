@@ -4,10 +4,10 @@ import { ChevronRight } from 'lucide-react';
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { Card, CardEmpty, CardLoading } from '../ui/Card';
 import { LoadError } from '../ui/LoadError';
+import { isSameName, matchesSearch } from '../ui/search';
 import { SearchInput } from '../ui/SearchInput';
 import { CreateExerciseRow } from './CreateExerciseRow';
 import { describeValues } from './format';
-import { isSameName, matchesSearch } from './search';
 import type { Exercise, ExerciseKind, WorkoutItem } from './types';
 
 const SECTIONS: { label: string; kinds: readonly ExerciseKind[] }[] = [

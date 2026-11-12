@@ -13,6 +13,7 @@ import {
   type FilterCriteria,
 } from '../ui/macroFilter';
 import { MacroSearchBar } from '../ui/MacroSearchBar';
+import { matchesFood } from './search';
 import { UNIT_LABELS, type FoodItem } from './types';
 
 interface FoodItemListProps {
@@ -59,16 +60,10 @@ export function FoodItemList({
 
   const activeItems = items.filter((item) => !item.archived);
 
-  const query = criteria.query.trim().toLowerCase();
   const visibleItems = activeItems
     .filter((item) => {
-      const matchesQuery =
-        !query ||
-        item.name.toLowerCase().includes(query) ||
-        item.brand?.toLowerCase().includes(query);
-
       return (
-        matchesQuery &&
+        matchesFood(item, criteria.query) &&
         matchesMacro(item.kcal, criteria.kcal) &&
         matchesMacro(item.protein, criteria.protein) &&
         matchesMacro(item.carbs, criteria.carbs) &&

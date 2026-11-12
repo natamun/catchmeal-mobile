@@ -11,6 +11,7 @@ import {
   type FilterCriteria,
 } from '../ui/macroFilter';
 import { MacroSearchBar } from '../ui/MacroSearchBar';
+import { matchesSearch } from '../ui/search';
 import { perServing, servingsLabel } from './servings';
 import {
   RECIPE_CATEGORIES,
@@ -58,12 +59,11 @@ export function RecipeList({
     active.some((recipe) => recipe.category === value),
   ).map((value) => ({ value, label: RECIPE_CATEGORY_LABELS[value] }));
 
-  const query = criteria.query.trim().toLowerCase();
   const visible = active
     .filter((recipe) => {
       const serving = perServing(recipe);
       return (
-        (!query || recipe.name.toLowerCase().includes(query)) &&
+        matchesSearch(recipe.name, criteria.query) &&
         (criteria.category === null || recipe.category === criteria.category) &&
         matchesMacro(serving.kcal, criteria.kcal) &&
         matchesMacro(serving.protein, criteria.protein) &&

@@ -67,7 +67,7 @@ export function SearchPicker<T>({
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
-  const typed = query.trim().toLowerCase();
+  const typed = query.trim();
   const results = typed ? items.filter((item) => matches(item, typed)) : items;
 
   const close = () => setOpen(false);

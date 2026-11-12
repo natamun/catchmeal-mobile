@@ -28,6 +28,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - The recipe sent to an AI asks no questions of its own: it gives the goal for context only and ends on « Ma question : », like the stats.
 - Restaurer, Vider and the recipe trash are red.
 - Recipe steps are aligned left, with balanced lines and more space.
+- A search finds each typed word in the name or the brand, in any order and without accents: « frite coop » finds Frites from Coop, « mure » finds Mûre.
 - The buttons in dialog and page headers are larger, and the pill tabs react to a touch.
 - The top of Stats sums up the period in one block: the average calories against the goal, a weekday against a weekend day, the protein against the goal, the weight from the first to the last weigh-in with its pace per week, and the sessions per week. The Sport tiles are gone.
 - The Stats period fits on one row, its dates written 13/10.

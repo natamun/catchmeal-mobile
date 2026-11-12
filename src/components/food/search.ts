@@ -1,9 +1,7 @@
+import { matchesSearch } from '../ui/search';
 import type { FoodItem } from './types';
 
-/** A food whose name or brand holds the search, already lowercased. */
+/** A food whose name or brand holds every word of the search. */
 export function matchesFood(food: FoodItem, query: string) {
-  return (
-    food.name.toLowerCase().includes(query) ||
-    (food.brand?.toLowerCase().includes(query) ?? false)
-  );
+  return matchesSearch([food.name, food.brand], query);
 }

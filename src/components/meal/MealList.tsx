@@ -12,6 +12,7 @@ import {
   type FilterCriteria,
 } from '../ui/macroFilter';
 import { MacroSearchBar } from '../ui/MacroSearchBar';
+import { matchesSearch } from '../ui/search';
 import { mealTotals, type Meal } from './types';
 
 interface MealListProps {
@@ -54,11 +55,9 @@ export function MealList({
     EMPTY_FILTER_CRITERIA,
   );
 
-  const query = criteria.query.trim().toLowerCase();
   const visibleMeals = meals
     .filter((meal) => {
-      const matchesQuery =
-        !query || (meal.name ?? '').toLowerCase().includes(query);
+      const matchesQuery = matchesSearch([meal.name], criteria.query);
       const totals = mealTotals(meal);
 
       return (
