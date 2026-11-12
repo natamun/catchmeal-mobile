@@ -43,6 +43,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - A weigh-in opens with a tap on its row; it shows its date, weight and body fat on one line.
 - The sessions chart is lower, shows from three weeks on, groups two weeks per bar when they do not fit, and follows the finger like the calorie chart.
 - An exercise's sheet shows its best set, such as 10×110 kg, instead of an estimated 1RM that read low on sets not taken to failure. Its explanations open from an info icon right after the Repères title.
+- Recipe steps move by dragging their handle instead of with arrows.
 
 ### Fixed
 

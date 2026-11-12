@@ -171,12 +171,3 @@ export const formPerServing = (form: RecipeForm) =>
     totals: draftTotals(form.ingredients),
     servings: form.servings,
   });
-
-/** The steps with the one at `index` moved by `offset`, kept in bounds. */
-export function moveStep(steps: StepDraft[], index: number, offset: number) {
-  const target = index + offset;
-  if (target < 0 || target >= steps.length) return steps;
-  const moved = [...steps];
-  [moved[index], moved[target]] = [moved[target], moved[index]];
-  return moved;
-}

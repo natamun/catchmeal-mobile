@@ -1,5 +1,6 @@
 import { useRef, type RefObject } from 'react';
-import { ChevronDown, ChevronUp, Plus, X } from 'lucide-react';
+import { arrayMove } from '@dnd-kit/sortable';
+import { Plus, X } from 'lucide-react';
 
 import { FoodItemForm } from '../food/FoodItemForm';
 import { matchesFood } from '../food/search';
@@ -18,7 +19,8 @@ import { Input } from '../ui/Input';
 import { MacroSummary } from '../ui/MacroSummary';
 import { SearchPicker } from '../ui/SearchPicker';
 import { SelectDropdown } from '../ui/SelectDropdown';
-import { formPerServing, moveStep, newStep, RECIPE_LIMITS } from './recipeForm';
+import { SortableList } from '../ui/SortableList';
+import { formPerServing, newStep, RECIPE_LIMITS } from './recipeForm';
 import { ServingsStepper } from './RecipeView';
 import {
   RECIPE_CATEGORIES,
@@ -238,7 +240,7 @@ export function NotesField({ editor, hideLabel }: TextPartProps) {
   );
 }
 
-/** The steps, numbered, each one moved up or down or removed. */
+/** The steps, numbered, each one dragged by its handle or removed. */
 export function StepsEditor({ editor }: PartProps) {
   const { form, update, errors } = editor;
   const { steps } = form;
@@ -250,12 +252,21 @@ export function StepsEditor({ editor }: PartProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <ol className="flex flex-col gap-3">
-        {steps.map((step, index) => (
-          <li key={step.id} className="flex items-start gap-2">
-            <span className="mt-3 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-theme-100 text-xs font-bold text-theme-600">
-              {index + 1}
-            </span>
+      <SortableList
+        ordered
+        items={steps}
+        onMove={(from, to) => update({ steps: arrayMove(steps, from, to) })}
+        labelOf={(_, index) => `l'étape ${index + 1}`}
+        className="-ml-3 flex flex-col gap-3"
+        itemClassName="flex items-start gap-1"
+        renderItem={(step, index, handle) => (
+          <>
+            <div className="mt-1 flex shrink-0 items-center">
+              {handle}
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-theme-100 text-xs font-bold text-theme-600">
+                {index + 1}
+              </span>
+            </div>
             <textarea
               aria-label={`Étape ${index + 1}`}
               rows={2}
@@ -263,38 +274,21 @@ export function StepsEditor({ editor }: PartProps) {
               placeholder="Ex : Couper le poulet en dés."
               value={step.text}
               onChange={(e) => setText(step.id, e.target.value)}
-              className={TEXTAREA_CLASS}
+              className={`${TEXTAREA_CLASS} ml-1`}
             />
-            <div className="flex shrink-0 flex-col">
-              <button
-                type="button"
-                disabled={index === 0}
-                onClick={() => update({ steps: moveStep(steps, index, -1) })}
-                className={ICON_BUTTON_CLASS}
-              >
-                <ChevronUp className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  update({ steps: steps.filter(({ id }) => id !== step.id) })
-                }
-                className={`${ICON_BUTTON_CLASS} hover:text-red-500`}
-              >
-                <X className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                disabled={index === steps.length - 1}
-                onClick={() => update({ steps: moveStep(steps, index, 1) })}
-                className={ICON_BUTTON_CLASS}
-              >
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            </div>
-          </li>
-        ))}
-      </ol>
+            <button
+              type="button"
+              aria-label={`Retirer l'étape ${index + 1}`}
+              onClick={() =>
+                update({ steps: steps.filter(({ id }) => id !== step.id) })
+              }
+              className={`${ICON_BUTTON_CLASS} mt-3 ml-1 shrink-0 hover:text-red-500`}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </>
+        )}
+      />
       {errors.steps && <p className="text-sm text-red-500">{errors.steps}</p>}
       <button
         type="button"

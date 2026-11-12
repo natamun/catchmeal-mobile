@@ -7,7 +7,6 @@ import {
   emptyRecipeForm,
   formPerServing,
   formToInput,
-  moveStep,
   newStep,
   recipeToForm,
   validateRecipeForm,
@@ -159,20 +158,5 @@ describe('formPerServing', () => {
     const form = filled({ servings: 2 });
 
     expect(formPerServing(form).kcal).toBeCloseTo(27);
-  });
-});
-
-describe('moveStep', () => {
-  const steps = [newStep('a'), newStep('b'), newStep('c')];
-  const texts = (list: typeof steps) => list.map(({ text }) => text);
-
-  it('swaps a step with its neighbour', () => {
-    expect(texts(moveStep(steps, 0, 1))).toEqual(['b', 'a', 'c']);
-    expect(texts(moveStep(steps, 2, -1))).toEqual(['a', 'c', 'b']);
-  });
-
-  it('keeps the first step first and the last one last', () => {
-    expect(moveStep(steps, 0, -1)).toBe(steps);
-    expect(moveStep(steps, 2, 1)).toBe(steps);
   });
 });
