@@ -37,7 +37,7 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 - **Barcode scanning**: Google's scanner reads the code, and [Open Food Facts](https://world.openfoodfacts.org) fills the food form.
 - **Food library**: values per 100 g, 100 ml or per piece, with an optional portion to log by the piece ("4 biscuits").
 - **Meal library and quick add**: meals saved once and logged again in one go, or calories and macros typed by hand.
-- **Recipes**: ingredients from the food library, cooking, numbered steps and notes, filtered by category. Each recipe shows its calories and macros per serving and its quantities for any number of servings, and the screen stays on while you cook. A recipe is logged by the serving, and can be sent to an AI chat with your goal to improve it. You can also have an AI write or change a recipe: copy the recipe, paste the AI's answer back and import it.
+- **Recipes**: ingredients from the food library, cooking, numbered steps and notes, filtered by category. Ingredients can be split into named sections (chicken, sauce), and ingredients and steps are reordered by dragging. Each recipe shows its calories and macros per serving and its quantities for any number of servings, and the screen stays on while you cook. A recipe is logged by the serving, and can be sent to an AI chat with your goal to improve it. You can also have an AI write or change a recipe: copy the recipe, paste the AI's answer back and import it.
 - **Shopping list**: foods, meals and recipes added for the servings you need, the same food added up into one line, and free items. You tick the list off in the shop and share it as text.
 
 ### Body and goals

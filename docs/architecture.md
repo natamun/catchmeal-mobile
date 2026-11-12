@@ -36,9 +36,11 @@ There is no store library. Three mechanisms:
 In `components/ui/`:
 
 - **`Card`**: the one card of the app (frame, padding, optional title and action, ruled header, `flush` for edge-to-edge lists). It replaces `ListCard`, `SummaryCard` and the recipe card.
-- **`EditableList`**: the items of a meal or a session being edited, one line each (name, quantity, kcal). A tap opens a `BottomSheet` with the full name, a `ConfirmRemoveButton`, the live kcal and macros and the controls (stepper, sets). The list itself never moves.
+- **`EditableList`**: the items of a meal or a session being edited, one line each (name, quantity, kcal). A tap opens a `BottomSheet` with the full name, a `ConfirmRemoveButton`, the live kcal and macros and the controls (stepper, sets). The list itself never moves, unless `onMove` is given: then each row has a drag handle and reorders through `SortableList`. A screen can also pass its own rows (the recipe form's ingredients and sections).
+- **`SortableList`**: drag-and-drop reordering built on `@dnd-kit`, by a handle so scrolling still works. It reports `(from, to)`; the caller owns the order and saves the positions. Used by `EditableList` and the recipe steps and ingredients.
+- **`ActionMenu`**: a ⋯ button that opens a bottom sheet of actions. `BaseDialog` uses it for its secondary actions, and the recipe page for duplicate and delete (delete lives on the read page, no longer on the edit page).
 - **`ConfirmRemoveButton`**: a trash that asks twice. The first tap arms it as "Retirer ?", the second confirms, and it calms down after 3 s.
-- **`SearchPicker`**: a field that opens a full-screen search of a library, in a native `<dialog>` fading in (so the Android back button closes it). The field is at the top and the results under it, out of the keyboard's way. A tap adds a result and the search stays open; items already added are checked. It replaces `DropdownPanel`, and `@radix-ui/react-popover` is no longer a dependency.
+- **`SearchPicker`**: a field that opens a full-screen search of a library, in a native `<dialog>` fading in (so the Android back button closes it). The field is at the top and the results under it, out of the keyboard's way. A tap adds a result and the search stays open; items already added are checked and pulse on each pick. A caller can pass `countOf` to show a ×n counter (the recipe form uses it). It replaces `DropdownPanel`, and `@radix-ui/react-popover` is no longer a dependency.
 - **`AiCard`**: the card shared by the stats and the recipe screens for the "Ask an AI" text: a button copies it or sends it to the share sheet. The text is passed as a function, built only on the tap.
 - **`MacroSummary`** is built from `MacroBadges` (the three macros) and `KcalPill` (the calories), which can be used alone.
 
@@ -52,15 +54,15 @@ In `components/ui/`:
 
 ## Database
 
-- Migrations: an inline array in `db/migrations.ts`, versioned with `PRAGMA user_version`, one transaction per step (V1 to V13 today). Append a new step; never edit a shipped one, phones already ran it. `db/migrations.test.ts` checks the upgrade path.
+- Migrations: an inline array in `db/migrations.ts`, versioned with `PRAGMA user_version`, one transaction per step (V1 to V14 today). Append a new step; never edit a shipped one, phones already ran it. `db/migrations.test.ts` checks the upgrade path.
 - Tables are `STRICT` with `CHECK` constraints, so a bad value fails in SQLite too.
 - Plugin traps (`@capacitor-community/sqlite` on Android): a COMMIT that fails leaves the transaction open in SQLite while the plugin forgets it, and every later transaction is refused until restart. So a rule must make its own statement fail before COMMIT (no deferred foreign keys). The plugin also rewrites DELETE into soft deletes when a table has `last_modified` / `sql_deleted`, splits scripts on ";\n" and strips `--` comments.
-- Backup: `data/backup.ts` exports and restores every table in its own JSON format; a new table must be added there.
+- Backup: `data/backup.ts` exports and restores every table in its own JSON format; a new table or column must be added there (format 10 today, with `recipe_ingredient.section`).
 
 ## Outside calls
 
 - **Open Food Facts**: `data/openFoodFacts.ts` reads `world.openfoodfacts.org/api/v3.4/product/{barcode}` with an injected HTTP client. On the phone it is `native/nativeHttp.ts` (CapacitorHttp, 5 s timeouts), because a browser `fetch` cannot set the `User-Agent` OFF requires. Limit: 15 product reads per minute per IP.
-- **"Ask an AI"**: no API call. `recipe/recipePrompt.ts` and `analytics/aiContext.ts` build a text prompt, copied with the Clipboard plugin or sent to Android's share sheet through `ui/AiCard`. The recipe prompt ends on the user's question, the goal being context only. A recipe can also come back from the AI: `recipe/recipeImport.ts` writes the recipe as JSON (`formToJson`, ingredients by their library id) and `parseRecipeImport` reads the AI's answer, refusing unknown foods, bad quantities and servings. `RecipeImportCard` pastes it into the recipe form, which the user still saves.
+- **"Ask an AI"**: no API call. `recipe/recipePrompt.ts` and `analytics/aiContext.ts` build a text prompt, copied with the Clipboard plugin or sent to Android's share sheet through `ui/AiCard`. The recipe prompt ends on the user's question, the goal being context only. A recipe can also come back from the AI: `recipe/recipeImport.ts` writes the recipe as JSON (`formToJson`, ingredients by their library id, each with its optional `section`) and `parseRecipeImport` reads the AI's answer, refusing unknown foods, bad quantities and servings. `RecipeImportCard` pastes it into the recipe form (a list of `IngredientLine`, each a food draft or a section title), which the user still saves.
 - **Barcode scanning**: `native/barcodeScanner.ts` calls `@capacitor-mlkit/barcode-scanning`, which opens Google's full-screen scanner (EAN and UPC only). No camera permission is needed. The scanner module is downloaded by Google Play services (`barcode_ui` declared in the manifest); if it is missing, `ScannerNotReadyError` tells the user to retry. `hooks/useHasCamera` shows the scan button only when the phone supports it.
 
 ## Tests

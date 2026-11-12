@@ -178,6 +178,7 @@ erDiagram
         int food_item_id FK
         int position
         real quantity "in the food's unit"
+        text section "title of the group it belongs to, null if none"
     }
     recipe_step {
         int id PK
