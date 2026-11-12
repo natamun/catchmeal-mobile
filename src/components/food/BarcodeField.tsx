@@ -1,17 +1,16 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, LoaderCircle, ScanBarcode, Search } from 'lucide-react';
 
 import { OffLookupError, type OffErrorKind } from '../../data/openFoodFacts';
 import { useHasCamera } from '../../hooks/useHasCamera';
 import { useTimeout } from '../../hooks/useTimeout';
+import { scanBarcode, ScannerNotReadyError } from '../../native/barcodeScanner';
 import { FieldError } from '../ui/FieldError';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
 import { lookupOffProduct } from './api';
 import { isValidBarcode } from './barcode';
 import type { OffProduct } from './types';
-
-const BarcodeScannerDialog = lazy(() => import('./BarcodeScannerDialog'));
 
 const ICON_BUTTON_CLASS =
   'flex w-12 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-theme-200 text-theme-600 transition-colors hover:bg-theme-50 disabled:cursor-not-allowed disabled:opacity-60';
@@ -50,7 +49,6 @@ export function BarcodeField({
   const [isTouched, setIsTouched] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isLookingUp, setIsLookingUp] = useState(false);
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [foundBarcode, setFoundBarcode] = useState<string | null>(null);
   const [lookupError, setLookupError] = useState<{
     message: string;
@@ -126,11 +124,24 @@ export function BarcodeField({
     await runLookup(barcode);
   };
 
-  const handleScanned = (scannedBarcode: string) => {
-    setIsScannerOpen(false);
-    onChange(scannedBarcode);
+  // Google's scanner opens over the app; closing it without a code is no
+  // error.
+  const handleScan = async () => {
     setLookupError(null);
-    void runLookup(scannedBarcode);
+    try {
+      const scanned = await scanBarcode();
+      if (!scanned) return;
+      onChange(scanned);
+      await runLookup(scanned);
+    } catch (err: unknown) {
+      setLookupError({
+        message:
+          err instanceof ScannerNotReadyError
+            ? 'Scanner en préparation, réessayez dans 1 min'
+            : 'Scanner indisponible',
+        onField: false,
+      });
+    }
   };
 
   const formatError = isTouched && (isFocused || showError) ? error : undefined;
@@ -189,7 +200,7 @@ export function BarcodeField({
           {hasCamera && (
             <button
               type="button"
-              onClick={() => setIsScannerOpen(true)}
+              onClick={() => void handleScan()}
               disabled={isLookingUp}
               className={ICON_BUTTON_CLASS}
             >
@@ -223,15 +234,6 @@ export function BarcodeField({
           message={lookupError?.onField ? lookupError.message : formatError}
         />
       </div>
-
-      {isScannerOpen && (
-        <Suspense fallback={null}>
-          <BarcodeScannerDialog
-            onDetected={handleScanned}
-            onClose={() => setIsScannerOpen(false)}
-          />
-        </Suspense>
-      )}
     </>
   );
 }

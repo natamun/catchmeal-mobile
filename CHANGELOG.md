@@ -24,6 +24,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - Quantity steps read -10, -1, +1 and +10.
 - Titles and labels are no longer in capitals.
 - Calories in lists are plain text, without a pill.
+- Barcodes are scanned with Android's own scanner, full screen: it opens at once on the rear camera and asks no camera permission.
 - The recipe sent to an AI asks no questions of its own: it gives the goal for context only and ends on « Ma question : », like the stats.
 - Restaurer, Vider and the recipe trash are red.
 - Recipe steps are aligned left, with balanced lines and more space.

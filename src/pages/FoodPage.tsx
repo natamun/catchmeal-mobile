@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router';
 import { listFoodItems } from '../components/food/api';
 import { FoodItemForm } from '../components/food/FoodItemForm';
 import { FoodItemList } from '../components/food/FoodItemList';
-import { preloadScanner } from '../components/food/preloadScanner';
 import type { FoodItem } from '../components/food/types';
 import { listMeals } from '../components/meal/api';
 import { MealList } from '../components/meal/MealList';
@@ -15,6 +14,7 @@ import { AddCircleButton } from '../components/ui/AddCircleButton';
 import { EditIconButton } from '../components/ui/EditIconButton';
 import { PillTabs } from '../components/ui/PillTabs';
 import { useList } from '../hooks/useList';
+import { prepareBarcodeScanner } from '../native/barcodeScanner';
 import { mealPath, recipePath } from '../routing/recipes';
 
 type Tab = 'food' | 'meal' | 'recipe' | 'shopping';
@@ -43,9 +43,12 @@ export default function FoodPage() {
   const [editingItem, setEditingItem] = useState<FoodItem | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  // The scanner is slow to open the first time: prepare it once the app is up.
+  // Google's scanner needs its module on the phone: check it once the app is up.
   useEffect(() => {
-    const timer = setTimeout(preloadScanner, 2000);
+    const timer = setTimeout(
+      () => void prepareBarcodeScanner().catch(() => undefined),
+      2000,
+    );
     return () => clearTimeout(timer);
   }, []);
 

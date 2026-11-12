@@ -33,7 +33,7 @@ src/components/theme/   the 12 colour themes; tokens live in src/index.css
 src/pages/              one file per tab or flow page (Home, Food, Fitness, Stats, Profile, *Add, *Edit, Meal, Recipe)
 src/hooks/              useDataVersion, useList, useDailyMeals, useDashboard, useTraining, useSwipeTabs
 src/routing/            PATHS constants, useGoBack, journal and recipe routes
-src/native/             Android-only: back button, native HTTP, backup file, share, reminders
+src/native/             Android-only: back button, native HTTP, backup file, share, reminders, barcode scanner
 src/test/nodeDatabase.ts  real in-memory SQLite for tests
 android/                Capacitor Android project (debug suffix .debug, signing from .password + .jks)
 ```
@@ -50,7 +50,6 @@ android/                Capacitor Android project (debug suffix .debug, signing 
 - Every validation or business rule gets a test that it is refused, and the test must fail without the rule.
 - Comments: JSDoc in English on shared exports and each file's main component; `//` only for a surprising decision. Comment-only changes are `docs:` commits.
 - SQLite plugin traps: a failed COMMIT leaves the transaction open until restart, so a rule must make its own statement fail (no `PRAGMA defer_foreign_keys`); the plugin turns DELETE into soft deletes on tables with `last_modified`/`sql_deleted`, splits scripts on ";\n" and strips `--` comments.
-- `zxing-wasm` is pinned with `@yudiel/react-qr-scanner`: bump both together.
 
 ## Working rules
 

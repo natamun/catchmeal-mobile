@@ -1,24 +1,20 @@
 import { useEffect, useState } from 'react';
 
+import { canScanBarcodes } from '../native/barcodeScanner';
+
 /**
- * Whether the device has a camera, to show the barcode scan button only when
- * scanning is possible. Listing the devices asks no permission.
+ * Whether the phone can scan barcodes, to show the scan button only when
+ * scanning is possible. Asks no permission.
  */
 export function useHasCamera() {
   const [hasCamera, setHasCamera] = useState(false);
 
   useEffect(() => {
-    const mediaDevices = navigator.mediaDevices as MediaDevices | undefined;
-    if (!mediaDevices) {
-      return;
-    }
-
     let cancelled = false;
-    mediaDevices
-      .enumerateDevices()
-      .then((devices) => {
+    canScanBarcodes()
+      .then((supported) => {
         if (!cancelled) {
-          setHasCamera(devices.some((device) => device.kind === 'videoinput'));
+          setHasCamera(supported);
         }
       })
       .catch(() => undefined);
