@@ -343,7 +343,9 @@ export function FoodItemForm({
           onSubmit={(e) => void handleSubmit(e)}
           noValidate
           autoComplete="off"
-          className="contents"
+          // Tighter than a dialog's usual spacing: the whole form fits on the
+          // phone's screen without scrolling.
+          className="flex flex-col gap-4"
         >
           {!editingItem && (
             <BarcodeField
@@ -358,8 +360,8 @@ export function FoodItemForm({
             />
           )}
 
-          <div className="flex flex-col gap-5 sm:flex-row sm:gap-3">
-            <div className="relative flex flex-col gap-1.5 sm:flex-1">
+          <div className="flex flex-col gap-4 sm:flex-row sm:gap-3">
+            <div className="relative flex flex-col gap-1 sm:flex-1">
               <label htmlFor="food-name" className={LABEL_CLASS}>
                 Nom
               </label>
@@ -377,7 +379,7 @@ export function FoodItemForm({
               <FieldError message={errorMessage('name')} />
             </div>
 
-            <div className="relative flex flex-col gap-1.5 sm:flex-1">
+            <div className="relative flex flex-col gap-1 sm:flex-1">
               <label htmlFor="food-brand" className={LABEL_CLASS}>
                 Marque
               </label>
@@ -396,7 +398,7 @@ export function FoodItemForm({
             </div>
           </div>
 
-          <div className="relative flex flex-col gap-1.5">
+          <div className="relative flex flex-col gap-1">
             <label htmlFor="food-quantity" className={LABEL_CLASS}>
               Quantité de référence
             </label>
@@ -424,7 +426,7 @@ export function FoodItemForm({
             <FieldError message={errorMessage('baseQuantity')} />
           </div>
 
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1">
             <p className={LABEL_CLASS}>Valeurs nutritionnelles</p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {NUTRITION_FIELDS.map(({ field, label }) => (
@@ -453,7 +455,7 @@ export function FoodItemForm({
           </div>
 
           {form.baseUnit !== 'PIECE' && (
-            <div className="relative flex flex-col gap-1.5">
+            <div className="relative flex flex-col gap-1">
               <label htmlFor="food-portion-name" className={LABEL_CLASS}>
                 Portion
               </label>
