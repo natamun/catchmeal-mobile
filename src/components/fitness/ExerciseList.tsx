@@ -1,5 +1,4 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { ChevronRight } from 'lucide-react';
 
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { Card, CardEmpty, CardLoading } from '../ui/Card';
@@ -135,7 +134,6 @@ export function ExerciseList({
                       className="flex w-full cursor-pointer items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-theme-100"
                     >
                       {content(exercise)}
-                      <ChevronRight className="h-4 w-4 shrink-0 text-theme-400" />
                     </button>
                   ) : (
                     <div className="flex items-center gap-3 px-5 py-3">

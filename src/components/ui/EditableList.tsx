@@ -1,5 +1,4 @@
 import { useState, type ReactNode } from 'react';
-import { ChevronRight } from 'lucide-react';
 
 import { BottomSheet } from './BottomSheet';
 import { ConfirmRemoveButton } from './ConfirmRemoveButton';
@@ -68,7 +67,6 @@ export function EditableList({ rows, onMove, className = '' }: Props) {
           {item.meta}
         </span>
       )}
-      <ChevronRight className="h-4 w-4 shrink-0 text-theme-400" />
     </button>
   );
 
