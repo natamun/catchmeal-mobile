@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { LoaderCircle } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
 import { useDataVersion } from '../../hooks/useDataVersion';
@@ -10,10 +9,9 @@ import { listExercises, listWorkouts } from '../fitness/api';
 import { ExerciseGymSheet } from '../fitness/ExerciseGymSheet';
 import { describeValues } from '../fitness/format';
 import type { Exercise, Workout } from '../fitness/types';
-import { AddCircleButton } from '../ui/AddCircleButton';
 import { INSET_ROW_CLASS } from '../ui/buttonStyle';
 import { Card } from '../ui/Card';
-import { EditIconButton } from '../ui/EditIconButton';
+import { DaySection } from './DaySection';
 
 interface Props {
   /** The day shown by the journal. */
@@ -66,50 +64,30 @@ export function TrainingDayCard({ date }: Props) {
   return (
     <>
       <Card flush>
-        <div
-          className={`flex items-center justify-between gap-3 px-5 py-4 ${session ? 'border-b border-theme-100' : ''}`}
-        >
-          <div className="flex items-center gap-2">
-            <h3 className="text-base font-semibold text-theme-500">Séance</h3>
-            {session && (
-              <div className="animate-fade-in-up">
-                <EditIconButton
-                  onClick={() => void navigate(trainingEditPath(date))}
-                />
-              </div>
-            )}
-          </div>
-          <AddCircleButton
-            onClick={() => void navigate(trainingAddPath(date))}
-          />
-        </div>
-
-        {workouts === null && (
-          <div className="flex h-12 animate-delayed-reveal items-center justify-center border-t border-theme-100">
-            <LoaderCircle className="h-5 w-5 animate-spin text-theme-400" />
-          </div>
-        )}
-
-        {session && (
-          <ul className="animate-fade-in-up divide-y divide-theme-100 px-5 py-2">
-            {session.items.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  onClick={() => openSheet(item.exerciseId)}
-                  className={`${INSET_ROW_CLASS} flex-col py-1.5`}
-                >
-                  <span className="max-w-full truncate text-sm font-semibold text-theme-800">
-                    {item.exerciseName}
-                  </span>
-                  <span className="max-w-full truncate text-xs text-theme-500">
-                    {describeValues(item)}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <DaySection
+          title="Séance"
+          onAdd={() => void navigate(trainingAddPath(date))}
+          onEdit={
+            session ? () => void navigate(trainingEditPath(date)) : undefined
+          }
+          isLoading={workouts === null}
+          rows={(session?.items ?? []).map((item) => (
+            <li key={item.id}>
+              <button
+                type="button"
+                onClick={() => openSheet(item.exerciseId)}
+                className={`${INSET_ROW_CLASS} flex-col py-1.5`}
+              >
+                <span className="max-w-full truncate text-sm font-semibold text-theme-800">
+                  {item.exerciseName}
+                </span>
+                <span className="max-w-full truncate text-xs text-theme-500">
+                  {describeValues(item)}
+                </span>
+              </button>
+            </li>
+          ))}
+        />
 
         {workouts !== null && !session && lastBefore && (
           <p className="-mt-1 px-5 pb-4 text-sm text-theme-600">
