@@ -14,6 +14,11 @@ export interface Migration {
  * - The checks keep the data consistent (positive quantities, known values,
  *   a logged meal has a type). The limits shown in the forms (500 kg at most,
  *   120 characters...) are checked by the app before saving.
+ * - `meal.source_meal_id` comes from the old team backend and is never filled:
+ *   logging a library meal copies its lines, mixed with others, into the
+ *   logged meal. Kept because dropping a foreign key column means rebuilding
+ *   the table; drop it the next time `meal` is rebuilt (the restore must still
+ *   accept older backups that carry it).
  */
 const SCHEMA_V1 = `
 CREATE TABLE profile (
