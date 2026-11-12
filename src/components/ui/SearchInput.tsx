@@ -7,6 +7,7 @@ import {
 } from 'react';
 import { Search, X } from 'lucide-react';
 
+import { IconButton } from './IconButton';
 import { Input } from './Input';
 
 interface SearchInputProps extends Omit<
@@ -57,19 +58,19 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           onChange={(e) => onValueChange(e.target.value)}
         />
         {hasText && (
-          <button
-            type="button"
-            aria-label="Effacer la recherche"
+          <IconButton
+            label="Effacer la recherche"
+            tone="strong"
             // Keeps the focus in the field, so a list opened by it stays open.
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               onValueChange('');
               inputRef.current?.focus();
             }}
-            className={`absolute top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-theme-600 transition-colors hover:bg-theme-100 ${trailing ? 'right-11' : 'right-0'}`}
+            className={`absolute top-1/2 -translate-y-1/2 ${trailing ? 'right-11' : 'right-0'}`}
           >
             <X className="h-5 w-5" />
-          </button>
+          </IconButton>
         )}
         {trailing && (
           <div className="absolute top-1/2 right-0 flex -translate-y-1/2">

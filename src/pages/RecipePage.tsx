@@ -31,10 +31,7 @@ import { useRecipeEditor } from '../components/recipe/useRecipeEditor';
 import { addFoodsToShopping } from '../components/shopping/api';
 import { recipeToShopping } from '../components/shopping/lines';
 import { ActionMenu } from '../components/ui/ActionMenu';
-import {
-  HEADER_ICON_BUTTON_CLASS,
-  SECONDARY_BUTTON_CLASS,
-} from '../components/ui/buttonStyle';
+import { SECONDARY_BUTTON_CLASS } from '../components/ui/buttonStyle';
 import { Card } from '../components/ui/Card';
 import { EditIconButton } from '../components/ui/EditIconButton';
 import { useToast } from '../components/ui/toastContext';
@@ -121,7 +118,6 @@ function RecipeSheet({
               ]}
               onDelete={() => void remove()}
               deleteLabel="Supprimer la recette"
-              buttonClassName={HEADER_ICON_BUTTON_CLASS}
             />
           </div>
         }

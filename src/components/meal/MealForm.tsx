@@ -14,7 +14,6 @@ import { FlowHeader } from '../layout/FlowHeader';
 import { ActionMenu } from '../ui/ActionMenu';
 import { BottomSheet } from '../ui/BottomSheet';
 import {
-  HEADER_ICON_BUTTON_CLASS,
   PRIMARY_BUTTON_CLASS,
   SECONDARY_BUTTON_CLASS,
 } from '../ui/buttonStyle';
@@ -189,7 +188,6 @@ export function MealForm({
               ]}
               onDelete={() => void handleDelete()}
               deleteLabel="Supprimer le repas"
-              buttonClassName={HEADER_ICON_BUTTON_CLASS}
             />
           )
         }

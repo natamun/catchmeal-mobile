@@ -1,6 +1,8 @@
 import { useEffect, useRef, type ReactNode, type TouchEvent } from 'react';
 import { X } from 'lucide-react';
 
+import { IconButton } from './IconButton';
+
 /** Pixels down before a touch becomes a drag of the sheet. */
 const SWIPE_START = 10;
 /** A drag this long, or this fast (px per ms), closes the sheet. */
@@ -115,14 +117,9 @@ export function BottomSheet({
               {title}
             </h3>
             {action}
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Fermer"
-              className="-mr-2 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-theme-400 transition-colors outline-none hover:bg-theme-100 hover:text-theme-600"
-            >
+            <IconButton label="Fermer" onClick={onClose} className="-mr-2">
               <X className="h-5 w-5" />
-            </button>
+            </IconButton>
           </div>
         </div>
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">

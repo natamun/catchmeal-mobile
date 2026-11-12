@@ -3,6 +3,7 @@ import { ArrowLeft, Check, Search } from 'lucide-react';
 
 import { FieldError } from './FieldError';
 import { LABEL_CLASS } from './fieldStyle';
+import { IconButton } from './IconButton';
 import { SearchInput } from './SearchInput';
 
 interface SearchPickerProps<T> {
@@ -114,14 +115,13 @@ export function SearchPicker<T>({
       >
         <div className="mx-auto flex h-full max-w-6xl flex-col pt-[env(safe-area-inset-top)]">
           <div className="flex shrink-0 items-center gap-2 px-4 py-3">
-            <button
-              type="button"
-              aria-label="Fermer la recherche"
+            <IconButton
+              label="Fermer la recherche"
+              tone="strong"
               onClick={close}
-              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-theme-600 transition-colors hover:bg-theme-100 active:bg-theme-200"
             >
               <ArrowLeft className="h-6 w-6" />
-            </button>
+            </IconButton>
             <SearchInput
               ref={inputRef}
               value={query}

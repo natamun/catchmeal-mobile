@@ -6,6 +6,7 @@ import { MACROS } from '../../constants/macros';
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { BaseDialog } from './BaseDialog';
 import { PRIMARY_BUTTON_CLASS } from './buttonStyle';
+import { IconButton } from './IconButton';
 import {
   boundsOf,
   BY_FREQUENCY,
@@ -209,16 +210,11 @@ export function MacroSearchBar({
         value={criteria.query}
         onValueChange={updateQuery}
         trailing={
-          <button
-            type="button"
-            onClick={openFilterDialog}
-            aria-label="Trier et filtrer"
-            className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-theme-400 transition-colors hover:bg-theme-100 hover:text-theme-600"
-          >
+          <IconButton label="Trier et filtrer" onClick={openFilterDialog}>
             <Filter
               className={`h-5 w-5 ${hasActiveFilters ? 'fill-theme-400' : ''}`}
             />
-          </button>
+          </IconButton>
         }
       />
 

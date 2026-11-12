@@ -1,7 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const ARROW_CLASS =
-  'flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-theme-600 transition-colors hover:bg-theme-100 disabled:pointer-events-none disabled:opacity-30';
+import { IconButton } from './IconButton';
 
 interface CalendarHeaderProps {
   title: string;
@@ -28,15 +27,14 @@ export function CalendarHeader({
 }: CalendarHeaderProps) {
   return (
     <div className="flex items-center justify-between px-2">
-      <button
-        type="button"
-        aria-label="Précédent"
+      <IconButton
+        label="Précédent"
+        tone="strong"
         onClick={onPrevious}
         disabled={previousDisabled}
-        className={ARROW_CLASS}
       >
         <ChevronLeft className="h-5 w-5" />
-      </button>
+      </IconButton>
       {onTitleClick ? (
         <button
           type="button"
@@ -48,15 +46,14 @@ export function CalendarHeader({
       ) : (
         <span className="react-datepicker__current-month">{title}</span>
       )}
-      <button
-        type="button"
-        aria-label="Suivant"
+      <IconButton
+        label="Suivant"
+        tone="strong"
         onClick={onNext}
         disabled={nextDisabled}
-        className={ARROW_CLASS}
       >
         <ChevronRight className="h-5 w-5" />
-      </button>
+      </IconButton>
     </div>
   );
 }

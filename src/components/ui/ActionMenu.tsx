@@ -3,6 +3,7 @@ import { Ellipsis, Trash2, type LucideIcon } from 'lucide-react';
 
 import { useTwoTap } from '../../hooks/useTwoTap';
 import { BottomSheet } from './BottomSheet';
+import { IconButton } from './IconButton';
 
 /** An action of the "⋯" sheet, listed above the delete. */
 export interface MenuAction {
@@ -25,8 +26,6 @@ interface Props {
   onDelete?: () => void;
   /** What the delete action says, such as "Supprimer l'aliment". */
   deleteLabel?: string;
-  /** The look of the "⋯" button, to match the header it sits in. */
-  buttonClassName: string;
 }
 
 /**
@@ -41,7 +40,6 @@ export function ActionMenu({
   actions = [],
   onDelete,
   deleteLabel = 'Supprimer',
-  buttonClassName,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const remove = useTwoTap(() => {
@@ -61,14 +59,9 @@ export function ActionMenu({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        aria-label="Plus d'actions"
-        className={buttonClassName}
-      >
+      <IconButton label="Plus d'actions" onClick={() => setIsOpen(true)}>
         <Ellipsis className="h-6 w-6" />
-      </button>
+      </IconButton>
       <BottomSheet open={isOpen} onClose={close} title={title}>
         {actions.map(({ label, icon: Icon, onSelect }) => (
           <button

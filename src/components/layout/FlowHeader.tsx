@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
+import { IconButton } from '../ui/IconButton';
+
 interface Props {
   title: string;
   /** The line under the title, such as the day it adds to. */
@@ -26,13 +28,9 @@ export function FlowHeader({
 }: Props) {
   return (
     <div className="sticky top-0 z-10 -mx-6 flex items-center gap-2 bg-theme-50 px-4 py-3">
-      <button
-        type="button"
-        onClick={onBack ?? onClose}
-        className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-theme-600 transition-colors hover:bg-theme-100 active:bg-theme-200"
-      >
+      <IconButton label="Retour" tone="strong" onClick={onBack ?? onClose}>
         <ArrowLeft className="h-6 w-6" />
-      </button>
+      </IconButton>
       <div className="min-w-0 flex-1">
         <h2 className="truncate text-lg font-bold text-theme-800">{title}</h2>
         <p className="truncate text-sm text-theme-600">{subtitle}</p>

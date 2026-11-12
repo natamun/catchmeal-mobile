@@ -8,10 +8,7 @@ import { MAX_LENGTH } from '../../utils/validation';
 import { FlowFooter } from '../layout/FlowFooter';
 import { FlowHeader } from '../layout/FlowHeader';
 import { ActionMenu } from '../ui/ActionMenu';
-import {
-  HEADER_ICON_BUTTON_CLASS,
-  PRIMARY_BUTTON_CLASS,
-} from '../ui/buttonStyle';
+import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { EditableList, type EditableRow } from '../ui/EditableList';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
@@ -173,7 +170,6 @@ export function TemplateForm({
               ]}
               onDelete={() => void handleDelete()}
               deleteLabel="Supprimer la séance"
-              buttonClassName={HEADER_ICON_BUTTON_CLASS}
             />
           )
         }

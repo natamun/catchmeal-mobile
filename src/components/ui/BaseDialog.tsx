@@ -2,17 +2,13 @@ import { useCallback, type ReactNode, type RefObject } from 'react';
 import { X } from 'lucide-react';
 
 import { ActionMenu, type MenuAction } from './ActionMenu';
+import { IconButton } from './IconButton';
 
 const MAX_WIDTH_CLASS = {
   sm: 'max-w-sm',
   lg: 'max-w-lg',
   xl: 'max-w-2xl',
 } as const;
-
-const HEADER_BUTTON_CLASS =
-  // No outline: the dialog focuses this button as it opens, and a ring around
-  // it looked like a selected button.
-  'flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-theme-400 outline-none transition-colors hover:bg-theme-100';
 
 interface BaseDialogProps {
   dialogRef: RefObject<HTMLDialogElement | null>;
@@ -92,16 +88,11 @@ export function BaseDialog({
                 actions={menuActions}
                 onDelete={onDelete}
                 deleteLabel={deleteLabel}
-                buttonClassName={`${HEADER_BUTTON_CLASS} hover:text-theme-600`}
               />
             )}
-            <button
-              type="button"
-              onClick={closeDialog}
-              className={`${HEADER_BUTTON_CLASS} hover:text-theme-600`}
-            >
+            <IconButton label="Fermer" onClick={closeDialog}>
               <X className="h-6 w-6" />
-            </button>
+            </IconButton>
           </div>
         </div>
 
