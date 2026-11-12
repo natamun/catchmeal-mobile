@@ -1,15 +1,13 @@
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 import { Input } from '../ui/Input';
+import { RemoveIconButton } from '../ui/RemoveIconButton';
 import type { ExerciseKind } from './types';
 import { EMPTY_CARDIO_SET, type CardioSetDraft } from './workoutDraft';
 
 /** The button that adds a set, under the sets of any exercise. */
 export const ADD_SET_CLASS =
   'flex cursor-pointer items-center gap-1.5 self-start rounded-lg py-1 text-sm font-medium text-theme-600 transition-colors hover:text-theme-800';
-
-const REMOVE_CLASS =
-  'tap-area relative flex shrink-0 cursor-pointer justify-center text-theme-400 transition-colors hover:text-red-500';
 
 interface Field {
   key: keyof CardioSetDraft;
@@ -31,8 +29,8 @@ const FIELDS: Record<Exclude<ExerciseKind, 'STRENGTH'>, Field[]> = {
 };
 
 const COLUMNS = {
-  TREADMILL: 'grid-cols-[1.25rem_1fr_1fr_1fr_1.25rem]',
-  CARDIO: 'grid-cols-[1.25rem_1fr_1fr_1.25rem]',
+  TREADMILL: 'grid-cols-[1.25rem_1fr_1fr_1fr_1.75rem]',
+  CARDIO: 'grid-cols-[1.25rem_1fr_1fr_1.75rem]',
 };
 
 interface Props {
@@ -82,13 +80,10 @@ export function CardioSetsEditor({ kind, sets, onChange }: Props) {
             />
           ))}
           {sets.length > 1 ? (
-            <button
-              type="button"
+            <RemoveIconButton
+              label={`Retirer la série ${index + 1}`}
               onClick={() => onChange(sets.filter((_, i) => i !== index))}
-              className={REMOVE_CLASS}
-            >
-              <X className="h-4 w-4" />
-            </button>
+            />
           ) : (
             <span />
           )}

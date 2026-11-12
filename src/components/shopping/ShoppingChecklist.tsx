@@ -1,10 +1,6 @@
-import { X } from 'lucide-react';
-
+import { RemoveIconButton } from '../ui/RemoveIconButton';
 import { SelectToggle } from '../ui/SelectToggle';
 import type { ShoppingLine } from './lines';
-
-const REMOVE_CLASS =
-  'tap-area relative shrink-0 cursor-pointer text-theme-300 transition-colors hover:text-red-500';
 
 interface ShoppingChecklistProps {
   lines: ShoppingLine[];
@@ -44,13 +40,10 @@ export function ShoppingChecklist({
               {line.amount}
             </span>
           )}
-          <button
-            type="button"
+          <RemoveIconButton
+            label={`Retirer ${line.name}`}
             onClick={() => onRemove(line)}
-            className={REMOVE_CLASS}
-          >
-            <X className="h-4 w-4" />
-          </button>
+          />
         </li>
       ))}
     </ul>

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Check, Plus, X } from 'lucide-react';
+import { Check, Plus } from 'lucide-react';
 
 import { FoodItemForm } from '../food/FoodItemForm';
 import { matchesFood } from '../food/search';
@@ -17,6 +17,7 @@ import { FieldError } from '../ui/FieldError';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
 import { MacroSummary } from '../ui/MacroSummary';
+import { RemoveIconButton } from '../ui/RemoveIconButton';
 import { SearchPicker } from '../ui/SearchPicker';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { SortableList } from '../ui/SortableList';
@@ -185,14 +186,7 @@ function SectionTitle({
           <Check className="h-4 w-4" />
         </button>
       ) : (
-        <button
-          type="button"
-          aria-label={`Retirer ${label}`}
-          onClick={onRemove}
-          className={`${ICON_BUTTON_CLASS} shrink-0 hover:text-red-500`}
-        >
-          <X className="h-4 w-4" />
-        </button>
+        <RemoveIconButton label={`Retirer ${label}`} onClick={onRemove} />
       )}
     </div>
   );
@@ -408,16 +402,13 @@ export function StepsEditor({ editor }: PartProps) {
               onChange={(e) => setText(step.id, e.target.value)}
               className="ml-1"
             />
-            <button
-              type="button"
-              aria-label={`Retirer l'étape ${index + 1}`}
+            <RemoveIconButton
+              label={`Retirer l'étape ${index + 1}`}
               onClick={() =>
                 update({ steps: steps.filter(({ id }) => id !== step.id) })
               }
-              className={`${ICON_BUTTON_CLASS} mt-3 ml-1 shrink-0 hover:text-red-500`}
-            >
-              <X className="h-4 w-4" />
-            </button>
+              className="mt-3 ml-1"
+            />
           </>
         )}
       />

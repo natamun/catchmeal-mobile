@@ -21,6 +21,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - A library meal and a favorite session are deleted from the "⋯" menu of their page, with the same second tap, like a recipe.
 - Library list rows are a little lower, and as tall in every list.
 - A search that finds nothing names the text and the filters, and clears them in one tap.
+- The crosses that remove a set, a recipe section or step, or a shopping line look the same and show a background while pressed.
 
 ## [0.10.0] - 2026-11-12
 

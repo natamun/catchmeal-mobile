@@ -1,11 +1,9 @@
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 import { Input } from '../ui/Input';
+import { RemoveIconButton } from '../ui/RemoveIconButton';
 import { ADD_SET_CLASS, CardioSetsEditor } from './CardioSetsEditor';
 import type { ItemDraft, SetDraft } from './workoutDraft';
-
-const REMOVE_BUTTON =
-  'tap-area relative shrink-0 cursor-pointer text-theme-400 transition-colors hover:text-red-500';
 
 interface Props {
   item: ItemDraft;
@@ -59,18 +57,16 @@ export function ItemSets({ item, onChange }: Props) {
               </div>
               <span className="text-sm text-theme-600">kg</span>
               {item.sets.length > 1 && (
-                <button
-                  type="button"
+                <RemoveIconButton
+                  label={`Retirer la série ${index + 1}`}
                   onClick={() =>
                     onChange({
                       ...item,
                       sets: item.sets.filter((_, i) => i !== index),
                     })
                   }
-                  className={`${REMOVE_BUTTON} ml-auto`}
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                  className="ml-auto"
+                />
               )}
             </div>
           ))}
