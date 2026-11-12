@@ -64,3 +64,10 @@ export function formatMinutes(minutes: number) {
     ? `${hours} h`
     : `${hours} h ${String(rest).padStart(2, '0')}`;
 }
+
+const COPY = ' (copie)';
+
+/** A name marked as a copy, cut so it stays within `maxLength`. */
+export function copyName(name: string, maxLength: number) {
+  return `${name.slice(0, maxLength - COPY.length)}${COPY}`;
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatMinutes, formatSince } from './format';
+import { copyName, formatMinutes, formatSince } from './format';
 
 const TODAY = new Date(2026, 10, 6, 9, 0);
 const at = (month: number, day: number, hour = 12, year = 2026) =>
@@ -37,5 +37,17 @@ describe('formatMinutes', () => {
     [125, '2 h 05'],
   ])('writes %i minutes as %s', (minutes, expected) => {
     expect(formatMinutes(minutes)).toBe(expected);
+  });
+});
+
+describe('copyName', () => {
+  it('marks a name as a copy', () => {
+    expect(copyName('Frites', 120)).toBe('Frites (copie)');
+  });
+
+  it('cuts a long name so the copy stays within the limit', () => {
+    const copy = copyName('a'.repeat(120), 120);
+    expect(copy).toHaveLength(120);
+    expect(copy.endsWith(' (copie)')).toBe(true);
   });
 });

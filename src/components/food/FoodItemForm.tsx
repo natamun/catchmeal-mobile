@@ -1,4 +1,5 @@
 import { useRef, useState, type RefObject } from 'react';
+import { Copy } from 'lucide-react';
 
 import { useFormValidation } from '../../hooks/useFormValidation';
 import {
@@ -7,6 +8,7 @@ import {
   TOO_MANY_DECIMALS,
 } from '../../utils/decimals';
 import { failureMessage } from '../../utils/failureMessage';
+import { copyName } from '../../utils/format';
 import { MAX_LENGTH, maxLengthMessage } from '../../utils/validation';
 import { NUTRITION_FIELDS } from '../meal/quickMealAdd';
 import { BaseDialog } from '../ui/BaseDialog';
@@ -80,6 +82,18 @@ function itemToForm(item: FoodItem): FoodItemFormState {
     portionName: item.portionName ?? '',
     portionQuantity:
       item.portionQuantity === null ? '' : String(item.portionQuantity),
+  };
+}
+
+/**
+ * A new food filled from another, its name marked as a copy. The barcode is
+ * left out: a variant is another product.
+ */
+function copyToForm(item: FoodItem): FoodItemFormState {
+  return {
+    ...itemToForm(item),
+    barcode: '',
+    name: copyName(item.name, MAX_LENGTH.foodName),
   };
 }
 
@@ -194,14 +208,18 @@ interface FoodItemFormProps {
 /**
  * Dialog to create or edit a food: barcode lookup, name, brand, base quantity
  * and macros. It warns before adding a second food with the same barcode.
- * Deleting archives the food.
+ * Deleting archives the food; duplicating turns the dialog into a new food
+ * filled with a copy, until it closes.
  */
 export function FoodItemForm({
   dialogRef,
-  editingItem,
+  editingItem: openedItem,
   foodItems,
   onCreated,
 }: FoodItemFormProps) {
+  const [isCopy, setIsCopy] = useState(false);
+  // A copy is saved as a new food.
+  const editingItem = isCopy ? null : openedItem;
   const {
     form,
     setForm,
@@ -228,12 +246,30 @@ export function FoodItemForm({
   // Updating state during render, the React way to react to a prop change
   // without an effect: when the dialog opens on another food, the form is
   // refilled before it is displayed.
-  if ((editingItem?.id ?? null) !== syncedItemId) {
-    setSyncedItemId(editingItem?.id ?? null);
-    setForm(editingItem ? itemToForm(editingItem) : EMPTY_FORM);
+  if ((openedItem?.id ?? null) !== syncedItemId) {
+    setSyncedItemId(openedItem?.id ?? null);
+    setIsCopy(false);
+    setForm(openedItem ? itemToForm(openedItem) : EMPTY_FORM);
     resetValidation();
     setError(null);
   }
+
+  const startCopy = () => {
+    if (!openedItem) return;
+    setIsCopy(true);
+    setForm(copyToForm(openedItem));
+    resetValidation();
+    setError(null);
+  };
+
+  // Reopened on the same food, the dialog shows that food again, not its copy.
+  const endCopy = () => {
+    if (!isCopy) return;
+    setIsCopy(false);
+    setForm(openedItem ? itemToForm(openedItem) : EMPTY_FORM);
+    resetValidation();
+    setError(null);
+  };
 
   const closeDialog = () => {
     dialogRef.current?.close();
@@ -338,6 +374,18 @@ export function FoodItemForm({
         onDelete={
           editingItem ? () => confirmDialogRef.current?.showModal() : undefined
         }
+        menuActions={
+          editingItem
+            ? [
+                {
+                  label: 'Dupliquer l’aliment',
+                  icon: Copy,
+                  onSelect: startCopy,
+                },
+              ]
+            : []
+        }
+        onClose={endCopy}
       >
         <form
           onSubmit={(e) => void handleSubmit(e)}

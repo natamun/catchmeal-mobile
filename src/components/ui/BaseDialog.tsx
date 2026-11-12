@@ -1,5 +1,5 @@
 import { useCallback, useState, type ReactNode, type RefObject } from 'react';
-import { Ellipsis, Trash2, X } from 'lucide-react';
+import { Ellipsis, Trash2, X, type LucideIcon } from 'lucide-react';
 
 import { BottomSheet } from './BottomSheet';
 
@@ -14,6 +14,16 @@ const HEADER_BUTTON_CLASS =
   // it looked like a selected button.
   'flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-theme-400 outline-none transition-colors hover:bg-theme-50 active:bg-theme-100';
 
+/** An action of the "⋯" sheet, listed above the delete. */
+interface DialogMenuAction {
+  label: string;
+  icon: LucideIcon;
+  onSelect: () => void;
+}
+
+const MENU_ITEM_CLASS =
+  'flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-1 text-left text-base font-medium transition-colors';
+
 interface BaseDialogProps {
   dialogRef: RefObject<HTMLDialogElement | null>;
   title: string;
@@ -22,6 +32,8 @@ interface BaseDialogProps {
   onDelete?: () => void;
   /** What the delete action says, such as "Supprimer l'aliment". */
   deleteLabel?: string;
+  /** Other actions of the "⋯" sheet, such as duplicating. */
+  menuActions?: DialogMenuAction[];
   onClose?: () => void;
   onDialogNode?: (node: HTMLDialogElement | null) => void;
   children: ReactNode;
@@ -44,6 +56,7 @@ export function BaseDialog({
   maxWidth = 'lg',
   onDelete,
   deleteLabel = 'Supprimer',
+  menuActions = [],
   onClose,
   onDialogNode,
   children,
@@ -60,6 +73,8 @@ export function BaseDialog({
   const closeDialog = () => {
     dialogRef.current?.close();
   };
+
+  const hasMenu = onDelete !== undefined || menuActions.length > 0;
 
   return (
     <dialog
@@ -79,7 +94,7 @@ export function BaseDialog({
             {title}
           </h3>
           <div className="-my-2 -mr-2 flex shrink-0 items-center gap-1">
-            {onDelete && (
+            {hasMenu && (
               <button
                 type="button"
                 onClick={() => setIsMenuOpen(true)}
@@ -103,23 +118,39 @@ export function BaseDialog({
           {children}
         </div>
       </div>
-      {onDelete && (
+      {hasMenu && (
         <BottomSheet
           open={isMenuOpen}
           onClose={() => setIsMenuOpen(false)}
           title={title}
         >
-          <button
-            type="button"
-            onClick={() => {
-              setIsMenuOpen(false);
-              onDelete();
-            }}
-            className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-1 text-left text-base font-medium text-red-500 transition-colors hover:bg-red-500/10"
-          >
-            <Trash2 className="h-5 w-5 shrink-0" />
-            {deleteLabel}
-          </button>
+          {menuActions.map(({ label, icon: Icon, onSelect }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => {
+                setIsMenuOpen(false);
+                onSelect();
+              }}
+              className={`${MENU_ITEM_CLASS} text-theme-800 hover:bg-theme-100`}
+            >
+              <Icon className="h-5 w-5 shrink-0 text-theme-500" />
+              {label}
+            </button>
+          ))}
+          {onDelete && (
+            <button
+              type="button"
+              onClick={() => {
+                setIsMenuOpen(false);
+                onDelete();
+              }}
+              className={`${MENU_ITEM_CLASS} text-red-500 hover:bg-red-500/10`}
+            >
+              <Trash2 className="h-5 w-5 shrink-0" />
+              {deleteLabel}
+            </button>
+          )}
         </BottomSheet>
       )}
     </dialog>

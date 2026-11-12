@@ -1,4 +1,5 @@
 import { MAX_DECIMALS, roundDecimals } from '../../utils/decimals';
+import { copyName } from '../../utils/format';
 import { maxLengthMessage } from '../../utils/validation';
 import { wholePortions } from '../food/portion';
 import type { FoodItem } from '../food/types';
@@ -91,13 +92,11 @@ export function recipeToForm(
   };
 }
 
-const COPY = ' (copie)';
-
 /** A new recipe filled from another, its name marked as a copy. */
 export function copyToForm(recipe: Recipe, foodItems: FoodItem[]): RecipeForm {
   return {
     ...recipeToForm(recipe, foodItems),
-    name: `${recipe.name.slice(0, RECIPE_LIMITS.name - COPY.length)}${COPY}`,
+    name: copyName(recipe.name, RECIPE_LIMITS.name),
   };
 }
 

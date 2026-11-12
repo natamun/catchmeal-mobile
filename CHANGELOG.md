@@ -14,6 +14,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - A journal section, a library meal and the day's session are edited on a page of their own, the totals and the save button kept at the bottom.
 - Foods and exercises are added from a full-screen search that stays open, those already added checked.
 - A recipe is written or changed with an AI: the editor copies it as JSON with the food library, and imports the AI's answer into the form, the foods missing from the library listed.
+- A food is duplicated from its ⋯ menu: the new food form opens filled with a copy, without the barcode.
 
 ### Changed
 
