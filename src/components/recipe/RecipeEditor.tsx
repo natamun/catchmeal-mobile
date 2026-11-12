@@ -1,4 +1,4 @@
-import { useRef, useState, type RefObject } from 'react';
+import { useRef, useState } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
 import { Check, Plus, X } from 'lucide-react';
 
@@ -12,7 +12,6 @@ import {
   PRIMARY_BUTTON_CLASS,
   SECONDARY_BUTTON_CLASS,
 } from '../ui/buttonStyle';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { EditableList, type EditableRow } from '../ui/EditableList';
 import { FieldError } from '../ui/FieldError';
 import { LABEL_CLASS } from '../ui/fieldStyle';
@@ -22,8 +21,6 @@ import { SearchPicker } from '../ui/SearchPicker';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { SortableList } from '../ui/SortableList';
 import { Textarea } from '../ui/Textarea';
-import { useToast } from '../ui/toastContext';
-import { deleteRecipe } from './api';
 import {
   foodLines,
   formPerServing,
@@ -39,7 +36,6 @@ import { ServingsStepper } from './RecipeView';
 import {
   RECIPE_CATEGORIES,
   RECIPE_CATEGORY_LABELS,
-  type Recipe,
   type RecipeCategory,
 } from './types';
 import type { RecipeEditor } from './useRecipeEditor';
@@ -463,48 +459,5 @@ export function SaveBar({ editor, onSave }: SaveBarProps) {
         {isSubmitting ? 'Enregistrement...' : 'Enregistrer la recette'}
       </button>
     </FlowFooter>
-  );
-}
-
-interface DeleteDialogProps {
-  recipe: Recipe;
-  dialogRef: RefObject<HTMLDialogElement | null>;
-  onDeleted: () => void;
-}
-
-/** Asks before deleting a recipe, then deletes it. */
-export function DeleteRecipeDialog({
-  recipe,
-  dialogRef,
-  onDeleted,
-}: DeleteDialogProps) {
-  const [isPending, setIsPending] = useState(false);
-  const showToast = useToast();
-
-  const confirm = async () => {
-    setIsPending(true);
-    try {
-      await deleteRecipe(recipe.id);
-      showToast('Recette supprimée');
-      dialogRef.current?.close();
-      onDeleted();
-    } catch {
-      showToast('Suppression impossible, réessayez.');
-      dialogRef.current?.close();
-    } finally {
-      setIsPending(false);
-    }
-  };
-
-  return (
-    <ConfirmDialog
-      dialogRef={dialogRef}
-      title="Supprimer cette recette ?"
-      description={`${recipe.name} sera retirée de votre liste. Les repas déjà loggés la gardent.`}
-      confirmLabel="Supprimer"
-      pendingLabel="Suppression..."
-      isPending={isPending}
-      onConfirm={() => void confirm()}
-    />
   );
 }

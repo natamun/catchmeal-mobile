@@ -18,7 +18,10 @@ interface BaseDialogProps {
   dialogRef: RefObject<HTMLDialogElement | null>;
   title: string;
   maxWidth?: keyof typeof MAX_WIDTH_CLASS;
-  /** Adds a "⋯" button that opens a sheet with this delete action, in red. */
+  /**
+   * Adds a "⋯" button that opens a sheet with this delete action, in red,
+   * called once confirmed by a second tap.
+   */
   onDelete?: () => void;
   /** What the delete action says, such as "Supprimer l'aliment". */
   deleteLabel?: string;

@@ -9,3 +9,7 @@ export const SECONDARY_BUTTON_CLASS =
 /** A destructive secondary button: outlined in red, whatever the theme. */
 export const DANGER_BUTTON_CLASS =
   'flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-500/40 px-4 py-2.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60';
+
+/** A round icon button in a page header, such as the "⋯" of a flow page. */
+export const HEADER_ICON_BUTTON_CLASS =
+  'flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-theme-400 transition-colors hover:bg-theme-100 hover:text-theme-600';

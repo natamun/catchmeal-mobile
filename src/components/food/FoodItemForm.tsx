@@ -240,7 +240,6 @@ export function FoodItemForm({
   const [syncedItemId, setSyncedItemId] = useState<number | null>(
     editingItem?.id ?? null,
   );
-  const confirmDialogRef = useRef<HTMLDialogElement>(null);
   const duplicateDialogRef = useRef<HTMLDialogElement>(null);
 
   // Updating state during render, the React way to react to a prop change
@@ -361,7 +360,6 @@ export function FoodItemForm({
       setError('Suppression impossible, réessayez.');
     } finally {
       setIsSubmitting(false);
-      confirmDialogRef.current?.close();
     }
   };
 
@@ -371,9 +369,7 @@ export function FoodItemForm({
         dialogRef={dialogRef}
         title={editingItem ? 'Modifier un aliment' : 'Ajouter un aliment'}
         deleteLabel="Supprimer l’aliment"
-        onDelete={
-          editingItem ? () => confirmDialogRef.current?.showModal() : undefined
-        }
+        onDelete={editingItem ? () => void handleDelete() : undefined}
         menuActions={
           editingItem
             ? [
@@ -559,16 +555,6 @@ export function FoodItemForm({
           </button>
         </form>
       </BaseDialog>
-
-      <ConfirmDialog
-        dialogRef={confirmDialogRef}
-        title="Supprimer cet aliment ?"
-        description={`${editingItem?.name ?? ''} sera retiré de votre liste.`}
-        confirmLabel="Supprimer"
-        pendingLabel="Suppression..."
-        isPending={isSubmitting}
-        onConfirm={() => void handleDelete()}
-      />
 
       <ConfirmDialog
         dialogRef={duplicateDialogRef}

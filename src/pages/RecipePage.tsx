@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Copy, LoaderCircle, ShoppingCart } from 'lucide-react';
 import { useLocation, useMatch, useNavigate, useParams } from 'react-router';
 
@@ -6,11 +6,10 @@ import { listFoodItems } from '../components/food/api';
 import type { FoodItem } from '../components/food/types';
 import { useFlow } from '../components/layout/flowContext';
 import { FlowHeader } from '../components/layout/FlowHeader';
-import { listRecipes } from '../components/recipe/api';
+import { deleteRecipe, listRecipes } from '../components/recipe/api';
 import { RecipeAiCard } from '../components/recipe/RecipeAiCard';
 import {
   CookingField,
-  DeleteRecipeDialog,
   InfoFields,
   IngredientsEditor,
   NotesField,
@@ -32,7 +31,10 @@ import { useRecipeEditor } from '../components/recipe/useRecipeEditor';
 import { addFoodsToShopping } from '../components/shopping/api';
 import { recipeToShopping } from '../components/shopping/lines';
 import { ActionMenu } from '../components/ui/ActionMenu';
-import { SECONDARY_BUTTON_CLASS } from '../components/ui/buttonStyle';
+import {
+  HEADER_ICON_BUTTON_CLASS,
+  SECONDARY_BUTTON_CLASS,
+} from '../components/ui/buttonStyle';
 import { Card } from '../components/ui/Card';
 import { EditIconButton } from '../components/ui/EditIconButton';
 import { useToast } from '../components/ui/toastContext';
@@ -41,9 +43,6 @@ import { useList } from '../hooks/useList';
 import { useGoBack } from '../routing/navigation';
 import { PATHS } from '../routing/paths';
 import { recipeEditPath, recipePath } from '../routing/recipes';
-
-const HEADER_BUTTON_CLASS =
-  'flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-theme-400 transition-colors hover:bg-theme-100';
 
 /** What the page is opened with: a new recipe can start as a copy. */
 interface RecipeState {
@@ -80,7 +79,6 @@ function RecipeSheet({
   onCopy,
   onDeleted,
 }: SheetProps) {
-  const deleteRef = useRef<HTMLDialogElement>(null);
   const [servings, setServings] = useState(recipe.servings);
   const [isAdding, setIsAdding] = useState(false);
   const showToast = useToast();
@@ -97,6 +95,16 @@ function RecipeSheet({
       setIsAdding(false);
     }
   };
+
+  const remove = async () => {
+    try {
+      await deleteRecipe(recipe.id);
+      showToast('Recette supprimée');
+      onDeleted();
+    } catch {
+      showToast('Suppression impossible, réessayez.');
+    }
+  };
   return (
     <>
       <FlowHeader
@@ -111,9 +119,9 @@ function RecipeSheet({
               actions={[
                 { label: 'Dupliquer la recette', icon: Copy, onSelect: onCopy },
               ]}
-              onDelete={() => deleteRef.current?.showModal()}
+              onDelete={() => void remove()}
               deleteLabel="Supprimer la recette"
-              buttonClassName={`${HEADER_BUTTON_CLASS} hover:text-theme-600`}
+              buttonClassName={HEADER_ICON_BUTTON_CLASS}
             />
           </div>
         }
@@ -154,11 +162,6 @@ function RecipeSheet({
         </Card>
       )}
       <RecipeAiCard recipe={recipe} foodItems={foodItems} />
-      <DeleteRecipeDialog
-        recipe={recipe}
-        dialogRef={deleteRef}
-        onDeleted={onDeleted}
-      />
     </>
   );
 }

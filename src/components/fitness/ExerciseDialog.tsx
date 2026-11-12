@@ -1,9 +1,8 @@
-import { useId, useRef, useState, type RefObject } from 'react';
+import { useId, useState, type RefObject } from 'react';
 
 import { failureMessage } from '../../utils/failureMessage';
 import { BaseDialog } from '../ui/BaseDialog';
 import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
 import { PillTabs } from '../ui/PillTabs';
@@ -120,22 +119,16 @@ interface Props {
  * one. Deleting archives it: the past sessions keep it.
  */
 export function ExerciseDialog({ dialogRef, openCount, exercise }: Props) {
-  const confirmDialogRef = useRef<HTMLDialogElement>(null);
   const showToast = useToast();
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     if (!exercise) return;
-    setIsDeleting(true);
     try {
       await deleteExercise(exercise.id);
       dialogRef.current?.close();
       showToast('Exercice supprimé');
     } catch {
       showToast('Suppression impossible, réessayez.');
-    } finally {
-      setIsDeleting(false);
-      confirmDialogRef.current?.close();
     }
   };
 
@@ -146,9 +139,7 @@ export function ExerciseDialog({ dialogRef, openCount, exercise }: Props) {
         title={exercise ? "Modifier l'exercice" : 'Nouvel exercice'}
         maxWidth="sm"
         deleteLabel="Supprimer l’exercice"
-        onDelete={
-          exercise ? () => confirmDialogRef.current?.showModal() : undefined
-        }
+        onDelete={exercise ? () => void handleDelete() : undefined}
       >
         <ExerciseForm
           key={openCount}
@@ -156,16 +147,6 @@ export function ExerciseDialog({ dialogRef, openCount, exercise }: Props) {
           onSaved={() => dialogRef.current?.close()}
         />
       </BaseDialog>
-
-      <ConfirmDialog
-        dialogRef={confirmDialogRef}
-        title="Supprimer cet exercice ?"
-        description={`${exercise?.name ?? 'Cet exercice'} disparaît de la bibliothèque. Les séances passées le gardent.`}
-        confirmLabel="Supprimer"
-        pendingLabel="Suppression..."
-        isPending={isDeleting}
-        onConfirm={() => void handleDelete()}
-      />
     </>
   );
 }

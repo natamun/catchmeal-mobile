@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type RefObject } from 'react';
+import { useId, useState, type RefObject } from 'react';
 
 import { useFormValidation } from '../../hooks/useFormValidation';
 import {
@@ -9,7 +9,6 @@ import {
 import { formatDayMonth } from '../../utils/format';
 import { BaseDialog } from '../ui/BaseDialog';
 import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { FieldError } from '../ui/FieldError';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
@@ -200,8 +199,6 @@ export function WeightDialog({
   onSaved,
   onDeleted,
 }: Props) {
-  const confirmDialogRef = useRef<HTMLDialogElement>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [hasDeleteFailed, setHasDeleteFailed] = useState(false);
   const day = entry ? formatDayMonth(new Date(entry.loggedAt)) : '';
 
@@ -211,16 +208,12 @@ export function WeightDialog({
     }
 
     setHasDeleteFailed(false);
-    setIsDeleting(true);
     try {
       await deleteWeight(entry.id);
       dialogRef.current?.close();
       onDeleted(entry.id);
     } catch {
       setHasDeleteFailed(true);
-    } finally {
-      setIsDeleting(false);
-      confirmDialogRef.current?.close();
     }
   };
 
@@ -232,9 +225,7 @@ export function WeightDialog({
         maxWidth="sm"
         onClose={() => setHasDeleteFailed(false)}
         deleteLabel="Supprimer la pesée"
-        onDelete={
-          entry ? () => confirmDialogRef.current?.showModal() : undefined
-        }
+        onDelete={entry ? () => void handleDelete() : undefined}
       >
         <WeightForm
           key={openCount}
@@ -246,16 +237,6 @@ export function WeightDialog({
           }}
         />
       </BaseDialog>
-
-      <ConfirmDialog
-        dialogRef={confirmDialogRef}
-        title="Supprimer cette pesée ?"
-        description={`La pesée du ${day} sera retirée de l'historique.`}
-        confirmLabel="Supprimer"
-        pendingLabel="Suppression..."
-        isPending={isDeleting}
-        onConfirm={() => void handleDelete()}
-      />
     </>
   );
 }
