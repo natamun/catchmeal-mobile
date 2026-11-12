@@ -10,6 +10,7 @@ import { amountParts } from '../recipe/servings';
 import { BaseDialog } from '../ui/BaseDialog';
 import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { InfoBubble } from '../ui/InfoBubble';
+import { SHEET_BODY_CLASS, SheetSection } from '../ui/SheetSection';
 import { StatTile } from '../ui/StatTile';
 import { UNIT_LABELS, type FoodItem } from './types';
 
@@ -40,12 +41,10 @@ export function FoodSheet({ dialogRef, food, usage, onEdit }: Props) {
   return (
     <BaseDialog dialogRef={dialogRef} title={food?.name ?? ''}>
       {food && (
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-1">
-              <h4 className="text-xs font-semibold text-theme-500">
-                Valeurs pour {base}
-              </h4>
+        <div className={SHEET_BODY_CLASS}>
+          <SheetSection
+            title={`Valeurs pour ${base}`}
+            info={
               <InfoBubble bubbleClassName="w-max">
                 {MACROS.map(({ key, label, color }) => (
                   <p key={key} className="flex items-center gap-1.5">
@@ -55,7 +54,8 @@ export function FoodSheet({ dialogRef, food, usage, onEdit }: Props) {
                 ))}
                 <p className="text-theme-600">En grammes.</p>
               </InfoBubble>
-            </div>
+            }
+          >
             <div className="grid grid-cols-4 gap-2">
               <span className={VALUE_CLASS}>{Math.round(food.kcal)} kcal</span>
               {MACROS.map(({ key, label, color }) => (
@@ -68,10 +68,9 @@ export function FoodSheet({ dialogRef, food, usage, onEdit }: Props) {
                 </span>
               ))}
             </div>
-          </div>
+          </SheetSection>
 
-          <div className="flex flex-col gap-3">
-            <h4 className="text-xs font-semibold text-theme-500">Journal</h4>
+          <SheetSection title="Journal">
             {usage && last ? (
               <div className="grid grid-cols-2 gap-3">
                 <StatTile
@@ -90,7 +89,7 @@ export function FoodSheet({ dialogRef, food, usage, onEdit }: Props) {
                 Pas encore loggé dans le journal.
               </p>
             )}
-          </div>
+          </SheetSection>
 
           <button
             type="button"

@@ -8,12 +8,10 @@ import {
   SECONDARY_BUTTON_CLASS,
 } from '../ui/buttonStyle';
 import { FieldError } from '../ui/FieldError';
+import { Textarea } from '../ui/Textarea';
 import { useToast } from '../ui/toastContext';
 import { buildExportText, parseRecipeImport } from './recipeImport';
 import type { RecipeEditor } from './useRecipeEditor';
-
-const TEXTAREA_CLASS =
-  'max-h-64 w-full resize-none overflow-y-auto rounded-xl border border-theme-200 bg-surface px-4 py-2.5 text-sm text-theme-800 outline-none focus:border-theme-400 data-[invalid=true]:border-red-400';
 
 /** What the last import left to do: foods to add, values changed. */
 interface Report {
@@ -82,7 +80,7 @@ export function RecipeImportCard({ editor }: { editor: RecipeEditor }) {
         maxWidth="sm"
       >
         <div className="relative">
-          <textarea
+          <Textarea
             aria-label="Réponse de l’IA"
             rows={8}
             placeholder="Collez ici le JSON écrit par l’IA"
@@ -92,7 +90,7 @@ export function RecipeImportCard({ editor }: { editor: RecipeEditor }) {
               setError(undefined);
             }}
             data-invalid={Boolean(error)}
-            className={TEXTAREA_CLASS}
+            className="min-h-48"
           />
           <FieldError message={error} />
         </div>

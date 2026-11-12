@@ -3,6 +3,7 @@ import type { RefObject } from 'react';
 import { startOfDay } from '../../utils/dateKey';
 import { formatKg, formatShortDate } from '../../utils/format';
 import { BaseDialog } from '../ui/BaseDialog';
+import { SHEET_BODY_CLASS } from '../ui/SheetSection';
 import { StatTile as Tile } from '../ui/StatTile';
 import { ExerciseNotes } from './ExerciseNotes';
 import { describeValues } from './format';
@@ -44,7 +45,7 @@ export function ExerciseGymSheet({
   return (
     <BaseDialog dialogRef={dialogRef} title={exercise?.name ?? ''}>
       {exercise && (
-        <div className="flex flex-col gap-5">
+        <div className={SHEET_BODY_CLASS}>
           <ExerciseNotes
             key={`${exercise.id}-${openCount}`}
             exerciseId={exercise.id}

@@ -7,6 +7,7 @@ import { formatKg } from '../../utils/format';
 import { FlowFooter } from '../layout/FlowFooter';
 import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { EditableList, type EditableRow } from '../ui/EditableList';
+import { SHEET_BODY_CLASS } from '../ui/SheetSection';
 import { useToast } from '../ui/toastContext';
 import { addToDay, saveDay } from './api';
 import { ExerciseNotes } from './ExerciseNotes';
@@ -31,7 +32,7 @@ function itemRow(
     name: item.name,
     value: draftSummary(item),
     editor: (
-      <div className="flex flex-col gap-5">
+      <div className={SHEET_BODY_CLASS}>
         <ExerciseNotes
           key={item.exerciseId}
           exerciseId={item.exerciseId}

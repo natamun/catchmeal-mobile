@@ -7,6 +7,7 @@ import { TimeLineChart } from '../analytics/TimeLineChart';
 import { BaseDialog } from '../ui/BaseDialog';
 import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { InfoBubble } from '../ui/InfoBubble';
+import { SHEET_BODY_CLASS, SheetSection } from '../ui/SheetSection';
 import { StatTile as Tile } from '../ui/StatTile';
 import { ExerciseNotes } from './ExerciseNotes';
 import { describeValues } from './format';
@@ -90,7 +91,7 @@ export function ExerciseSheet({
   return (
     <BaseDialog dialogRef={dialogRef} title={exercise?.name ?? ''}>
       {exercise && (
-        <div className="flex flex-col gap-5">
+        <div className={SHEET_BODY_CLASS}>
           <ExerciseNotes
             key={`${exercise.id}-${openCount}`}
             exerciseId={exercise.id}
@@ -103,11 +104,9 @@ export function ExerciseSheet({
           ) : (
             <>
               {exercise.kind === 'STRENGTH' ? (
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-1">
-                    <h4 className="text-xs font-semibold text-theme-500">
-                      Repères
-                    </h4>
+                <SheetSection
+                  title="Repères"
+                  info={
                     <InfoBubble>
                       <p>
                         <strong>Record</strong> : la charge la plus lourde
@@ -125,7 +124,8 @@ export function ExerciseSheet({
                         Toucher Record ou Volume pour voir sa courbe.
                       </p>
                     </InfoBubble>
-                  </div>
+                  }
+                >
                   <div className="grid grid-cols-2 gap-3">
                     <Tile label="Séances" value={String(history.length)} />
                     <Tile
@@ -147,7 +147,7 @@ export function ExerciseSheet({
                       record?.volumeDay,
                     )}
                   </div>
-                </div>
+                </SheetSection>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   <Tile label="Séances" value={String(history.length)} />
@@ -176,10 +176,7 @@ export function ExerciseSheet({
                 />
               )}
 
-              <div className="flex flex-col gap-1.5">
-                <h4 className="text-xs font-semibold text-theme-500">
-                  Dernières séances
-                </h4>
+              <SheetSection title="Dernières séances">
                 <ul className="divide-y divide-theme-100">
                   {history.slice(0, RECENT).map(({ day, workoutId, item }) => (
                     <li
@@ -195,7 +192,7 @@ export function ExerciseSheet({
                     </li>
                   ))}
                 </ul>
-              </div>
+              </SheetSection>
             </>
           )}
 

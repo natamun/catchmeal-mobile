@@ -14,6 +14,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 ### Changed
 
 - While logging a session, each exercise's row shows its number of sets instead of a figure that read like repetitions.
+- The food and exercise sheets share one spacing between a title and its content and between sections, and every text area has the look of the other fields.
 
 ## [0.10.0] - 2026-11-12
 

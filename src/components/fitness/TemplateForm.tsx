@@ -10,6 +10,8 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { EditableList, type EditableRow } from '../ui/EditableList';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
+import { SHEET_BODY_CLASS } from '../ui/SheetSection';
+import { StatTile } from '../ui/StatTile';
 import { useToast } from '../ui/toastContext';
 import { createTemplate, deleteTemplate, updateTemplate } from './api';
 import { ExerciseNotes } from './ExerciseNotes';
@@ -46,13 +48,11 @@ function itemRow(
     name: item.name,
     value: lastCount(last),
     editor: (
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-theme-600">Dernière fois</span>
-          <span className="text-sm font-medium text-theme-800 tabular-nums">
-            {last ? describeValues(last) : 'Jamais fait'}
-          </span>
-        </div>
+      <div className={SHEET_BODY_CLASS}>
+        <StatTile
+          label="Dernière fois"
+          value={last ? describeValues(last) : 'Jamais fait'}
+        />
         <ExerciseNotes
           key={item.exerciseId}
           exerciseId={item.exerciseId}

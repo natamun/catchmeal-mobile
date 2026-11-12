@@ -21,6 +21,7 @@ import { MacroSummary } from '../ui/MacroSummary';
 import { SearchPicker } from '../ui/SearchPicker';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { SortableList } from '../ui/SortableList';
+import { Textarea } from '../ui/Textarea';
 import { useToast } from '../ui/toastContext';
 import { deleteRecipe } from './api';
 import {
@@ -42,9 +43,6 @@ import {
   type RecipeCategory,
 } from './types';
 import type { RecipeEditor } from './useRecipeEditor';
-
-const TEXTAREA_CLASS =
-  'w-full resize-none rounded-xl border border-theme-200 bg-surface px-4 py-2.5 text-base text-theme-800 outline-none field-sizing-content focus:border-theme-400';
 
 const ICON_BUTTON_CLASS =
   'tap-area relative flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-theme-400 transition-colors hover:bg-theme-100 hover:text-theme-600 disabled:cursor-not-allowed disabled:opacity-30';
@@ -345,14 +343,13 @@ export function CookingField({ editor, hideLabel }: TextPartProps) {
           Cuisson
         </label>
       )}
-      <textarea
+      <Textarea
         id="recipe-cooking"
         rows={2}
         maxLength={RECIPE_LIMITS.cooking}
         placeholder="Ex : 25 min au four à 180 °C"
         value={editor.form.cooking}
         onChange={(e) => editor.update({ cooking: e.target.value })}
-        className={TEXTAREA_CLASS}
       />
     </div>
   );
@@ -367,14 +364,13 @@ export function NotesField({ editor, hideLabel }: TextPartProps) {
           Autres
         </label>
       )}
-      <textarea
+      <Textarea
         id="recipe-notes"
         rows={3}
         maxLength={RECIPE_LIMITS.notes}
         placeholder="Ex : la dinde remplace le poulet, se garde 3 jours au frais"
         value={editor.form.notes}
         onChange={(e) => editor.update({ notes: e.target.value })}
-        className={TEXTAREA_CLASS}
       />
     </div>
   );
@@ -407,14 +403,14 @@ export function StepsEditor({ editor }: PartProps) {
                 {index + 1}
               </span>
             </div>
-            <textarea
+            <Textarea
               aria-label={`Étape ${index + 1}`}
               rows={2}
               maxLength={RECIPE_LIMITS.step}
               placeholder="Ex : Couper le poulet en dés."
               value={step.text}
               onChange={(e) => setText(step.id, e.target.value)}
-              className={`${TEXTAREA_CLASS} ml-1`}
+              className="ml-1"
             />
             <button
               type="button"

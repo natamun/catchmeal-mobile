@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import { failureMessage } from '../../utils/failureMessage';
+import { SheetSection } from '../ui/SheetSection';
+import { Textarea } from '../ui/Textarea';
 import { useToast } from '../ui/toastContext';
 import { setExerciseNotes } from './api';
 
@@ -41,11 +43,8 @@ export function ExerciseNotes({ exerciseId, notes }: Props) {
   useEffect(() => save, [save]);
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-xs font-semibold text-theme-500">
-        Note
-      </label>
-      <textarea
+    <SheetSection title="Note" htmlFor={id}>
+      <Textarea
         id={id}
         rows={1}
         maxLength={MAX_LENGTH}
@@ -58,8 +57,7 @@ export function ExerciseNotes({ exerciseId, notes }: Props) {
           timer.current = setTimeout(save, SAVE_DELAY_MS);
         }}
         onBlur={save}
-        className="field-sizing-content max-h-48 w-full resize-none overflow-y-auto rounded-xl bg-theme-50 px-3 py-2 text-base leading-relaxed text-pretty text-theme-800 outline-none placeholder:text-theme-400 focus:ring-2 focus:ring-theme-400"
       />
-    </div>
+    </SheetSection>
   );
 }
