@@ -18,6 +18,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 
 ### Changed
 
+- A new logo: the apple keeps its flowing line and the cross becomes a Swiss flag. The app icon shows it larger, and sharp on the launch screen.
 - The top of Home gathers the day's calories, macros and weight in one block. The bars take the theme's accent and stop sharply at the goal once it is passed.
 - A dialog's delete moved into a ⋯ menu, apart from its close button.
 - Save buttons name what they save.

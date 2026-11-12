@@ -75,13 +75,9 @@ Same appId, split by build type in `android/app/build.gradle`: debug adds `.debu
 
 ## Icon and splash
 
-`src/assets/logo.svg` is the logo shown in the app; `assets/logo.svg` is a padded square copy (viewBox `-178.9 -24.2 1150 1150`) used to generate the Android icon and splash:
+`src/assets/logo.svg` is the logo shown in the app (the apple traced from a drawing, the Swiss badge drawn geometrically: square 392, cross in the flag's proportions); `assets/logo.svg` is the same logo in a square viewBox.
 
-```
-npx @capacitor/assets generate --android --iconBackgroundColor '#ffffff' --iconBackgroundColorDark '#ffffff' --splashBackgroundColor '#d8f3dc' --splashBackgroundColorDark '#d8f3dc'
-```
-
-Restore the `splash.png` files with git if only the icon should change.
+The launcher icon is an adaptive icon (`mipmap-anydpi-v26/ic_launcher*.xml`): a white background colour, a vector foreground and a vector monochrome layer for themed icons (`drawable/ic_launcher_foreground.xml`, `drawable/ic_launcher_monochrome.xml`, the cross cut out of the badge). The logo is 56 dp tall in the 108 dp canvas, raised 1.9 dp, halfway to its visual centre, so it stays inside the 66 dp safe circle. Vectors keep it sharp on the Android 12+ splash screen, which draws the launcher icon large. The PNGs left (`ic_launcher.png` and `ic_launcher_round.png` for Android 7, `splash.png` for Android 11 and below) are renders of the logo with the same placement; `drawable/ic_stat_catchmeal.xml` is the logo in white for the status bar.
 
 ## Known debt
 
