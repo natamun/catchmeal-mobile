@@ -8,6 +8,10 @@ import { PATHS } from '../../routing/paths';
 import { failureMessage } from '../../utils/failureMessage';
 import type { FoodItem } from '../food/types';
 import { AddCircleButton } from '../ui/AddCircleButton';
+import {
+  COMPACT_BUTTON_CLASS,
+  COMPACT_DANGER_BUTTON_CLASS,
+} from '../ui/buttonStyle';
 import { Card, CardEmpty, CardLoading } from '../ui/Card';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { Input } from '../ui/Input';
@@ -22,14 +26,6 @@ import {
 } from './api';
 import { shoppingText, toLines, type ShoppingLine } from './lines';
 import { ShoppingChecklist } from './ShoppingChecklist';
-
-/** The buttons under the list: three short ones on a single line. */
-const ACTION_CLASS =
-  'flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-theme-200 px-2 py-2.5 text-sm font-medium whitespace-nowrap text-theme-700 transition-colors hover:bg-theme-100';
-
-/** The same, for "Vider": red whatever the theme, since it empties the list. */
-const DANGER_ACTION_CLASS =
-  'flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-red-500/40 px-2 py-2.5 text-sm font-medium whitespace-nowrap text-red-500 transition-colors hover:bg-red-500/10';
 
 interface ShoppingTabProps {
   foodItems: FoodItem[];
@@ -151,7 +147,7 @@ export function ShoppingTab({ foodItems }: ShoppingTabProps) {
             onClick={() =>
               void act(() => shareText('Courses', shoppingText(lines)))
             }
-            className={ACTION_CLASS}
+            className={COMPACT_BUTTON_CLASS}
           >
             <Share2 className="h-4 w-4 shrink-0" />
             Partager
@@ -161,7 +157,7 @@ export function ShoppingTab({ foodItems }: ShoppingTabProps) {
               type="button"
               onClick={() => void act(removeCheckedShopping)}
               title="Retirer les articles cochés"
-              className={ACTION_CLASS}
+              className={COMPACT_BUTTON_CLASS}
             >
               <CheckCheck className="h-4 w-4 shrink-0" />
               Retirer
@@ -170,7 +166,7 @@ export function ShoppingTab({ foodItems }: ShoppingTabProps) {
           <button
             type="button"
             onClick={() => clearDialogRef.current?.showModal()}
-            className={DANGER_ACTION_CLASS}
+            className={COMPACT_DANGER_BUTTON_CLASS}
           >
             <Trash2 className="h-4 w-4 shrink-0" />
             Vider
