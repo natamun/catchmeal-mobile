@@ -33,7 +33,7 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 
 ### Nutrition
 
-- **Journal**: four sections a day (breakfast, lunch, dinner, snack), with the calorie and macro progress.
+- **Journal**: four sections a day (breakfast, lunch, dinner, snack), with the calorie and macro progress. The day's session sits under them: a tap on an exercise shows your note, the last time and, for strength, your best set.
 - **Barcode scanning**: Google's scanner reads the code, and [Open Food Facts](https://world.openfoodfacts.org) fills the food form.
 - **Food library**: values per 100 g, 100 ml or per piece, with an optional portion to log by the piece ("4 biscuits"), sorted by how often you log them.
 - **Meal library and quick add**: meals saved once and logged again in one go, or calories and macros typed by hand.
