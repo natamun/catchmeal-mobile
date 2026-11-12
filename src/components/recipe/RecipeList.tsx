@@ -1,16 +1,16 @@
 import { useState, type ReactNode } from 'react';
 
-import { MACROS } from '../../constants/macros';
 import { formatMinutes } from '../../utils/format';
 import { Card, CardEmpty, CardLoading } from '../ui/Card';
+import { ListRow, ListRows } from '../ui/ListRow';
 import { LoadError } from '../ui/LoadError';
-import { MacroBadge } from '../ui/MacroBadge';
 import {
   EMPTY_FILTER_CRITERIA,
   matchesMacro,
   type FilterCriteria,
 } from '../ui/macroFilter';
 import { MacroSearchBar } from '../ui/MacroSearchBar';
+import { MacroTrail } from '../ui/MacroTrail';
 import { matchesSearch } from '../ui/search';
 import { perServing, servingsLabel } from './servings';
 import {
@@ -112,54 +112,18 @@ export function RecipeList({
           <CardEmpty>Aucune recette ne correspond à cette recherche.</CardEmpty>
         )}
 
-      <ul className="divide-y divide-theme-200">
-        {visible.map((recipe) => {
-          const serving = perServing(recipe);
-          const content = (
-            <>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold text-theme-800">
-                  {recipe.name}
-                </span>
-                <span className="block truncate text-xs text-theme-500">
-                  {detailsOf(recipe)}
-                </span>
-              </span>
-              <span className="hidden shrink-0 items-center gap-2.5 @lg:flex">
-                {MACROS.map(({ key, label, color }) => (
-                  <MacroBadge
-                    key={key}
-                    label={label}
-                    color={color}
-                    value={Math.round(serving[key] * 10) / 10}
-                  />
-                ))}
-              </span>
-              <span className="shrink-0 text-right text-sm font-semibold whitespace-nowrap text-theme-800 tabular-nums">
-                {Math.round(serving.kcal)} kcal
-              </span>
-            </>
-          );
-          return (
-            <li key={recipe.id} className="even:bg-theme-50/60">
-              {onOpen ? (
-                <button
-                  type="button"
-                  onClick={() => onOpen(recipe)}
-                  className="flex w-full cursor-pointer items-center gap-3 px-5 py-4 text-left transition-colors active:bg-theme-100"
-                >
-                  {content}
-                </button>
-              ) : (
-                <div className="flex items-center gap-3 px-5 py-4">
-                  {content}
-                  {renderAction?.(recipe)}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <ListRows>
+        {visible.map((recipe) => (
+          <ListRow
+            key={recipe.id}
+            title={recipe.name}
+            subtitle={detailsOf(recipe)}
+            trailing={<MacroTrail values={perServing(recipe)} />}
+            onClick={onOpen && (() => onOpen(recipe))}
+            action={renderAction?.(recipe)}
+          />
+        ))}
+      </ListRows>
     </Card>
   );
 }

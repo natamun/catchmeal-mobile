@@ -1,11 +1,10 @@
 import { useMemo, useState, type ReactNode } from 'react';
 
-import { MACROS } from '../../constants/macros';
 import type { FoodUsage } from '../../data/foodItems';
 import { roundDecimals } from '../../utils/decimals';
 import { Card, CardEmpty, CardLoading } from '../ui/Card';
+import { ListRow, ListRows } from '../ui/ListRow';
 import { LoadError } from '../ui/LoadError';
-import { MacroBadge } from '../ui/MacroBadge';
 import {
   BY_FREQUENCY,
   EMPTY_FILTER_CRITERIA,
@@ -13,6 +12,7 @@ import {
   type FilterCriteria,
 } from '../ui/macroFilter';
 import { MacroSearchBar } from '../ui/MacroSearchBar';
+import { MacroTrail } from '../ui/MacroTrail';
 import { matchesFood } from './search';
 import { UNIT_LABELS, type FoodItem } from './types';
 
@@ -32,15 +32,6 @@ interface FoodItemListProps {
 /** Base quantity with its unit, e.g. "100g" or "1x". */
 function formatBaseQuantity(item: FoodItem) {
   return `${roundDecimals(item.baseQuantity, 1)}${UNIT_LABELS[item.baseUnit]}`;
-}
-
-/** Macro badges of a food, rounded to one decimal. */
-function macrosOf(item: FoodItem) {
-  return MACROS.map(({ key, label, color }) => ({
-    label,
-    color,
-    value: roundDecimals(item[key], 1),
-  }));
 }
 
 const byName = (a: FoodItem, b: FoodItem) =>
@@ -133,49 +124,18 @@ export function FoodItemList({
           <CardEmpty>Aucun aliment ne correspond à cette recherche.</CardEmpty>
         )}
 
-      <ul className="divide-y divide-theme-200">
-        {visibleItems.map((item) => {
-          const content = (
-            <>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold text-theme-800">
-                  {item.name}
-                </span>
-                <span className="block truncate text-xs text-theme-500">
-                  {item.brand && `${item.brand} · `}
-                  {formatBaseQuantity(item)}
-                </span>
-              </span>
-              <span className="hidden shrink-0 items-center gap-2.5 @lg:flex">
-                {macrosOf(item).map((m) => (
-                  <MacroBadge key={m.label} {...m} />
-                ))}
-              </span>
-              <span className="shrink-0 text-right text-sm font-semibold whitespace-nowrap text-theme-800 tabular-nums">
-                {Math.round(item.kcal)} kcal
-              </span>
-            </>
-          );
-          return (
-            <li key={item.id} className="even:bg-theme-50/60">
-              {onOpen ? (
-                <button
-                  type="button"
-                  onClick={() => onOpen(item)}
-                  className="flex w-full cursor-pointer items-center gap-3 px-5 py-4 text-left transition-colors active:bg-theme-100"
-                >
-                  {content}
-                </button>
-              ) : (
-                <div className="flex items-center gap-3 px-5 py-4">
-                  {content}
-                  {renderAction?.(item)}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <ListRows>
+        {visibleItems.map((item) => (
+          <ListRow
+            key={item.id}
+            title={item.name}
+            subtitle={`${item.brand ? `${item.brand} · ` : ''}${formatBaseQuantity(item)}`}
+            trailing={<MacroTrail values={item} />}
+            onClick={onOpen && (() => onOpen(item))}
+            action={renderAction?.(item)}
+          />
+        ))}
+      </ListRows>
     </Card>
   );
 }

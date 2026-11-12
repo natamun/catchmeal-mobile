@@ -2,6 +2,7 @@ import { useRef, useState, type ReactNode } from 'react';
 
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { Card, CardEmpty, CardLoading } from '../ui/Card';
+import { ListRow, ListRows } from '../ui/ListRow';
 import { LoadError } from '../ui/LoadError';
 import { isSameName, matchesSearch } from '../ui/search';
 import { SearchInput } from '../ui/SearchInput';
@@ -60,20 +61,6 @@ export function ExerciseList({
     typed !== '' &&
     !active.some((exercise) => isSameName(exercise.name, typed));
 
-  const content = (exercise: Exercise) => {
-    const last = latest.get(exercise.id);
-    return (
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-sm font-semibold text-theme-800">
-          {exercise.name}
-        </span>
-        <span className="truncate text-xs text-theme-500">
-          {last ? describeValues(last) : 'Jamais fait'}
-        </span>
-      </span>
-    );
-  };
-
   return (
     <Card
       flush
@@ -124,26 +111,20 @@ export function ExerciseList({
             <h3 className="border-b border-theme-200 bg-theme-50 px-5 py-2 text-xs font-semibold text-theme-500">
               {label}
             </h3>
-            <ul className="divide-y divide-theme-200">
-              {rows.map((exercise) => (
-                <li key={exercise.id} className="even:bg-theme-50/60">
-                  {onOpen ? (
-                    <button
-                      type="button"
-                      onClick={() => onOpen(exercise)}
-                      className="flex w-full cursor-pointer items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-theme-100"
-                    >
-                      {content(exercise)}
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-3 px-5 py-3">
-                      {content(exercise)}
-                      {renderAction?.(exercise)}
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <ListRows>
+              {rows.map((exercise) => {
+                const last = latest.get(exercise.id);
+                return (
+                  <ListRow
+                    key={exercise.id}
+                    title={exercise.name}
+                    subtitle={last ? describeValues(last) : 'Jamais fait'}
+                    onClick={onOpen && (() => onOpen(exercise))}
+                    action={renderAction?.(exercise)}
+                  />
+                );
+              })}
+            </ListRows>
           </section>
         );
       })}

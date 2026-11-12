@@ -1,15 +1,15 @@
 import { useState, type ReactNode } from 'react';
 
-import { MACROS } from '../../constants/macros';
 import { Card, CardEmpty, CardLoading } from '../ui/Card';
+import { ListRow, ListRows } from '../ui/ListRow';
 import { LoadError } from '../ui/LoadError';
-import { MacroBadge } from '../ui/MacroBadge';
 import {
   EMPTY_FILTER_CRITERIA,
   matchesMacro,
   type FilterCriteria,
 } from '../ui/macroFilter';
 import { MacroSearchBar } from '../ui/MacroSearchBar';
+import { MacroTrail } from '../ui/MacroTrail';
 import { matchesSearch } from '../ui/search';
 import { mealTotals, type Meal } from './types';
 
@@ -22,20 +22,6 @@ interface MealListProps {
   renderAction?: (meal: Meal) => ReactNode;
   /** Makes each row a button that opens the meal. */
   onOpen?: (meal: Meal) => void;
-}
-
-/** Calories and macro badges of a meal, from its items. */
-function macrosOf(meal: Meal) {
-  const totals = mealTotals(meal);
-
-  return {
-    kcal: Math.round(totals.kcal),
-    macros: MACROS.map(({ key, label, color }) => ({
-      label,
-      color,
-      value: Math.round(totals[key] * 10) / 10,
-    })),
-  };
 }
 
 /**
@@ -108,44 +94,17 @@ export function MealList({
           <CardEmpty>Aucun repas ne correspond à cette recherche.</CardEmpty>
         )}
 
-      <ul className="divide-y divide-theme-200">
-        {visibleMeals.map((meal) => {
-          const { kcal, macros } = macrosOf(meal);
-          const content = (
-            <>
-              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-theme-800">
-                {meal.name ?? 'Repas sans nom'}
-              </span>
-              <span className="hidden shrink-0 items-center gap-2.5 @lg:flex">
-                {macros.map((m) => (
-                  <MacroBadge key={m.label} {...m} />
-                ))}
-              </span>
-              <span className="shrink-0 text-right text-sm font-semibold whitespace-nowrap text-theme-800 tabular-nums">
-                {kcal} kcal
-              </span>
-            </>
-          );
-          return (
-            <li key={meal.id} className="even:bg-theme-50/60">
-              {onOpen ? (
-                <button
-                  type="button"
-                  onClick={() => onOpen(meal)}
-                  className="flex w-full cursor-pointer items-center gap-3 px-5 py-4 text-left transition-colors active:bg-theme-100"
-                >
-                  {content}
-                </button>
-              ) : (
-                <div className="flex items-center gap-3 px-5 py-4">
-                  {content}
-                  {renderAction?.(meal)}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <ListRows>
+        {visibleMeals.map((meal) => (
+          <ListRow
+            key={meal.id}
+            title={meal.name ?? 'Repas sans nom'}
+            trailing={<MacroTrail values={mealTotals(meal)} />}
+            onClick={onOpen && (() => onOpen(meal))}
+            action={renderAction?.(meal)}
+          />
+        ))}
+      </ListRows>
     </Card>
   );
 }

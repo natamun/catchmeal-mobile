@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react';
 
 import { useToggleSet } from '../../hooks/useToggleSet';
 import { Card, CardEmpty, CardLoading } from '../ui/Card';
+import { ListRow, ListRows } from '../ui/ListRow';
 import { LoadError } from '../ui/LoadError';
 import { describeValues } from './format';
 import type { TemplateItem, WorkoutItem, WorkoutTemplate } from './types';
@@ -63,56 +64,39 @@ export function TemplateList({
         <CardEmpty>Aucune séance favorite.</CardEmpty>
       )}
 
-      <ul className="divide-y divide-theme-200">
+      <ListRows>
         {templates.map((template) => {
-          const count = (
-            <span className="truncate text-xs text-theme-500">
-              {template.items.length} exercice
-              {template.items.length > 1 ? 's' : ''}
-            </span>
-          );
+          const count = `${template.items.length} exercice${template.items.length > 1 ? 's' : ''}`;
           if (onOpen) {
             return (
-              <li key={template.id} className="even:bg-theme-50/60">
-                <button
-                  type="button"
-                  onClick={() => onOpen(template)}
-                  className="flex w-full cursor-pointer flex-col px-5 py-4 text-left transition-colors active:bg-theme-100"
-                >
-                  <span className="truncate text-sm font-semibold text-theme-800">
-                    {template.name}
-                  </span>
-                  {count}
-                </button>
-              </li>
+              <ListRow
+                key={template.id}
+                title={template.name}
+                subtitle={count}
+                onClick={() => onOpen(template)}
+                action={renderAction?.(template)}
+              />
             );
           }
           const isExpanded = expandedIds.has(template.id);
           return (
-            <li key={template.id} className="px-5 py-4 even:bg-theme-50/60">
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => toggleExpanded(template.id)}
-                  className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
-                >
-                  <ChevronRight
-                    className={`h-4 w-4 shrink-0 text-theme-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                  />
-                  <span className="flex min-w-0 flex-col">
-                    <span className="truncate text-sm font-semibold text-theme-800">
-                      {template.name}
-                    </span>
-                    {count}
-                  </span>
-                </button>
-                {renderAction?.(template)}
-              </div>
+            <ListRow
+              key={template.id}
+              title={template.name}
+              subtitle={count}
+              leading={
+                <ChevronRight
+                  className={`h-4 w-4 shrink-0 text-theme-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                />
+              }
+              onClick={() => toggleExpanded(template.id)}
+              action={renderAction?.(template)}
+            >
               <div
-                className={`grid pl-7 transition-[grid-template-rows] duration-200 ease-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+                className={`grid pr-5 pl-12 transition-[grid-template-rows] duration-200 ease-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
               >
                 <ul
-                  className={`flex flex-col gap-1.5 overflow-hidden ${isExpanded ? 'pt-3' : ''}`}
+                  className={`flex flex-col gap-1.5 overflow-hidden ${isExpanded ? 'pb-3' : ''}`}
                 >
                   {template.items.map((item) => (
                     <li key={item.id} className="flex flex-col">
@@ -126,10 +110,10 @@ export function TemplateList({
                   ))}
                 </ul>
               </div>
-            </li>
+            </ListRow>
           );
         })}
-      </ul>
+      </ListRows>
     </Card>
   );
 }
