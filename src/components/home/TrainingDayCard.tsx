@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
@@ -6,9 +6,10 @@ import { useDataVersion } from '../../hooks/useDataVersion';
 import { trainingAddPath, trainingEditPath } from '../../routing/journal';
 import { startOfDay, toDateKey } from '../../utils/dateKey';
 import { formatSince } from '../../utils/format';
-import { listWorkouts } from '../fitness/api';
+import { listExercises, listWorkouts } from '../fitness/api';
+import { ExerciseGymSheet } from '../fitness/ExerciseGymSheet';
 import { describeValues } from '../fitness/format';
-import type { Workout } from '../fitness/types';
+import type { Exercise, Workout } from '../fitness/types';
 import { AddCircleButton } from '../ui/AddCircleButton';
 import { Card } from '../ui/Card';
 import { EditIconButton } from '../ui/EditIconButton';
@@ -21,13 +22,21 @@ interface Props {
 /**
  * The session of the day in the journal, like a meal section: its exercises
  * with their values, a "+" to add some and, when not empty, an edit button.
- * Without any, it tells when the last session was.
+ * A tap on an exercise opens what to see during the session: its note, the
+ * last time, its best set. Without any, it tells when the last session was.
  */
 export function TrainingDayCard({ date }: Props) {
   const navigate = useNavigate();
   const version = useDataVersion();
   const day = toDateKey(date);
   const [workouts, setWorkouts] = useState<Workout[] | null>(null);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const sheetRef = useRef<HTMLDialogElement>(null);
+  // The id, so the sheet follows the library when its note changes.
+  const [sheet, setSheet] = useState<{ id: number | null; openCount: number }>({
+    id: null,
+    openCount: 0,
+  });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -36,8 +45,18 @@ export function TrainingDayCard({ date }: Props) {
       .catch(() => {
         if (!controller.signal.aborted) setWorkouts([]);
       });
+    listExercises(controller.signal)
+      .then(setExercises)
+      .catch(() => {
+        if (!controller.signal.aborted) setExercises([]);
+      });
     return () => controller.abort();
   }, [version]);
+
+  const openSheet = (exerciseId: number) => {
+    setSheet(({ openCount }) => ({ id: exerciseId, openCount: openCount + 1 }));
+    sheetRef.current?.showModal();
+  };
 
   const session = workouts?.find(({ performedOn }) => performedOn === day);
   // The list is the newest first: the first before the day is the last one.
@@ -73,13 +92,19 @@ export function TrainingDayCard({ date }: Props) {
         {session && (
           <ul className="animate-fade-in-up divide-y divide-theme-100 px-5 py-2">
             {session.items.map((item) => (
-              <li key={item.id} className="flex flex-col py-1.5">
-                <span className="truncate text-sm font-semibold text-theme-800">
-                  {item.exerciseName}
-                </span>
-                <span className="truncate text-xs text-theme-500">
-                  {describeValues(item)}
-                </span>
+              <li key={item.id}>
+                <button
+                  type="button"
+                  onClick={() => openSheet(item.exerciseId)}
+                  className="-mx-2 flex w-[calc(100%+1rem)] cursor-pointer flex-col rounded-xl px-2 py-1.5 text-left transition-colors hover:bg-theme-100"
+                >
+                  <span className="max-w-full truncate text-sm font-semibold text-theme-800">
+                    {item.exerciseName}
+                  </span>
+                  <span className="max-w-full truncate text-xs text-theme-500">
+                    {describeValues(item)}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
@@ -96,6 +121,13 @@ export function TrainingDayCard({ date }: Props) {
           </p>
         )}
       </Card>
+      <ExerciseGymSheet
+        dialogRef={sheetRef}
+        exercise={exercises.find(({ id }) => id === sheet.id) ?? null}
+        day={day}
+        workouts={workouts ?? []}
+        openCount={sheet.openCount}
+      />
     </>
   );
 }
