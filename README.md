@@ -34,10 +34,10 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 ### Nutrition
 
 - **Journal**: four sections a day (breakfast, lunch, dinner, snack), with the calorie and macro progress.
-- **Barcode scanning**: the camera reads the code, and [Open Food Facts](https://world.openfoodfacts.org) fills the food form.
+- **Barcode scanning**: Google's scanner reads the code, and [Open Food Facts](https://world.openfoodfacts.org) fills the food form.
 - **Food library**: values per 100 g, 100 ml or per piece, with an optional portion to log by the piece ("4 biscuits").
 - **Meal library and quick add**: meals saved once and logged again in one go, or calories and macros typed by hand.
-- **Recipes**: ingredients from the food library, cooking, numbered steps and notes, filtered by category. Each recipe shows its calories and macros per serving and its quantities for any number of servings, and the screen stays on while you cook. A recipe is logged by the serving, and can be sent to an AI chat with your goal to improve it.
+- **Recipes**: ingredients from the food library, cooking, numbered steps and notes, filtered by category. Each recipe shows its calories and macros per serving and its quantities for any number of servings, and the screen stays on while you cook. A recipe is logged by the serving, and can be sent to an AI chat with your goal to improve it. You can also have an AI write or change a recipe: copy the recipe, paste the AI's answer back and import it.
 - **Shopping list**: foods, meals and recipes added for the servings you need, the same food added up into one line, and free items. You tick the list off in the shop and share it as text.
 
 ### Body and goals
@@ -82,7 +82,7 @@ To build it from the code instead, see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Built with
 
-React 19, TypeScript, Vite, Tailwind CSS and Recharts for the interface; Capacitor 8 for Android; SQLite on the phone; zxing-wasm for the barcodes; Vitest for the tests. How to build, develop and publish it, and how the data is stored: [CONTRIBUTING.md](./CONTRIBUTING.md).
+React 19, TypeScript, Vite, Tailwind CSS and Recharts for the interface; Capacitor 8 for Android; SQLite on the phone; Google's ML Kit for the barcodes; Vitest for the tests. How to build, develop and publish it, and how the data is stored: [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Credits
 

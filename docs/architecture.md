@@ -21,7 +21,7 @@ There is no store library. Three mechanisms:
 
 - **The change bus** (`data/changes.ts` + `hooks/useDataVersion.ts`): a version number bumped by `notifyDataChanged()`, read with `useSyncExternalStore`. Coarse but simple: any write refreshes every open screen.
 - **Contexts**: `ProfileProvider` (loads the profile once and blocks the render until it is read), `ToastProvider`, the flow context of `FlowLayer`.
-- **localStorage**, two keys only: the theme id (a startup copy of `profile.theme`, so the first frame has the right colours) and the chosen scanner camera.
+- **localStorage**, one key only: the theme id (a startup copy of `profile.theme`, so the first frame has the right colours).
 
 `useList` is the generic "load a list, reload on version change, abort on unmount" hook. `useDailyMeals` adds a per-day cache and prefetches the days before and after.
 
@@ -39,6 +39,7 @@ In `components/ui/`:
 - **`EditableList`**: the items of a meal or a session being edited, one line each (name, quantity, kcal). A tap opens a `BottomSheet` with the full name, a `ConfirmRemoveButton`, the live kcal and macros and the controls (stepper, sets). The list itself never moves.
 - **`ConfirmRemoveButton`**: a trash that asks twice. The first tap arms it as "Retirer ?", the second confirms, and it calms down after 3 s.
 - **`SearchPicker`**: a field that opens a full-screen search of a library, in a native `<dialog>` fading in (so the Android back button closes it). The field is at the top and the results under it, out of the keyboard's way. A tap adds a result and the search stays open; items already added are checked. It replaces `DropdownPanel`, and `@radix-ui/react-popover` is no longer a dependency.
+- **`AiCard`**: the card shared by the stats and the recipe screens for the "Ask an AI" text: a button copies it or sends it to the share sheet. The text is passed as a function, built only on the tap.
 - **`MacroSummary`** is built from `MacroBadges` (the three macros) and `KcalPill` (the calories), which can be used alone.
 
 ## Example: logging a meal
@@ -59,12 +60,12 @@ In `components/ui/`:
 ## Outside calls
 
 - **Open Food Facts**: `data/openFoodFacts.ts` reads `world.openfoodfacts.org/api/v3.4/product/{barcode}` with an injected HTTP client. On the phone it is `native/nativeHttp.ts` (CapacitorHttp, 5 s timeouts), because a browser `fetch` cannot set the `User-Agent` OFF requires. Limit: 15 product reads per minute per IP.
-- **"Ask an AI"**: no API call. `recipe/recipePrompt.ts` and `analytics/aiContext.ts` build a text prompt, copied with the Clipboard plugin or sent to Android's share sheet.
-- Barcode scanning: `@yudiel/react-qr-scanner` with its own zxing wasm decoder (`zxing-wasm` pinned, bump both together); `food/scannerCamera.ts` picks a rear camera with continuous focus, since the S21+ may open a fixed-focus wide lens.
+- **"Ask an AI"**: no API call. `recipe/recipePrompt.ts` and `analytics/aiContext.ts` build a text prompt, copied with the Clipboard plugin or sent to Android's share sheet through `ui/AiCard`. The recipe prompt ends on the user's question, the goal being context only. A recipe can also come back from the AI: `recipe/recipeImport.ts` writes the recipe as JSON (`formToJson`, ingredients by their library id) and `parseRecipeImport` reads the AI's answer, refusing unknown foods, bad quantities and servings. `RecipeImportCard` pastes it into the recipe form, which the user still saves.
+- **Barcode scanning**: `native/barcodeScanner.ts` calls `@capacitor-mlkit/barcode-scanning`, which opens Google's full-screen scanner (EAN and UPC only). No camera permission is needed. The scanner module is downloaded by Google Play services (`barcode_ui` declared in the manifest); if it is missing, `ScannerNotReadyError` tells the user to retry. `hooks/useHasCamera` shows the scan button only when the phone supports it.
 
 ## Tests
 
-- Colocated `*.test.ts`, about 590 tests in 37 files, default Node environment (no vitest config).
+- Colocated `*.test.ts`, about 640 tests in 40 files, default Node environment (no vitest config).
 - `src/test/nodeDatabase.ts` wraps Node's `node:sqlite` (`:memory:`) in the same `createDatabase`, so `src/data` runs its real SQL in tests.
 - Not tested: the Capacitor driver, most of `src/native`, the `api.ts` files, the hooks (except swipe), and no React component tests. UI is checked by hand on the phone.
 
