@@ -50,6 +50,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - The buttons that add a step, a section or the recipe to the shopping list take the whole width.
 - A search result pulses as it is added.
 - A recipe's duplicate and delete sit in a ⋯ menu beside its pencil; its edit page no longer deletes.
+- A library meal opens with a tap on its row, without a pencil. The food and meal lists no longer fold their macros under a row: a food's are in its sheet, a meal's on its page.
 
 ### Fixed
 

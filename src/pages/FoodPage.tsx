@@ -12,7 +12,6 @@ import { listRecipes } from '../components/recipe/api';
 import { RecipeList } from '../components/recipe/RecipeList';
 import { ShoppingTab } from '../components/shopping/ShoppingTab';
 import { AddCircleButton } from '../components/ui/AddCircleButton';
-import { EditIconButton } from '../components/ui/EditIconButton';
 import { PillTabs } from '../components/ui/PillTabs';
 import { useList } from '../hooks/useList';
 import { prepareBarcodeScanner } from '../native/barcodeScanner';
@@ -133,11 +132,7 @@ export default function FoodPage() {
             headerAction={
               <AddCircleButton onClick={() => void navigate(mealPath('new'))} />
             }
-            renderAction={(meal) => (
-              <EditIconButton
-                onClick={() => void navigate(mealPath(meal.id))}
-              />
-            )}
+            onOpen={(meal) => void navigate(mealPath(meal.id))}
           />
         )}
       </div>

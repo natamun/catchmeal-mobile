@@ -1,8 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { ChevronRight } from 'lucide-react';
 
 import { MACROS } from '../../constants/macros';
-import { useToggleSet } from '../../hooks/useToggleSet';
 import { Card, CardEmpty, CardLoading } from '../ui/Card';
 import { LoadError } from '../ui/LoadError';
 import { MacroBadge } from '../ui/MacroBadge';
@@ -22,6 +20,8 @@ interface MealListProps {
   onRetry?: () => void;
   headerAction?: ReactNode;
   renderAction?: (meal: Meal) => ReactNode;
+  /** Makes each row a button that opens the meal. */
+  onOpen?: (meal: Meal) => void;
 }
 
 /** Calories and macro badges of a meal, from its items. */
@@ -39,8 +39,9 @@ function macrosOf(meal: Meal) {
 }
 
 /**
- * The library meals, with the same search, filters and expandable rows as the
- * food list.
+ * The library meals, with the same search, filters and rows as the food list:
+ * a row opens the meal with `onOpen`, or carries the button `renderAction`
+ * gives (select).
  */
 export function MealList({
   meals,
@@ -49,8 +50,8 @@ export function MealList({
   onRetry,
   headerAction,
   renderAction,
+  onOpen,
 }: MealListProps) {
-  const [expandedIds, toggleExpanded] = useToggleSet<number>();
   const [criteria, setCriteria] = useState<FilterCriteria>(
     EMPTY_FILTER_CRITERIA,
   );
@@ -109,44 +110,38 @@ export function MealList({
 
       <ul className="divide-y divide-theme-200">
         {visibleMeals.map((meal) => {
-          const isExpanded = expandedIds.has(meal.id);
           const { kcal, macros } = macrosOf(meal);
+          const content = (
+            <>
+              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-theme-800">
+                {meal.name ?? 'Repas sans nom'}
+              </span>
+              <span className="hidden shrink-0 items-center gap-2.5 @lg:flex">
+                {macros.map((m) => (
+                  <MacroBadge key={m.label} {...m} />
+                ))}
+              </span>
+              <span className="shrink-0 text-right text-sm font-semibold whitespace-nowrap text-theme-800 tabular-nums">
+                {kcal} kcal
+              </span>
+            </>
+          );
           return (
-            <li key={meal.id} className="px-5 py-4 even:bg-theme-50/60">
-              <div className="flex items-center gap-3">
+            <li key={meal.id} className="even:bg-theme-50/60">
+              {onOpen ? (
                 <button
                   type="button"
-                  onClick={() => toggleExpanded(meal.id)}
-                  className="shrink-0 cursor-pointer text-theme-400 transition-colors hover:text-theme-600 @lg:hidden"
+                  onClick={() => onOpen(meal)}
+                  className="flex w-full cursor-pointer items-center gap-3 px-5 py-4 text-left transition-colors active:bg-theme-100"
                 >
-                  <ChevronRight
-                    className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                  />
+                  {content}
                 </button>
-                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-theme-800">
-                  {meal.name ?? 'Repas sans nom'}
-                </p>
-                <div className="hidden shrink-0 items-center gap-2.5 @lg:flex">
-                  {macros.map((m) => (
-                    <MacroBadge key={m.label} {...m} />
-                  ))}
+              ) : (
+                <div className="flex items-center gap-3 px-5 py-4">
+                  {content}
+                  {renderAction?.(meal)}
                 </div>
-                <span className="shrink-0 text-right text-sm font-semibold whitespace-nowrap text-theme-800 tabular-nums">
-                  {kcal} kcal
-                </span>
-                {renderAction?.(meal)}
-              </div>
-              <div
-                className={`grid pl-7 transition-[grid-template-rows] duration-200 ease-out @lg:hidden ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
-              >
-                <div
-                  className={`flex flex-wrap items-center gap-1.5 overflow-hidden ${isExpanded ? 'pt-2' : ''}`}
-                >
-                  {macros.map((m) => (
-                    <MacroBadge key={m.label} {...m} />
-                  ))}
-                </div>
-              </div>
+              )}
             </li>
           );
         })}
