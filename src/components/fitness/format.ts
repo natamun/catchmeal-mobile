@@ -1,4 +1,3 @@
-import { parseDecimal } from '../../utils/decimals';
 import { formatKg } from '../../utils/format';
 import type { CardioSet, WorkoutItem } from './types';
 import type { ItemDraft } from './workoutDraft';
@@ -37,22 +36,11 @@ export function describeValues(
 }
 
 /**
- * The compact figure of an exercise being typed, its sets and the heaviest
- * load for strength, or its minutes in all for cardio: "3 × 62,5 kg",
- * "2 × 45 min".
+ * The compact figure of an exercise being typed: its number of sets, "3 séries",
+ * the details staying in its sheet.
  */
 export function draftSummary(item: ItemDraft): string {
-  if (item.kind === 'STRENGTH') {
-    const loads = item.sets
-      .map((set) => parseDecimal(set.weight))
-      .filter((load): load is number => load !== null);
-    return loads.length > 0
-      ? `${item.sets.length} × ${formatKg(Math.max(...loads))} kg`
-      : `${item.sets.length} ×`;
-  }
-  const minutes = item.cardioSets.reduce(
-    (sum, set) => sum + (parseDecimal(set.duration) ?? 0),
-    0,
-  );
-  return `${item.cardioSets.length} × ${formatKg(minutes)} min`;
+  const count =
+    item.kind === 'STRENGTH' ? item.sets.length : item.cardioSets.length;
+  return count > 1 ? `${count} séries` : `${count} série`;
 }

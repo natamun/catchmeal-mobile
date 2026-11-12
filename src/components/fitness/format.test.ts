@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { describeCardioSet, describeValues } from './format';
+import { describeCardioSet, describeValues, draftSummary } from './format';
+import type { ItemDraft } from './workoutDraft';
 
 const cardio = (
   durationMinutes: number,
@@ -53,5 +54,27 @@ describe('describeValues', () => {
     expect(describeValues({ kind: 'STRENGTH', sets: [], cardioSets: [] })).toBe(
       '',
     );
+  });
+});
+
+describe('draftSummary', () => {
+  const draft = (sets: number, kind: ItemDraft['kind'] = 'STRENGTH') =>
+    ({
+      key: 'k',
+      exerciseId: 1,
+      name: 'Traction',
+      kind,
+      sets: Array.from({ length: sets }, () => ({ reps: '8', weight: '0' })),
+      cardioSets: Array.from({ length: sets }, () => ({
+        duration: '10',
+        speed: '',
+        incline: '',
+        resistance: '',
+      })),
+    }) satisfies ItemDraft;
+
+  it('counts the sets, singular for one', () => {
+    expect(draftSummary(draft(3))).toBe('3 séries');
+    expect(draftSummary(draft(1, 'TREADMILL'))).toBe('1 série');
   });
 });

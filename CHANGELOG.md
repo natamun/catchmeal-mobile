@@ -4,6 +4,10 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 
 ## [Unreleased]
 
+### Changed
+
+- While logging a session, each exercise's row shows its number of sets instead of a figure that read like repetitions.
+
 ## [0.10.0] - 2026-11-12
 
 A new look and easier editing: pages of their own for editing, sheets from the bottom for dates and choices, recipes in sections and written with an AI, and foods sorted by how often they are logged.
