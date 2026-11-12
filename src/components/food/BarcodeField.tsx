@@ -6,14 +6,12 @@ import { useHasCamera } from '../../hooks/useHasCamera';
 import { useTimeout } from '../../hooks/useTimeout';
 import { scanBarcode, ScannerNotReadyError } from '../../native/barcodeScanner';
 import { FieldError } from '../ui/FieldError';
+import { FieldIconButton } from '../ui/FieldIconButton';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
 import { lookupOffProduct } from './api';
 import { isValidBarcode } from './barcode';
 import type { OffProduct } from './types';
-
-const ICON_BUTTON_CLASS =
-  'flex w-12 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-theme-200 text-theme-600 transition-colors hover:bg-theme-100 disabled:cursor-not-allowed disabled:opacity-60';
 
 const OFF_URL = 'https://world.openfoodfacts.org';
 
@@ -198,28 +196,26 @@ export function BarcodeField({
             data-invalid={Boolean(isTouched && error) || lookupError?.onField}
           />
           {hasCamera && (
-            <button
-              type="button"
+            <FieldIconButton
+              label="Scanner le code-barres"
               onClick={() => void handleScan()}
               disabled={isLookingUp}
-              className={ICON_BUTTON_CLASS}
             >
-              <ScanBarcode className="h-4 w-4" />
-            </button>
+              <ScanBarcode className="h-5 w-5" />
+            </FieldIconButton>
           )}
           <div className="relative flex shrink-0">
-            <button
-              type="button"
+            <FieldIconButton
+              label="Chercher le code-barres"
               onClick={() => void handleLookup()}
               disabled={barcode === '' || isLookingUp}
-              className={ICON_BUTTON_CLASS}
             >
               {isLookingUp ? (
-                <LoaderCircle className="h-4 w-4 animate-spin" />
+                <LoaderCircle className="h-5 w-5 animate-spin" />
               ) : (
-                <Search className="h-4 w-4" />
+                <Search className="h-5 w-5" />
               )}
-            </button>
+            </FieldIconButton>
             <FieldError
               align="right"
               message={

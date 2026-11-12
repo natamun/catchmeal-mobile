@@ -14,6 +14,7 @@ import {
 } from '../ui/buttonStyle';
 import { Card, CardEmpty, CardLoading } from '../ui/Card';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { FieldIconButton } from '../ui/FieldIconButton';
 import { Input } from '../ui/Input';
 import { LoadError } from '../ui/LoadError';
 import {
@@ -128,13 +129,13 @@ export function ShoppingTab({ foodItems }: ShoppingTabProps) {
             enterKeyHint="done"
             autoComplete="off"
           />
-          <button
+          <FieldIconButton
             type="submit"
+            label="Ajouter l'article"
             disabled={label.trim() === ''}
-            className="tap-area relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-theme-200 text-theme-600 transition-colors hover:bg-theme-100 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Plus className="h-5 w-5" />
-          </button>
+          </FieldIconButton>
         </form>
       </Card>
 
