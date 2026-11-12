@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { LoaderCircle } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 
 import {
@@ -12,6 +11,7 @@ import { TemplateForm } from '../components/fitness/TemplateForm';
 import type { WorkoutTemplate } from '../components/fitness/types';
 import { useFlow } from '../components/layout/flowContext';
 import { FlowHeader } from '../components/layout/FlowHeader';
+import { PageLoading } from '../components/ui/Card';
 import { useList } from '../hooks/useList';
 import { useGoBack } from '../routing/navigation';
 import { PATHS } from '../routing/paths';
@@ -72,11 +72,7 @@ function TemplateScreen() {
       </>
     );
   } else if (opened === undefined) {
-    content = (
-      <div className="flex justify-center py-16">
-        <LoaderCircle className="h-6 w-6 animate-spin text-theme-400" />
-      </div>
-    );
+    content = <PageLoading />;
   } else if (!isNew && opened === null) {
     content = (
       <>

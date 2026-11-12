@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Copy, LoaderCircle, ShoppingCart } from 'lucide-react';
+import { Copy, ShoppingCart } from 'lucide-react';
 import { useLocation, useMatch, useNavigate, useParams } from 'react-router';
 
 import { listFoodItems } from '../components/food/api';
@@ -32,7 +32,7 @@ import { addFoodsToShopping } from '../components/shopping/api';
 import { recipeToShopping } from '../components/shopping/lines';
 import { ActionMenu } from '../components/ui/ActionMenu';
 import { SECONDARY_BUTTON_CLASS } from '../components/ui/buttonStyle';
-import { Card } from '../components/ui/Card';
+import { Card, PageLoading } from '../components/ui/Card';
 import { EditIconButton } from '../components/ui/EditIconButton';
 import { useToast } from '../components/ui/toastContext';
 import { useKeepAwake } from '../hooks/useKeepAwake';
@@ -252,11 +252,7 @@ export default function RecipePage() {
 
   let content;
   if (recipes.isLoading || foods.isLoading) {
-    content = (
-      <div className="flex justify-center py-16">
-        <LoaderCircle className="h-6 w-6 animate-spin text-theme-400" />
-      </div>
-    );
+    content = <PageLoading />;
   } else if (recipes.hasError || foods.hasError) {
     content = (
       <>

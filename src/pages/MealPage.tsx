@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { LoaderCircle } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 
 import { listFoodItems } from '../components/food/api';
@@ -8,6 +7,7 @@ import { FlowHeader } from '../components/layout/FlowHeader';
 import { listMeals } from '../components/meal/api';
 import { MealForm } from '../components/meal/MealForm';
 import type { Meal } from '../components/meal/types';
+import { PageLoading } from '../components/ui/Card';
 import { useList } from '../hooks/useList';
 import { useGoBack } from '../routing/navigation';
 import { PATHS } from '../routing/paths';
@@ -66,11 +66,7 @@ function MealScreen() {
       </>
     );
   } else if (opened === undefined) {
-    content = (
-      <div className="flex justify-center py-16">
-        <LoaderCircle className="h-6 w-6 animate-spin text-theme-400" />
-      </div>
-    );
+    content = <PageLoading />;
   } else if (!isNew && opened === null) {
     content = (
       <>

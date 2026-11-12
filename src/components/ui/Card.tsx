@@ -65,6 +65,15 @@ export function CardLoading() {
   );
 }
 
+/** Spinner shown while a flow page loads what it shows. */
+export function PageLoading() {
+  return (
+    <div className="flex justify-center py-16">
+      <LoaderCircle className="h-6 w-6 animate-spin text-theme-400" />
+    </div>
+  );
+}
+
 /** Message shown when a list in a card is empty. */
 export function CardEmpty({ children }: { children: ReactNode }) {
   return (

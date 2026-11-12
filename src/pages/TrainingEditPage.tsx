@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { LoaderCircle } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 
 import { listExercises, listWorkouts } from '../components/fitness/api';
@@ -8,6 +7,7 @@ import type { Workout } from '../components/fitness/types';
 import { draftsOf } from '../components/fitness/workoutDraft';
 import { useFlow } from '../components/layout/flowContext';
 import { FlowHeader } from '../components/layout/FlowHeader';
+import { PageLoading } from '../components/ui/Card';
 import { useList } from '../hooks/useList';
 import { journalPath, parseDateParam } from '../routing/journal';
 import { useGoBack } from '../routing/navigation';
@@ -52,11 +52,7 @@ export default function TrainingEditPage() {
       </p>
     );
   } else if (!workouts) {
-    content = (
-      <div className="flex justify-center py-16">
-        <LoaderCircle className="h-6 w-6 animate-spin text-theme-400" />
-      </div>
-    );
+    content = <PageLoading />;
   } else {
     content = (
       <TrainingDayReview

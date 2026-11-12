@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { LoaderCircle } from 'lucide-react';
 import { Navigate, useParams, useSearchParams } from 'react-router';
 
 import { listFoodItems } from '../components/food/api';
@@ -10,6 +9,7 @@ import { listMealsOnDate } from '../components/meal/api';
 import { buildDrafts, type MealItemDraft } from '../components/meal/draft';
 import { MEAL_TYPE_LABELS, type Meal } from '../components/meal/types';
 import { listRecipes } from '../components/recipe/api';
+import { PageLoading } from '../components/ui/Card';
 import { useToast } from '../components/ui/toastContext';
 import {
   journalPath,
@@ -82,11 +82,7 @@ export default function JournalEditPage() {
       </p>
     );
   } else if (!section) {
-    content = (
-      <div className="flex justify-center py-16">
-        <LoaderCircle className="h-6 w-6 animate-spin text-theme-400" />
-      </div>
-    );
+    content = <PageLoading />;
   } else {
     content = (
       <DailyMealReview
