@@ -1,10 +1,12 @@
 import { useState, type ReactNode } from 'react';
 
-import { Card, CardEmpty, CardLoading } from '../ui/Card';
+import { Card } from '../ui/Card';
 import { ListRow, ListRows } from '../ui/ListRow';
-import { LoadError } from '../ui/LoadError';
+import { ListStatus } from '../ui/ListStatus';
 import {
+  boundsOf,
   EMPTY_FILTER_CRITERIA,
+  isFiltered,
   matchesMacro,
   type FilterCriteria,
 } from '../ui/macroFilter';
@@ -64,6 +66,8 @@ export function MealList({
         : (mealTotals(a)[field] - mealTotals(b)[field]) * dir;
     });
 
+  const macros = meals.map(mealTotals);
+
   return (
     <Card
       flush
@@ -71,7 +75,7 @@ export function MealList({
       header={
         <>
           <MacroSearchBar
-            items={meals.map(mealTotals)}
+            items={macros}
             criteria={criteria}
             onFilterChange={setCriteria}
           />
@@ -79,20 +83,20 @@ export function MealList({
         </>
       }
     >
-      {isLoading && <CardLoading />}
-
-      {loadError && <LoadError message={loadError} onRetry={onRetry} />}
-
-      {!isLoading && !loadError && meals.length === 0 && (
-        <CardEmpty>Aucun repas enregistré.</CardEmpty>
-      )}
-
-      {!isLoading &&
-        !loadError &&
-        meals.length > 0 &&
-        visibleMeals.length === 0 && (
-          <CardEmpty>Aucun repas ne correspond à cette recherche.</CardEmpty>
-        )}
+      <ListStatus
+        isLoading={isLoading}
+        loadError={loadError}
+        onRetry={onRetry}
+        total={meals.length}
+        shown={visibleMeals.length}
+        empty="Aucun repas enregistré."
+        none="Aucun repas"
+        query={criteria.query}
+        filtered={isFiltered(criteria, boundsOf(macros))}
+        onClear={() =>
+          setCriteria({ ...EMPTY_FILTER_CRITERIA, sort: criteria.sort })
+        }
+      />
 
       <ListRows>
         {visibleMeals.map((meal) => (

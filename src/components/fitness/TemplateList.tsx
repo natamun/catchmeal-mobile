@@ -2,9 +2,9 @@ import type { ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 
 import { useToggleSet } from '../../hooks/useToggleSet';
-import { Card, CardEmpty, CardLoading } from '../ui/Card';
+import { Card } from '../ui/Card';
 import { ListRow, ListRows } from '../ui/ListRow';
-import { LoadError } from '../ui/LoadError';
+import { ListStatus } from '../ui/ListStatus';
 import { describeValues } from './format';
 import type { TemplateItem, WorkoutItem, WorkoutTemplate } from './types';
 
@@ -58,11 +58,14 @@ export function TemplateList({
         )
       }
     >
-      {isLoading && <CardLoading />}
-      {loadError && <LoadError message={loadError} onRetry={onRetry} />}
-      {!isLoading && !loadError && templates.length === 0 && (
-        <CardEmpty>Aucune séance favorite.</CardEmpty>
-      )}
+      <ListStatus
+        isLoading={isLoading}
+        loadError={loadError}
+        onRetry={onRetry}
+        total={templates.length}
+        shown={templates.length}
+        empty="Aucune séance favorite."
+      />
 
       <ListRows>
         {templates.map((template) => {

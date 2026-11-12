@@ -1,11 +1,13 @@
 import { useState, type ReactNode } from 'react';
 
 import { formatMinutes } from '../../utils/format';
-import { Card, CardEmpty, CardLoading } from '../ui/Card';
+import { Card } from '../ui/Card';
 import { ListRow, ListRows } from '../ui/ListRow';
-import { LoadError } from '../ui/LoadError';
+import { ListStatus } from '../ui/ListStatus';
 import {
+  boundsOf,
   EMPTY_FILTER_CRITERIA,
+  isFiltered,
   matchesMacro,
   type FilterCriteria,
 } from '../ui/macroFilter';
@@ -80,6 +82,8 @@ export function RecipeList({
         : (perServing(a)[field] - perServing(b)[field]) * dir;
     });
 
+  const macros = active.map(perServing);
+
   return (
     <Card
       flush
@@ -87,7 +91,7 @@ export function RecipeList({
       header={
         <>
           <MacroSearchBar
-            items={active.map(perServing)}
+            items={macros}
             criteria={criteria}
             onFilterChange={setCriteria}
             categories={categories}
@@ -97,20 +101,20 @@ export function RecipeList({
         </>
       }
     >
-      {isLoading && <CardLoading />}
-
-      {loadError && <LoadError message={loadError} onRetry={onRetry} />}
-
-      {!isLoading && !loadError && active.length === 0 && (
-        <CardEmpty>Aucune recette enregistrée.</CardEmpty>
-      )}
-
-      {!isLoading &&
-        !loadError &&
-        active.length > 0 &&
-        visible.length === 0 && (
-          <CardEmpty>Aucune recette ne correspond à cette recherche.</CardEmpty>
-        )}
+      <ListStatus
+        isLoading={isLoading}
+        loadError={loadError}
+        onRetry={onRetry}
+        total={active.length}
+        shown={visible.length}
+        empty="Aucune recette enregistrée."
+        none="Aucune recette"
+        query={criteria.query}
+        filtered={isFiltered(criteria, boundsOf(macros))}
+        onClear={() =>
+          setCriteria({ ...EMPTY_FILTER_CRITERIA, sort: criteria.sort })
+        }
+      />
 
       <ListRows>
         {visible.map((recipe) => (

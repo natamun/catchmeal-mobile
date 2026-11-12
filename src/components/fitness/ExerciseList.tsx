@@ -1,9 +1,9 @@
 import { useRef, useState, type ReactNode } from 'react';
 
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
-import { Card, CardEmpty, CardLoading } from '../ui/Card';
+import { Card } from '../ui/Card';
 import { ListRow, ListRows } from '../ui/ListRow';
-import { LoadError } from '../ui/LoadError';
+import { ListStatus } from '../ui/ListStatus';
 import { isSameName, matchesSearch } from '../ui/search';
 import { SearchInput } from '../ui/SearchInput';
 import { CreateExerciseRow } from './CreateExerciseRow';
@@ -76,9 +76,18 @@ export function ExerciseList({
         </>
       }
     >
-      {isLoading && <CardLoading />}
-      {loadError && <LoadError message={loadError} onRetry={onRetry} />}
-
+      <ListStatus
+        isLoading={isLoading}
+        loadError={loadError}
+        onRetry={onRetry}
+        total={active.length}
+        shown={visible.length}
+        empty="Aucun exercice enregistré."
+        none="Aucun exercice"
+        query={query}
+        onClear={() => setQuery('')}
+        quiet={canCreate}
+      />
       {canCreate && (
         <CreateExerciseRow
           name={typed}
@@ -89,17 +98,6 @@ export function ExerciseList({
           className="border-theme-200 px-5 py-3"
         />
       )}
-
-      {!isLoading && !loadError && active.length === 0 && !canCreate && (
-        <CardEmpty>Aucun exercice enregistré.</CardEmpty>
-      )}
-      {!isLoading &&
-        !loadError &&
-        active.length > 0 &&
-        visible.length === 0 &&
-        !canCreate && (
-          <CardEmpty>Aucun exercice ne correspond à cette recherche.</CardEmpty>
-        )}
 
       {SECTIONS.map(({ label, kinds }) => {
         const rows = visible.filter((exercise) =>

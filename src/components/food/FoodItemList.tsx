@@ -2,12 +2,14 @@ import { useMemo, useState, type ReactNode } from 'react';
 
 import type { FoodUsage } from '../../data/foodItems';
 import { roundDecimals } from '../../utils/decimals';
-import { Card, CardEmpty, CardLoading } from '../ui/Card';
+import { Card } from '../ui/Card';
 import { ListRow, ListRows } from '../ui/ListRow';
-import { LoadError } from '../ui/LoadError';
+import { ListStatus } from '../ui/ListStatus';
 import {
+  boundsOf,
   BY_FREQUENCY,
   EMPTY_FILTER_CRITERIA,
+  isFiltered,
   matchesMacro,
   type FilterCriteria,
 } from '../ui/macroFilter';
@@ -109,20 +111,20 @@ export function FoodItemList({
         </>
       }
     >
-      {isLoading && <CardLoading />}
-
-      {loadError && <LoadError message={loadError} onRetry={onRetry} />}
-
-      {!isLoading && !loadError && activeItems.length === 0 && (
-        <CardEmpty>Aucun aliment enregistré.</CardEmpty>
-      )}
-
-      {!isLoading &&
-        !loadError &&
-        activeItems.length > 0 &&
-        visibleItems.length === 0 && (
-          <CardEmpty>Aucun aliment ne correspond à cette recherche.</CardEmpty>
-        )}
+      <ListStatus
+        isLoading={isLoading}
+        loadError={loadError}
+        onRetry={onRetry}
+        total={activeItems.length}
+        shown={visibleItems.length}
+        empty="Aucun aliment enregistré."
+        none="Aucun aliment"
+        query={criteria.query}
+        filtered={isFiltered(criteria, boundsOf(activeItems))}
+        onClear={() =>
+          setCriteria({ ...EMPTY_FILTER_CRITERIA, sort: criteria.sort })
+        }
+      />
 
       <ListRows>
         {visibleItems.map((item) => (

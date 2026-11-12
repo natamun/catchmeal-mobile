@@ -50,3 +50,46 @@ export const BY_FREQUENCY: SortOption = {
 export function matchesMacro(value: number, filter: MacroFilter) {
   return value >= filter.min && value <= filter.max;
 }
+
+/** A range per macro: the slider ends, or the ranges being chosen. */
+export type MacroRanges = Record<MacroKey, MacroFilter>;
+
+const MACRO_KEYS: readonly MacroKey[] = ['kcal', 'protein', 'carbs', 'fat'];
+
+/**
+ * Smallest and largest value of each macro among the items, used as the
+ * slider ends; 0 to 100 for an empty list.
+ */
+export function boundsOf(items: Macros[]): MacroRanges {
+  const bounds = (key: MacroKey): MacroFilter => {
+    if (items.length === 0) {
+      return { min: 0, max: 100 };
+    }
+    const values = items.map((item) => item[key]);
+    return {
+      min: Math.floor(Math.min(...values)),
+      max: Math.ceil(Math.max(...values)),
+    };
+  };
+  return {
+    kcal: bounds('kcal'),
+    protein: bounds('protein'),
+    carbs: bounds('carbs'),
+    fat: bounds('fat'),
+  };
+}
+
+/**
+ * Whether a category is kept or a range is narrower than the items' values:
+ * what fills the filter icon, and what a search without result names.
+ */
+export function isFiltered(criteria: FilterCriteria, bounds: MacroRanges) {
+  return (
+    criteria.category !== null ||
+    MACRO_KEYS.some(
+      (key) =>
+        criteria[key].min > bounds[key].min ||
+        criteria[key].max < bounds[key].max,
+    )
+  );
+}

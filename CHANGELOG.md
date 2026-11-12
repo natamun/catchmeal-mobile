@@ -20,6 +20,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - Deleting a food, an exercise, a weigh-in or a recipe takes a second tap on "Supprimer", which turns into "Confirmer ?", instead of a confirmation window. A double tap too fast does not delete.
 - A library meal and a favorite session are deleted from the "⋯" menu of their page, with the same second tap, like a recipe.
 - Library list rows are a little lower, and as tall in every list.
+- A search that finds nothing names the text and the filters, and clears them in one tap.
 
 ## [0.10.0] - 2026-11-12
 

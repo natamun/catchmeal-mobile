@@ -7,18 +7,19 @@ import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { BaseDialog } from './BaseDialog';
 import { PRIMARY_BUTTON_CLASS } from './buttonStyle';
 import {
+  boundsOf,
   BY_FREQUENCY,
   EMPTY_FILTER_CRITERIA,
+  isFiltered,
   type FilterCriteria,
   type MacroFilter,
   type MacroKey,
+  type MacroRanges,
   type Macros,
   type SortOption,
 } from './macroFilter';
 import { SearchInput } from './SearchInput';
 import { SelectDropdown } from './SelectDropdown';
-
-type MacroDraft = Record<MacroKey, MacroFilter>;
 
 const MACRO_FIELDS: {
   key: MacroKey;
@@ -93,21 +94,6 @@ const SORT_OPTIONS: SortChoice[] = [
   },
 ];
 
-/**
- * Smallest and largest value of a macro among the items, used as the slider
- * ends; 0 to 100 for an empty list.
- */
-function boundsOf(items: Macros[], key: MacroKey): MacroFilter {
-  if (items.length === 0) {
-    return { min: 0, max: 100 };
-  }
-  const values = items.map((item) => item[key]);
-  return {
-    min: Math.floor(Math.min(...values)),
-    max: Math.ceil(Math.max(...values)),
-  };
-}
-
 /** An unlimited range (the default) is shown as the full slider. */
 function clampToBounds(filter: MacroFilter, bounds: MacroFilter): MacroFilter {
   return {
@@ -156,7 +142,7 @@ export function MacroSearchBar({
   const sortOptions = canSortByFrequency
     ? [FREQUENCY_OPTION, ...SORT_OPTIONS]
     : SORT_OPTIONS;
-  const [draftMacros, setDraftMacros] = useState<MacroDraft>(
+  const [draftMacros, setDraftMacros] = useState<MacroRanges>(
     EMPTY_FILTER_CRITERIA,
   );
   const [draftSort, setDraftSort] = useState<SortOption>(
@@ -168,23 +154,8 @@ export function MacroSearchBar({
 
   useBlurOnKeyboardClose(inputRef);
 
-  const macroBounds = useMemo<MacroDraft>(
-    () => ({
-      kcal: boundsOf(items, 'kcal'),
-      protein: boundsOf(items, 'protein'),
-      carbs: boundsOf(items, 'carbs'),
-      fat: boundsOf(items, 'fat'),
-    }),
-    [items],
-  );
-
-  const hasActiveFilters =
-    criteria.category !== null ||
-    MACRO_FIELDS.some(
-      (field) =>
-        criteria[field.key].min > macroBounds[field.key].min ||
-        criteria[field.key].max < macroBounds[field.key].max,
-    );
+  const macroBounds = useMemo(() => boundsOf(items), [items]);
+  const hasActiveFilters = isFiltered(criteria, macroBounds);
 
   const currentSortValue = `${draftSort.field}-${draftSort.direction}`;
 
