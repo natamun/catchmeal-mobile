@@ -22,6 +22,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - Library list rows are a little lower, and as tall in every list.
 - A search that finds nothing names the text and the filters, and clears them in one tap.
 - The crosses that remove a set, a recipe section or step, or a shopping line look the same and show a background while pressed.
+- The servings buttons of a recipe look like the quantity buttons: larger, and easy to see in the dark themes.
 
 ## [0.10.0] - 2026-11-12
 

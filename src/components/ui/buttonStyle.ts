@@ -10,6 +10,10 @@ export const SECONDARY_BUTTON_CLASS =
 export const DANGER_BUTTON_CLASS =
   'flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-500/40 px-4 py-2.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60';
 
+/** A step button beside a value, such as "+10" or a minus: filled, compact. */
+export const STEP_BUTTON_CLASS =
+  'tap-area relative flex h-10 w-12 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-theme-100 text-sm font-bold text-theme-600 transition-colors hover:bg-theme-200 disabled:cursor-not-allowed disabled:opacity-40';
+
 /** A row that answers a tap, with the app's pressed background. */
 export const TAP_ROW_CLASS =
   'flex cursor-pointer rounded-xl text-left transition-colors hover:bg-theme-100';

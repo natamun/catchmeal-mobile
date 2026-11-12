@@ -2,9 +2,7 @@ import { useRef, useState } from 'react';
 
 import { useBlurOnKeyboardClose } from '../../hooks/useBlurOnKeyboardClose';
 import { parseDecimal, roundDecimals } from '../../utils/decimals';
-
-const STEP_BUTTON_CLASS =
-  'tap-area relative flex h-10 w-12 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-theme-100 text-sm font-bold text-theme-600 transition-colors hover:bg-theme-200';
+import { STEP_BUTTON_CLASS } from './buttonStyle';
 
 /** The quantity as a number to type, in the unit it is shown in. */
 interface Typing {

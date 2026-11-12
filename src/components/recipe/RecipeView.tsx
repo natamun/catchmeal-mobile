@@ -1,6 +1,7 @@
 import { Minus, Plus } from 'lucide-react';
 
 import type { FoodItem } from '../food/types';
+import { STEP_BUTTON_CLASS } from '../ui/buttonStyle';
 import { Card } from '../ui/Card';
 import { KcalPill, MacroBadges } from '../ui/MacroSummary';
 import {
@@ -11,9 +12,6 @@ import {
   servingsLabel,
 } from './servings';
 import type { Recipe } from './types';
-
-const STEP_BUTTON_CLASS =
-  'tap-area relative flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-theme-50 text-theme-600 transition-colors hover:bg-theme-100 disabled:cursor-not-allowed disabled:opacity-40';
 
 interface ServingsStepperProps {
   value: number;
