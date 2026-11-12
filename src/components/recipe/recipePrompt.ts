@@ -27,14 +27,22 @@ function goalLines(profile: Profile) {
   ];
 }
 
-/** Each ingredient with its quantity and its calories. */
+/**
+ * Each ingredient with its quantity and its calories, under the name of its
+ * section when it has one.
+ */
 function ingredientLines(recipe: Recipe, foodItems: FoodItem[]) {
-  return recipe.ingredients.flatMap(({ foodItemId, quantity }) => {
+  let current: string | null = null;
+  return recipe.ingredients.flatMap(({ foodItemId, quantity, section }) => {
     const food = foodItems.find(({ id }) => id === foodItemId);
     if (!food) return [];
     const kcal = Math.round((food.kcal * quantity) / food.baseQuantity);
     const brand = food.brand ? ` (${food.brand})` : '';
+    const title =
+      section !== null && section !== current ? [`${section} :`] : [];
+    current = section;
     return [
+      ...title,
       `- ${food.name}${brand} : ${amountText(food, quantity)}, ${kcal} kcal`,
     ];
   });

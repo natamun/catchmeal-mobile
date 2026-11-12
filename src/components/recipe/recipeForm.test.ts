@@ -7,6 +7,7 @@ import {
   emptyRecipeForm,
   formPerServing,
   formToInput,
+  newSection,
   newStep,
   recipeToForm,
   validateRecipeForm,
@@ -58,8 +59,48 @@ describe('validateRecipeForm', () => {
       { steps: Array.from({ length: 31 }, () => newStep('Mélanger.')) },
       'steps',
     ],
+    [
+      'a section without a name over a food',
+      { ingredients: [newSection(' '), newFoodDraft(BISCUIT)] },
+      'sections',
+    ],
+    [
+      'section titles without any food',
+      { ingredients: [newSection('Crème')] },
+      'ingredients',
+    ],
+    [
+      'a section with no food under it, at the end',
+      { ingredients: [newFoodDraft(BISCUIT), newSection('Crème')] },
+      'sections',
+    ],
+    [
+      'a section with no food under it, before another',
+      {
+        ingredients: [
+          newSection('Crème'),
+          newSection('Café'),
+          newFoodDraft(BISCUIT),
+        ],
+      },
+      'sections',
+    ],
   ])('refuses %s', (_, override, field) => {
     expect(validateRecipeForm(filled(override))).toHaveProperty(field);
+  });
+
+  it('accepts named sections that each hold a food', () => {
+    expect(
+      validateRecipeForm(
+        filled({
+          ingredients: [
+            newFoodDraft(BISCUIT),
+            newSection('Crème'),
+            newFoodDraft(BISCUIT),
+          ],
+        }),
+      ),
+    ).toEqual({});
   });
 });
 
@@ -83,9 +124,31 @@ describe('formToInput', () => {
       prepMinutes: 30,
       cooking: null,
       notes: 'Au frais 4 h.',
-      ingredients: [{ foodItemId: 1, quantity: 12 }],
+      ingredients: [{ foodItemId: 1, quantity: 12, section: null }],
       steps: ['Tremper.', 'Monter.'],
     });
+  });
+
+  it('gives each food the title above it, an empty section left out', () => {
+    const input = formToInput(
+      filled({
+        ingredients: [
+          newFoodDraft(BISCUIT),
+          newSection(' Crème '),
+          newFoodDraft(BISCUIT),
+          newSection(''),
+          newSection('Café'),
+          newFoodDraft(BISCUIT),
+          newSection('Rien'),
+        ],
+      }),
+    );
+
+    expect(input.ingredients.map(({ section }) => section)).toEqual([
+      null,
+      'Crème',
+      'Café',
+    ]);
   });
 });
 
@@ -100,8 +163,8 @@ describe('recipeToForm', () => {
       cooking: null,
       notes: null,
       ingredients: [
-        { id: 1, foodItemId: 1, quantity: 48 },
-        { id: 2, foodItemId: 1, quantity: 50 },
+        { id: 1, foodItemId: 1, quantity: 48, section: null },
+        { id: 2, foodItemId: 1, quantity: 50, section: null },
       ],
       steps: [],
       totals: { kcal: 0, protein: 0, carbs: 0, fat: 0 },
@@ -123,6 +186,35 @@ describe('recipeToForm', () => {
       ),
     ).toEqual([true, false]);
   });
+
+  it('puts a title before each run of foods that share a section', () => {
+    const recipe: Recipe = {
+      id: 3,
+      name: 'Tiramisu',
+      servings: 6,
+      category: null,
+      prepMinutes: null,
+      cooking: null,
+      notes: null,
+      ingredients: [
+        { id: 1, foodItemId: 1, quantity: 12, section: null },
+        { id: 2, foodItemId: 1, quantity: 24, section: 'Crème' },
+        { id: 3, foodItemId: 1, quantity: 36, section: 'Crème' },
+        { id: 4, foodItemId: 1, quantity: 48, section: 'Café' },
+      ],
+      steps: [],
+      totals: { kcal: 0, protein: 0, carbs: 0, fat: 0 },
+      archived: false,
+    };
+
+    const lines = recipeToForm(recipe, [BISCUIT]).ingredients;
+
+    expect(
+      lines.map((line) =>
+        line.kind === 'section' ? line.name : line.quantity,
+      ),
+    ).toEqual([12, 'Crème', 24, 36, 'Café', 48]);
+  });
 });
 
 describe('copyToForm', () => {
@@ -135,7 +227,7 @@ describe('copyToForm', () => {
       prepMinutes: 30,
       cooking: null,
       notes: 'Au frais 4 h.',
-      ingredients: [{ id: 1, foodItemId: 1, quantity: 48 }],
+      ingredients: [{ id: 1, foodItemId: 1, quantity: 48, section: null }],
       steps: ['Tremper.'],
       totals: { kcal: 0, protein: 0, carbs: 0, fat: 0 },
       archived: false,

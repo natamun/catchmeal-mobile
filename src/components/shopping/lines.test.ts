@@ -43,8 +43,8 @@ const CURRY: Recipe = {
   cooking: null,
   notes: null,
   ingredients: [
-    { id: 1, foodItemId: CHICKEN.id, quantity: 800 },
-    { id: 2, foodItemId: EGG.id, quantity: 2 },
+    { id: 1, foodItemId: CHICKEN.id, quantity: 800, section: null },
+    { id: 2, foodItemId: EGG.id, quantity: 2, section: null },
   ],
   steps: [],
   totals: { kcal: 0, protein: 0, carbs: 0, fat: 0 },
@@ -109,7 +109,7 @@ describe('recipeToShopping', () => {
     const pinch = {
       ...CURRY,
       servings: 50,
-      ingredients: [{ id: 1, foodItemId: 1, quantity: 0.1 }],
+      ingredients: [{ id: 1, foodItemId: 1, quantity: 0.1, section: null }],
     };
 
     expect(recipeToShopping(pinch, 1)[0].quantity).toBe(0.01);

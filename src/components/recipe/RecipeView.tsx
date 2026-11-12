@@ -71,33 +71,63 @@ interface IngredientRowsProps {
   servings: number;
 }
 
-/** The ingredients with their quantities for the servings chosen. */
+/**
+ * The ingredients with their quantities for the servings chosen, those of a
+ * section under its name.
+ */
 export function IngredientRows({
   recipe,
   foodItems,
   servings,
 }: IngredientRowsProps) {
+  // Runs of ingredients that share a section, in the order of the recipe.
+  const groups: {
+    key: number;
+    section: string | null;
+    items: Recipe['ingredients'];
+  }[] = [];
+  for (const item of recipe.ingredients) {
+    const last = groups.at(-1);
+    if (last && last.section === item.section) last.items.push(item);
+    else groups.push({ key: item.id, section: item.section, items: [item] });
+  }
+
   return (
-    <ul className="divide-y divide-theme-100">
-      {recipe.ingredients.map((item) => {
-        const food = foodItems.find(({ id }) => id === item.foodItemId);
-        return (
-          <li key={item.id} className="flex items-center gap-3 py-2">
-            <span className="min-w-0 flex-1 text-sm font-medium text-theme-800">
-              {food?.name ?? 'Aliment inconnu'}
-            </span>
-            {food && (
-              <span className="shrink-0 text-sm text-theme-600 tabular-nums">
-                {amountText(
-                  food,
-                  scaledQuantity(item.quantity, recipe.servings, servings),
-                )}
-              </span>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+    <div className="flex flex-col gap-3">
+      {groups.map(({ key, section, items }) => (
+        <div key={key} className="flex flex-col">
+          {section !== null && (
+            <h3 className="pt-1 text-sm font-semibold text-theme-500">
+              {section}
+            </h3>
+          )}
+          <ul className="divide-y divide-theme-100">
+            {items.map((item) => {
+              const food = foodItems.find(({ id }) => id === item.foodItemId);
+              return (
+                <li key={item.id} className="flex items-center gap-3 py-2">
+                  <span className="min-w-0 flex-1 text-sm font-medium text-theme-800">
+                    {food?.name ?? 'Aliment inconnu'}
+                  </span>
+                  {food && (
+                    <span className="shrink-0 text-sm text-theme-600 tabular-nums">
+                      {amountText(
+                        food,
+                        scaledQuantity(
+                          item.quantity,
+                          recipe.servings,
+                          servings,
+                        ),
+                      )}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </div>
   );
 }
 

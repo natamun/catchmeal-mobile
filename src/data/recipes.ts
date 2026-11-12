@@ -18,6 +18,7 @@ import {
 const GONE = "Cette recette n'existe plus.";
 const MAX_INGREDIENTS = 50;
 const MAX_STEPS = 30;
+const MAX_SECTION = 60;
 
 interface RecipeRow {
   id: number;
@@ -36,6 +37,7 @@ interface IngredientRow {
   recipe_id: number;
   food_item_id: number;
   quantity: number;
+  section: string | null;
   base_quantity: number;
   kcal: number;
   protein: number;
@@ -48,7 +50,7 @@ interface StepRow {
   instruction: string;
 }
 
-type Ingredient = RecipeInput['ingredients'][number];
+type Ingredient = Required<RecipeInput['ingredients'][number]>;
 
 /** The fields of a recipe checked and cleaned, its ingredients apart. */
 function validateRecipe(input: RecipeInput) {
@@ -107,6 +109,7 @@ async function checkIngredients(
       exclusive: true,
       max: 10000,
     }),
+    section: checkOptionalText(item.section, 'section', MAX_SECTION),
   }));
 
   const ids = [...new Set(lines.map(({ foodItemId }) => foodItemId))];
@@ -130,9 +133,9 @@ async function insertParts(
 ) {
   for (const [position, item] of ingredients.entries()) {
     await tx.run(
-      `INSERT INTO recipe_ingredient (recipe_id, food_item_id, position, quantity)
-       VALUES (?, ?, ?, ?)`,
-      [recipeId, item.foodItemId, position, item.quantity],
+      `INSERT INTO recipe_ingredient (recipe_id, food_item_id, position, quantity, section)
+       VALUES (?, ?, ?, ?, ?)`,
+      [recipeId, item.foodItemId, position, item.quantity, item.section],
     );
   }
   for (const [position, instruction] of steps.entries()) {
@@ -167,7 +170,7 @@ async function readRecipes(db: Executor, where: string, params: SqlValue[]) {
     params,
   );
   const ingredients = await db.query<IngredientRow>(
-    `SELECT i.id, i.recipe_id, i.food_item_id, i.quantity,
+    `SELECT i.id, i.recipe_id, i.food_item_id, i.quantity, i.section,
             f.base_quantity, f.kcal, f.protein, f.carbs, f.fat
      FROM recipe_ingredient i JOIN food_item f ON f.id = i.food_item_id
      WHERE i.recipe_id IN (SELECT id FROM recipe WHERE ${where})
@@ -196,6 +199,7 @@ async function readRecipes(db: Executor, where: string, params: SqlValue[]) {
           id: item.id,
           foodItemId: item.food_item_id,
           quantity: item.quantity,
+          section: item.section,
         })),
         steps: steps
           .filter((step) => step.recipe_id === recipe.id)

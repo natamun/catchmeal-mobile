@@ -40,8 +40,8 @@ const CURRY: Recipe = {
   cooking: '20 min à feu doux.',
   notes: 'La dinde remplace le poulet.',
   ingredients: [
-    { id: 1, foodItemId: 1, quantity: 800 },
-    { id: 2, foodItemId: 2, quantity: 2 },
+    { id: 1, foodItemId: 1, quantity: 800, section: null },
+    { id: 2, foodItemId: 2, quantity: 2, section: null },
   ],
   steps: ['Couper le poulet.', 'Faire revenir avec le curry.'],
   totals: { kcal: 1020, protein: 196, carbs: 1, fat: 26 },
@@ -126,5 +126,23 @@ describe('buildRecipePrompt', () => {
     );
     expect(text).toContain('## Recette : Curry de poulet\n- Pour 4 portions');
     expect(text).not.toMatch(/### (Cuisson|Préparation|Autres)/);
+  });
+
+  it('lists the ingredients under the name of their section', () => {
+    const text = buildRecipePrompt(
+      {
+        ...CURRY,
+        ingredients: [
+          { id: 1, foodItemId: 1, quantity: 800, section: 'Poulet' },
+          { id: 2, foodItemId: 2, quantity: 2, section: 'Sauce' },
+        ],
+      },
+      [CHICKEN, EGG],
+      PROFILE,
+    );
+
+    expect(text).toContain(
+      '### Ingrédients (pour 4 portions)\nPoulet :\n- Blanc de poulet (Migros) : 800 g, 880 kcal\nSauce :\n- Œuf : 2 pièces, 140 kcal',
+    );
   });
 });

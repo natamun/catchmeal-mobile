@@ -81,8 +81,14 @@ describe('createRecipe', () => {
           id: expect.any(Number) as number,
           foodItemId: chicken.id,
           quantity: 800,
+          section: null,
         },
-        { id: expect.any(Number) as number, foodItemId: egg.id, quantity: 2 },
+        {
+          id: expect.any(Number) as number,
+          foodItemId: egg.id,
+          quantity: 2,
+          section: null,
+        },
       ],
       steps: ['Couper le poulet.', 'Faire revenir avec le curry.'],
       totals: { kcal: 1020, protein: 196, carbs: 1, fat: 26 },
@@ -129,6 +135,25 @@ describe('createRecipe', () => {
     expect(recipe.totals.kcal).toBe(210);
   });
 
+  it('keeps the sections in order, trimmed, a blank one as none', async () => {
+    const recipe = await createRecipe(
+      db,
+      curry({
+        ingredients: [
+          { foodItemId: egg.id, quantity: 2, section: '  ' },
+          { foodItemId: chicken.id, quantity: 800, section: ' Poulet ' },
+          { foodItemId: egg.id, quantity: 1, section: 'Sauce' },
+        ],
+      }),
+    );
+
+    expect(recipe.ingredients.map(({ section }) => section)).toEqual([
+      null,
+      'Poulet',
+      'Sauce',
+    ]);
+  });
+
   it.each<[string, Partial<RecipeInput>]>([
     ['a blank name', { name: '   ' }],
     ['a name over 120 characters', { name: 'a'.repeat(121) }],
@@ -164,6 +189,20 @@ describe('createRecipe', () => {
       { ingredients: [{ foodItemId: 1, quantity: 1.234 }] },
     ],
     ['an unknown food', { ingredients: [{ foodItemId: 999, quantity: 10 }] }],
+    [
+      'a section over 60 characters',
+      {
+        ingredients: [{ foodItemId: 1, quantity: 10, section: 'a'.repeat(61) }],
+      },
+    ],
+    [
+      'a section that is not a text',
+      {
+        ingredients: [
+          { foodItemId: 1, quantity: 10, section: 3 as unknown as string },
+        ],
+      },
+    ],
     ['a blank step', { steps: ['Couper.', '  '] }],
     ['a step over 500 characters', { steps: ['a'.repeat(501)] }],
     ['over 30 steps', { steps: Array.from({ length: 31 }, () => 'Mélanger.') }],

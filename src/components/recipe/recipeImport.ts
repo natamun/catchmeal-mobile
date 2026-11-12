@@ -4,8 +4,10 @@ import type { FoodItem } from '../food/types';
 import type { MealItemDraft } from '../meal/draft';
 import {
   emptyRecipeForm,
+  linesOf,
   newStep,
   RECIPE_LIMITS,
+  withSections,
   type RecipeForm,
 } from './recipeForm';
 import { MAX_SERVINGS } from './servings';
@@ -47,13 +49,14 @@ export function formToJson(form: RecipeForm) {
     prepMinutes: /^\d+$/.test(prep) ? Number(prep) : null,
     cooking: form.cooking.trim() || null,
     notes: form.notes.trim() || null,
-    ingredients: form.ingredients.flatMap((item) =>
+    ingredients: withSections(form.ingredients).flatMap(({ item, section }) =>
       item.kind === 'food'
         ? [
             {
               foodId: item.foodItem.id,
               name: item.foodItem.name,
               quantity: item.quantity,
+              section,
             },
           ]
         : [],
@@ -102,6 +105,7 @@ export function buildExportText(form: RecipeForm, foodItems: FoodItem[]) {
       '- Chaque ingrédient prend un aliment de ma liste ci-dessous : son numéro dans "foodId", son nom dans "name".',
       `- "quantity" : la quantité pour toute la recette, dans l'unité de l'aliment (g, ml ou nombre de pièces), au plus ${MAX_QUANTITY}.`,
       '- Un ingrédient absent de ma liste : "foodId": null, avec son nom. Je l\'ajouterai moi-même.',
+      `- "section" : la partie de la recette où va l'ingrédient, par exemple "Poulet" ou "Sauce" (${RECIPE_LIMITS.section} caractères au plus), ou null si la recette n'a pas de parties. Les ingrédients d'une même section se suivent.`,
       `- "servings" : nombre entier de portions, de 1 à ${MAX_SERVINGS}.`,
       `- "category" : une valeur parmi ${categories}, ou null.`,
       '- "prepMinutes" : temps de préparation en minutes entières, ou null.',
@@ -154,7 +158,8 @@ function readObject(text: string): unknown {
  * reviewed and saved like a typed one (validateRecipeForm still applies).
  * Ingredients are matched by their number in the library; an unknown one is
  * listed in `missing`, a bad quantity in `warnings`. Lines of the same food
- * are added up, since the editor shows each food once.
+ * in the same section are added up; the foods of a section are gathered
+ * where it first appears.
  */
 export function parseRecipeImport(
   text: string,
@@ -217,7 +222,8 @@ export function parseRecipeImport(
   const active = new Map(
     foodItems.filter((food) => !food.archived).map((food) => [food.id, food]),
   );
-  const quantities = new Map<number, number>();
+  // Keyed by section, then by food, both in the order they first appear.
+  const sections = new Map<string | null, Map<number, number>>();
   const lines = Array.isArray(data.ingredients) ? data.ingredients : [];
   for (const line of lines) {
     if (!isRecord(line)) continue;
@@ -237,20 +243,29 @@ export function parseRecipeImport(
       warnings.push(`Quantité invalide pour ${food.name}, ingrédient ignoré`);
       continue;
     }
-    quantities.set(food.id, (quantities.get(food.id) ?? 0) + quantity);
+    const section =
+      cut(line.section, RECIPE_LIMITS.section, 'Une section') || null;
+    const foods = sections.get(section) ?? new Map<number, number>();
+    sections.set(section, foods);
+    foods.set(food.id, (foods.get(food.id) ?? 0) + quantity);
   }
 
-  form.ingredients = [...quantities].map(([id, total]): MealItemDraft => {
-    const foodItem = active.get(id)!;
-    const quantity = roundDecimals(Math.min(total, MAX_QUANTITY), 2);
-    return {
-      id: crypto.randomUUID(),
-      kind: 'food',
-      foodItem,
-      quantity,
-      inPortions: wholePortions(foodItem, quantity) !== null,
-    };
-  });
+  form.ingredients = linesOf(
+    [...sections].flatMap(([section, foods]) =>
+      [...foods].map(([id, total]) => {
+        const foodItem = active.get(id)!;
+        const quantity = roundDecimals(Math.min(total, MAX_QUANTITY), 2);
+        const item: MealItemDraft = {
+          id: crypto.randomUUID(),
+          kind: 'food',
+          foodItem,
+          quantity,
+          inPortions: wholePortions(foodItem, quantity) !== null,
+        };
+        return { item, section };
+      }),
+    ),
+  );
 
   return { ok: true, form, missing, warnings };
 }

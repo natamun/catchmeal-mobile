@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { FoodItem } from '../food/types';
-import { emptyRecipeForm } from './recipeForm';
+import { emptyRecipeForm, type RecipeForm } from './recipeForm';
 import { buildExportText, formToJson, parseRecipeImport } from './recipeImport';
 
 const CHICKEN: FoodItem = {
@@ -50,11 +50,19 @@ const VALID = {
   cooking: '20 min à feu doux',
   notes: 'Se garde 3 jours',
   ingredients: [
-    { foodId: 12, name: 'Blanc de poulet', quantity: 600 },
-    { foodId: 5, name: 'Œuf', quantity: 2 },
+    { foodId: 12, name: 'Blanc de poulet', quantity: 600, section: null },
+    { foodId: 5, name: 'Œuf', quantity: 2, section: null },
   ],
   steps: ['Couper le poulet.', 'Cuire.'],
 };
+
+/** The ingredient lines: a section by its name, a food as [id, quantity]. */
+const rows = ({ ingredients }: RecipeForm) =>
+  ingredients.map((line) =>
+    line.kind === 'section'
+      ? line.name
+      : [line.kind === 'food' && line.foodItem.id, line.quantity],
+  );
 
 const parse = (data: unknown) => parseRecipeImport(JSON.stringify(data), FOODS);
 
@@ -107,12 +115,30 @@ describe('formToJson', () => {
 
   it('writes each ingredient on one line', () => {
     expect(formToJson(parsed(VALID).form)).toContain(
-      '  "ingredients": [\n    { "foodId": 12, "name": "Blanc de poulet", "quantity": 600 },\n    { "foodId": 5, "name": "Œuf", "quantity": 2 }\n  ],',
+      '  "ingredients": [\n    { "foodId": 12, "name": "Blanc de poulet", "quantity": 600, "section": null },\n    { "foodId": 5, "name": "Œuf", "quantity": 2, "section": null }\n  ],',
     );
   });
 
   it('reads back as the same recipe', () => {
     expect(JSON.parse(formToJson(parsed(VALID).form))).toEqual(VALID);
+  });
+
+  it('gives each ingredient its section', () => {
+    const withSections = {
+      ...VALID,
+      ingredients: [
+        {
+          foodId: 12,
+          name: 'Blanc de poulet',
+          quantity: 600,
+          section: 'Poulet',
+        },
+        { foodId: 5, name: 'Œuf', quantity: 2, section: 'Sauce' },
+      ],
+    };
+    expect(JSON.parse(formToJson(parsed(withSections).form))).toEqual(
+      withSections,
+    );
   });
 
   it('leaves out a preparation time that is not whole minutes', () => {
@@ -133,12 +159,7 @@ describe('parseRecipeImport', () => {
       cooking: '20 min à feu doux',
       notes: 'Se garde 3 jours',
     });
-    expect(
-      form.ingredients.map((item) => [
-        item.kind === 'food' && item.foodItem.id,
-        item.quantity,
-      ]),
-    ).toEqual([
+    expect(rows(form)).toEqual([
       [12, 600],
       [5, 2],
     ]);
@@ -213,8 +234,37 @@ describe('parseRecipeImport', () => {
         { foodId: 12, quantity: 200 },
       ],
     });
-    expect(form.ingredients).toHaveLength(1);
-    expect(form.ingredients[0].quantity).toBe(500);
+    expect(rows(form)).toEqual([[12, 500]]);
+  });
+
+  it('gathers the foods of a section under its title, apart from another', () => {
+    const { form } = parsed({
+      ...VALID,
+      ingredients: [
+        { foodId: 12, quantity: 600, section: 'Poulet' },
+        { foodId: 5, quantity: 2, section: ' Sauce ' },
+        { foodId: 12, quantity: 100, section: 'Sauce' },
+        { foodId: 3, quantity: 24, section: 'Poulet' },
+        { foodId: 5, quantity: 1, section: 'Sauce' },
+      ],
+    });
+    expect(rows(form)).toEqual([
+      'Poulet',
+      [12, 600],
+      [3, 24],
+      'Sauce',
+      [5, 3],
+      [12, 100],
+    ]);
+  });
+
+  it('cuts a section name to 60 characters', () => {
+    const { form, warnings } = parsed({
+      ...VALID,
+      ingredients: [{ foodId: 12, quantity: 600, section: 'a'.repeat(61) }],
+    });
+    expect(rows(form)[0]).toBe('a'.repeat(60));
+    expect(warnings).toContain('Une section coupé à 60 caractères');
   });
 
   it('shows whole portions as portions', () => {

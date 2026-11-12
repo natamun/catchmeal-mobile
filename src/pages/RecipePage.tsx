@@ -149,7 +149,7 @@ function RecipeSheet({
           type="button"
           onClick={() => void addToShopping()}
           disabled={isAdding}
-          className={`${SECONDARY_BUTTON_CLASS} flex-none self-start`}
+          className={`${SECONDARY_BUTTON_CLASS} flex-none`}
         >
           <ShoppingCart className="h-4 w-4" />
           Ajouter aux courses

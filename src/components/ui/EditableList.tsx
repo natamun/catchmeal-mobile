@@ -19,6 +19,11 @@ export interface EditableRow {
   aside?: ReactNode;
   /** The controls that change it: a quantity stepper, sets. */
   editor?: ReactNode;
+  /**
+   * Drawn in place of the tappable line, with no sheet: a row that is not an
+   * item, such as a section title being typed.
+   */
+  custom?: ReactNode;
   onRemove: () => void;
 }
 
@@ -79,7 +84,7 @@ export function EditableList({ rows, onMove, className = '' }: Props) {
           renderItem={(item, _, handle) => (
             <>
               <span className="-ml-3 flex">{handle}</span>
-              {rowButton(item, '-mr-2 min-w-0 flex-1 pr-2 pl-1')}
+              {item.custom ?? rowButton(item, '-mr-2 min-w-0 flex-1 pr-2 pl-1')}
             </>
           )}
         />
@@ -87,7 +92,7 @@ export function EditableList({ rows, onMove, className = '' }: Props) {
         <ul className={`flex flex-col divide-y divide-theme-100 ${className}`}>
           {rows.map((item) => (
             <li key={item.id} className="flex animate-fade-in-up flex-col">
-              {rowButton(item, '-mx-2 w-[calc(100%+1rem)] px-2')}
+              {item.custom ?? rowButton(item, '-mx-2 w-[calc(100%+1rem)] px-2')}
             </li>
           ))}
         </ul>

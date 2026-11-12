@@ -18,6 +18,11 @@ interface SearchPickerProps<T> {
   matches: (item: T, query: string) => boolean;
   /** Already in the list being edited: checked, and not added twice. */
   isAdded: (item: T) => boolean;
+  /**
+   * Given, an added item can be picked again: it shows how many times it is
+   * in the list ("×2") once more than one, and pulses at each pick.
+   */
+  countOf?: (item: T) => number;
   onPick: (item: T) => void;
   /** A link beside the label, such as "Ajout rapide". */
   labelAction?: ReactNode;
@@ -46,6 +51,7 @@ export function SearchPicker<T>({
   detailOf,
   matches,
   isAdded,
+  countOf,
   onPick,
   labelAction,
   renderExtra,
@@ -54,6 +60,11 @@ export function SearchPicker<T>({
 }: SearchPickerProps<T>) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  // The item picked last and how many picks so far, so its row pulses anew
+  // at each pick, and only then.
+  const [pulse, setPulse] = useState<{ key: string; picks: number } | null>(
+    null,
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -70,7 +81,10 @@ export function SearchPicker<T>({
   const typed = query.trim();
   const results = typed ? items.filter((item) => matches(item, typed)) : items;
 
-  const close = () => setOpen(false);
+  const close = () => {
+    setOpen(false);
+    setPulse(null);
+  };
 
   return (
     <div className="relative flex flex-col gap-1.5">
@@ -121,13 +135,23 @@ export function SearchPicker<T>({
               <ul className="flex flex-col divide-y divide-theme-100">
                 {results.map((item) => {
                   const added = isAdded(item);
+                  const count = countOf?.(item) ?? 0;
+                  const key = String(keyOf(item));
+                  const pulsed = pulse?.key === key;
                   return (
                     <li key={keyOf(item)}>
                       <button
+                        // A new key replays the pulse on each pick.
+                        key={pulsed ? `pick-${pulse.picks}` : 'idle'}
                         type="button"
-                        disabled={added}
-                        onClick={() => onPick(item)}
-                        className="-mx-2 flex h-12 w-[calc(100%+1rem)] cursor-pointer items-center gap-3 rounded-xl px-2 text-left transition-colors hover:bg-theme-100 disabled:cursor-default disabled:hover:bg-transparent"
+                        disabled={added && !countOf}
+                        onClick={() => {
+                          onPick(item);
+                          if (countOf) {
+                            setPulse({ key, picks: (pulse?.picks ?? 0) + 1 });
+                          }
+                        }}
+                        className={`-mx-2 flex h-12 w-[calc(100%+1rem)] cursor-pointer items-center gap-3 rounded-xl px-2 text-left transition-colors hover:bg-theme-100 disabled:cursor-default disabled:hover:bg-transparent ${pulsed ? 'animate-pill-select' : ''}`}
                       >
                         <span className="min-w-0 flex-1 truncate text-base text-theme-800">
                           {nameOf(item)}
@@ -137,9 +161,15 @@ export function SearchPicker<T>({
                             {detailOf(item)}
                           </span>
                         )}
-                        <span className="flex w-5 shrink-0 justify-center">
-                          {added && (
-                            <Check className="h-5 w-5 text-theme-500" />
+                        <span className="flex w-7 shrink-0 justify-center">
+                          {count > 1 ? (
+                            <span className="text-sm font-semibold text-theme-500 tabular-nums">
+                              ×{count}
+                            </span>
+                          ) : (
+                            added && (
+                              <Check className="h-5 w-5 text-theme-500" />
+                            )
                           )}
                         </span>
                       </button>

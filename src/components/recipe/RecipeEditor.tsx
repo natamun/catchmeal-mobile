@@ -1,18 +1,19 @@
-import { useRef, type RefObject } from 'react';
+import { useRef, useState, type RefObject } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Plus, X } from 'lucide-react';
+import { Check, Plus, X } from 'lucide-react';
 
 import { FoodItemForm } from '../food/FoodItemForm';
 import { matchesFood } from '../food/search';
 import type { FoodItem } from '../food/types';
 import { FlowFooter } from '../layout/FlowFooter';
-import { newFoodDraft, type MealItemDraft } from '../meal/draft';
-import { DraftItemList } from '../meal/DraftItemList';
+import { newFoodDraft } from '../meal/draft';
+import { draftRow } from '../meal/draftRow';
 import {
   PRIMARY_BUTTON_CLASS,
   SECONDARY_BUTTON_CLASS,
 } from '../ui/buttonStyle';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { EditableList, type EditableRow } from '../ui/EditableList';
 import { FieldError } from '../ui/FieldError';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
@@ -20,7 +21,17 @@ import { MacroSummary } from '../ui/MacroSummary';
 import { SearchPicker } from '../ui/SearchPicker';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { SortableList } from '../ui/SortableList';
-import { formPerServing, newStep, RECIPE_LIMITS } from './recipeForm';
+import {
+  foodLines,
+  formPerServing,
+  isEmptySection,
+  isSection,
+  newSection,
+  newStep,
+  RECIPE_LIMITS,
+  type IngredientLine,
+  type SectionDraft,
+} from './recipeForm';
 import { ServingsStepper } from './RecipeView';
 import {
   RECIPE_CATEGORIES,
@@ -112,23 +123,139 @@ export function InfoFields({ editor }: PartProps) {
   );
 }
 
+const SECTION_INPUT_CLASS =
+  'h-11 min-w-0 flex-1 rounded-none border-b border-transparent bg-transparent px-1 text-base font-semibold text-theme-500 outline-none placeholder:font-normal placeholder:text-theme-400 focus:border-theme-400 data-[invalid=true]:border-red-400';
+
+interface SectionTitleProps {
+  section: SectionDraft;
+  invalid: boolean;
+  autoFocus: boolean;
+  onRename: (name: string) => void;
+  onRemove: () => void;
+}
+
+/**
+ * A section title among the ingredients, written as plain text in the
+ * accent colour. While it is typed, a check (or the keyboard's enter key)
+ * ends the typing; otherwise a cross removes the title, its foods joining
+ * the section above.
+ */
+function SectionTitle({
+  section,
+  invalid,
+  autoFocus,
+  onRename,
+  onRemove,
+}: SectionTitleProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const label = section.name.trim() || 'la section';
+
+  return (
+    <div className="flex min-w-0 flex-1 items-center gap-2">
+      <input
+        ref={inputRef}
+        type="text"
+        aria-label="Nom de la section"
+        placeholder="Nom de la section, ex : Sauce"
+        maxLength={RECIPE_LIMITS.section}
+        value={section.name}
+        autoFocus={autoFocus}
+        enterKeyHint="done"
+        onChange={(e) => onRename(e.target.value)}
+        onFocus={() => setIsTyping(true)}
+        onBlur={() => setIsTyping(false)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') inputRef.current?.blur();
+        }}
+        data-invalid={invalid}
+        autoComplete="off"
+        className={SECTION_INPUT_CLASS}
+      />
+      {isTyping ? (
+        <button
+          type="button"
+          aria-label="Valider le nom"
+          // Keeps the focus in the field until the tap ends, so the cross
+          // never takes the check's place under the finger.
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => inputRef.current?.blur()}
+          className={`${ICON_BUTTON_CLASS} shrink-0 text-theme-500`}
+        >
+          <Check className="h-4 w-4" />
+        </button>
+      ) : (
+        <button
+          type="button"
+          aria-label={`Retirer ${label}`}
+          onClick={onRemove}
+          className={`${ICON_BUTTON_CLASS} shrink-0 hover:text-red-500`}
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+    </div>
+  );
+}
+
 /**
  * The ingredients: foods searched in the library with their quantity, or a
- * new food added on the way (barcode scan included).
+ * new food added on the way (barcode scan included), and section titles
+ * such as "Sauce" for the foods below them. Each line is dragged by its
+ * handle; a new food goes to the end, in the last section, and a food
+ * already there can be added again for another section.
  */
 export function IngredientsEditor({ editor }: PartProps) {
   const { form, update, errors, foodItems } = editor;
+  const lines = form.ingredients;
   const foodDialogRef = useRef<HTMLDialogElement>(null);
+  // The title just added gets the keyboard, to be named at once.
+  const [addedSection, setAddedSection] = useState<string | null>(null);
 
   const add = (food: FoodItem) =>
-    update({ ingredients: [...form.ingredients, newFoodDraft(food)] });
+    update({ ingredients: [...lines, newFoodDraft(food)] });
 
-  const replace = (updated: MealItemDraft) =>
+  const replace = (updated: IngredientLine) =>
     update({
-      ingredients: form.ingredients.map((item) =>
-        item.id === updated.id ? updated : item,
+      ingredients: lines.map((line) =>
+        line.id === updated.id ? updated : line,
       ),
     });
+
+  const remove = (id: string) =>
+    update({ ingredients: lines.filter((line) => line.id !== id) });
+
+  const addSection = () => {
+    const section = newSection();
+    setAddedSection(section.id);
+    update({ ingredients: [...lines, section] });
+  };
+
+  const countOf = (food: FoodItem) =>
+    lines.filter((line) => line.kind === 'food' && line.foodItem.id === food.id)
+      .length;
+
+  const rows = lines.map((line): EditableRow => {
+    if (!isSection(line)) return draftRow(line, replace, remove, true);
+    return {
+      id: line.id,
+      name: line.name.trim() || 'la section',
+      value: '',
+      onRemove: () => remove(line.id),
+      custom: (
+        <SectionTitle
+          section={line}
+          invalid={
+            Boolean(errors.sections) &&
+            (line.name.trim() === '' || isEmptySection(lines, line.id))
+          }
+          autoFocus={line.id === addedSection}
+          onRename={(name) => replace({ ...line, name })}
+          onRemove={() => remove(line.id)}
+        />
+      ),
+    };
+  });
 
   const newFoodButton = (
     <button
@@ -150,11 +277,10 @@ export function IngredientsEditor({ editor }: PartProps) {
         nameOf={(food) => food.name}
         detailOf={(food) => `${food.kcal} kcal`}
         matches={matchesFood}
-        isAdded={(food) =>
-          form.ingredients.some(
-            (item) => item.kind === 'food' && item.foodItem.id === food.id,
-          )
-        }
+        isAdded={(food) => countOf(food) > 0}
+        // The same food can go in two sections: oil for the chicken and
+        // for the sauce.
+        countOf={countOf}
         onPick={add}
         labelAction={newFoodButton}
         renderEmpty={() => (
@@ -170,20 +296,25 @@ export function IngredientsEditor({ editor }: PartProps) {
         error={errors.ingredients}
       />
 
-      {form.ingredients.length > 0 && (
-        <DraftItemList
-          items={form.ingredients}
-          onChange={replace}
-          onRemove={(id) =>
-            update({
-              ingredients: form.ingredients.filter((item) => item.id !== id),
-            })
-          }
+      {lines.length > 0 && (
+        <EditableList
+          rows={rows}
           onMove={(from, to) =>
-            update({ ingredients: arrayMove(form.ingredients, from, to) })
+            update({ ingredients: arrayMove(lines, from, to) })
           }
         />
       )}
+      {errors.sections && (
+        <p className="text-sm text-red-500">{errors.sections}</p>
+      )}
+      <button
+        type="button"
+        onClick={addSection}
+        className={SECONDARY_BUTTON_CLASS}
+      >
+        <Plus className="h-4 w-4" />
+        Ajouter une section
+      </button>
 
       <FoodItemForm
         dialogRef={foodDialogRef}
@@ -296,7 +427,7 @@ export function StepsEditor({ editor }: PartProps) {
       <button
         type="button"
         onClick={() => update({ steps: [...steps, newStep()] })}
-        className={`${SECONDARY_BUTTON_CLASS} self-start`}
+        className={SECONDARY_BUTTON_CLASS}
       >
         <Plus className="h-4 w-4" />
         Ajouter une étape
@@ -314,7 +445,7 @@ export function SaveBar({ editor, onSave }: SaveBarProps) {
   const { form, error, isSubmitting } = editor;
   return (
     <FlowFooter>
-      {form.ingredients.length > 0 && (
+      {foodLines(form.ingredients).length > 0 && (
         <div className="flex flex-col">
           <span className="text-xs text-theme-600">Par portion</span>
           <MacroSummary totals={formPerServing(form)} />

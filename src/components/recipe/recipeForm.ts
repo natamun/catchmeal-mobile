@@ -16,12 +16,81 @@ export const RECIPE_LIMITS = {
   step: 500,
   steps: 30,
   ingredients: 50,
+  section: 60,
 } as const;
 
 /** A step being written; `id` is only a local key for React lists. */
 export interface StepDraft {
   id: string;
   text: string;
+}
+
+/**
+ * A section title among the ingredients, such as "Sauce": the foods below it,
+ * up to the next title, belong to it.
+ */
+export interface SectionDraft {
+  id: string;
+  kind: 'section';
+  name: string;
+}
+
+/** A line of the ingredients being written: a food, or a section title. */
+export type IngredientLine = MealItemDraft | SectionDraft;
+
+export const newSection = (name = ''): SectionDraft => ({
+  id: crypto.randomUUID(),
+  kind: 'section',
+  name,
+});
+
+export const isSection = (line: IngredientLine): line is SectionDraft =>
+  line.kind === 'section';
+
+/** The foods among the lines, section titles left out. */
+export const foodLines = (lines: IngredientLine[]) =>
+  lines.filter((line): line is MealItemDraft => !isSection(line));
+
+/**
+ * Each food with the section it falls under: the last title above it, or
+ * null before the first title.
+ */
+export function withSections(lines: IngredientLine[]) {
+  let section: string | null = null;
+  const foods: { item: MealItemDraft; section: string | null }[] = [];
+  for (const line of lines) {
+    if (isSection(line)) section = line.name.trim() || null;
+    else foods.push({ item: line, section });
+  }
+  return foods;
+}
+
+/**
+ * The lines of foods with their section: a title before each run of foods
+ * that share a section, none before those without.
+ */
+export function linesOf(
+  foods: { item: MealItemDraft; section: string | null }[],
+): IngredientLine[] {
+  const lines: IngredientLine[] = [];
+  let current: string | null = null;
+  for (const { item, section } of foods) {
+    if (section !== null && section !== current)
+      lines.push(newSection(section));
+    current = section;
+    lines.push(item);
+  }
+  return lines;
+}
+
+/**
+ * Whether the title `id` has no food under it: the next line is another
+ * title, or there is none. Such a section would save nothing.
+ */
+export function isEmptySection(lines: IngredientLine[], id: string) {
+  const index = lines.findIndex((line) => line.id === id);
+  const next = lines[index + 1];
+  return next === undefined || isSection(next);
 }
 
 /** A recipe being written: the fields as typed, the ingredients as drafts. */
@@ -32,13 +101,13 @@ export interface RecipeForm {
   prepMinutes: string;
   cooking: string;
   notes: string;
-  /** Foods of the library only. */
-  ingredients: MealItemDraft[];
+  /** Foods of the library only, with the section titles between them. */
+  ingredients: IngredientLine[];
   steps: StepDraft[];
 }
 
 export type RecipeFormErrors = Partial<
-  Record<'name' | 'prepMinutes' | 'ingredients' | 'steps', string>
+  Record<'name' | 'prepMinutes' | 'ingredients' | 'sections' | 'steps', string>
 >;
 
 export const newStep = (text = ''): StepDraft => ({
@@ -68,16 +137,19 @@ export function recipeToForm(
   recipe: Recipe,
   foodItems: FoodItem[],
 ): RecipeForm {
-  const ingredients: MealItemDraft[] = [];
-  for (const { foodItemId, quantity } of recipe.ingredients) {
+  const foods: { item: MealItemDraft; section: string | null }[] = [];
+  for (const { foodItemId, quantity, section } of recipe.ingredients) {
     const foodItem = foodItems.find((food) => food.id === foodItemId);
     if (!foodItem) continue;
-    ingredients.push({
-      id: crypto.randomUUID(),
-      kind: 'food',
-      foodItem,
-      quantity,
-      inPortions: wholePortions(foodItem, quantity) !== null,
+    foods.push({
+      item: {
+        id: crypto.randomUUID(),
+        kind: 'food',
+        foodItem,
+        quantity,
+        inPortions: wholePortions(foodItem, quantity) !== null,
+      },
+      section,
     });
   }
   return {
@@ -87,7 +159,7 @@ export function recipeToForm(
     prepMinutes: recipe.prepMinutes === null ? '' : String(recipe.prepMinutes),
     cooking: recipe.cooking ?? '',
     notes: recipe.notes ?? '',
-    ingredients,
+    ingredients: linesOf(foods),
     steps: recipe.steps.length ? recipe.steps.map(newStep) : [newStep()],
   };
 }
@@ -104,9 +176,9 @@ const writtenSteps = (steps: StepDraft[]) =>
   steps.map(({ text }) => text.trim()).filter((text) => text !== '');
 
 /**
- * Name required, at least one ingredient, a preparation time in whole
- * minutes when given, and the counts the database keeps. Empty steps are
- * left out, not refused.
+ * Name required, at least one ingredient, each section named and holding a
+ * food, a preparation time in whole minutes when given, and the counts the
+ * database keeps. Empty steps are left out, not refused.
  */
 export function validateRecipeForm(form: RecipeForm): RecipeFormErrors {
   const errors: RecipeFormErrors = {};
@@ -128,10 +200,18 @@ export function validateRecipeForm(form: RecipeForm): RecipeFormErrors {
     errors.prepMinutes = `Entre 1 et ${RECIPE_LIMITS.prepMinutes} minutes`;
   }
 
-  if (form.ingredients.length === 0) {
+  const foods = foodLines(form.ingredients);
+  if (foods.length === 0) {
     errors.ingredients = 'Minimum un ingrédient';
-  } else if (form.ingredients.length > RECIPE_LIMITS.ingredients) {
+  } else if (foods.length > RECIPE_LIMITS.ingredients) {
     errors.ingredients = `${RECIPE_LIMITS.ingredients} ingrédients maximum`;
+  }
+
+  const titles = form.ingredients.filter(isSection);
+  if (titles.some((line) => isEmptySection(form.ingredients, line.id))) {
+    errors.sections = 'Section vide : ajoutez-y un aliment ou retirez-la';
+  } else if (titles.some((line) => line.name.trim() === '')) {
+    errors.sections = 'Nom de section requis';
   }
 
   if (writtenSteps(form.steps).length > RECIPE_LIMITS.steps) {
@@ -151,12 +231,13 @@ export function formToInput(form: RecipeForm): RecipeInput {
     prepMinutes: prep === '' ? null : Number(prep),
     cooking: form.cooking.trim() || null,
     notes: form.notes.trim() || null,
-    ingredients: form.ingredients.flatMap((item) =>
+    ingredients: withSections(form.ingredients).flatMap(({ item, section }) =>
       item.kind === 'food'
         ? [
             {
               foodItemId: item.foodItem.id,
               quantity: roundDecimals(item.quantity, MAX_DECIMALS),
+              section,
             },
           ]
         : [],
@@ -168,6 +249,6 @@ export function formToInput(form: RecipeForm): RecipeInput {
 /** Calories and macros of one serving of the recipe being written. */
 export const formPerServing = (form: RecipeForm) =>
   perServing({
-    totals: draftTotals(form.ingredients),
+    totals: draftTotals(foodLines(form.ingredients)),
     servings: form.servings,
   });

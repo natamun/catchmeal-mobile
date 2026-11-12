@@ -57,7 +57,7 @@ async function filledDatabase() {
     prepMinutes: 30,
     cooking: '20 min à couvert.',
     notes: 'Sans sucre ajouté.',
-    ingredients: [{ foodItemId: apple.id, quantity: 800 }],
+    ingredients: [{ foodItemId: apple.id, quantity: 800, section: 'Fruits' }],
     steps: ['Couper les pommes.', 'Cuire 20 minutes.'],
   });
   await createMeal(db, {
@@ -153,7 +153,7 @@ describe('backup', () => {
     });
     expect(backup.food_item).toHaveLength(2);
     expect(backup.recipe).toHaveLength(1);
-    expect(backup.recipe_ingredient).toHaveLength(1);
+    expect(backup.recipe_ingredient).toMatchObject([{ section: 'Fruits' }]);
     expect(backup.recipe_step).toHaveLength(2);
     expect(backup.shopping_item).toHaveLength(2);
     expect(backup.meal).toHaveLength(2);
@@ -233,6 +233,19 @@ describe('backup', () => {
         'SELECT DISTINCT portion_quantity, portion_name FROM food_item',
       ),
     ).toEqual([{ portion_quantity: null, portion_name: null }]);
+  });
+
+  it('restores the ingredients of a file from before the sections without one', async () => {
+    const old = structuredClone(backup);
+    old.format = 9;
+    for (const item of old.recipe_ingredient!) delete item.section;
+    const target = await freshDatabase();
+
+    await restoreBackup(target, parseBackup(asText(old)));
+
+    expect(
+      await target.query('SELECT DISTINCT section FROM recipe_ingredient'),
+    ).toEqual([{ section: null }]);
   });
 
   it('turns the lean mass alert on when restoring a file from before it', async () => {

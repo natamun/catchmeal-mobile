@@ -44,6 +44,8 @@ interface RecipeIngredient {
   id: number;
   foodItemId: number;
   quantity: number;
+  /** The part of the recipe it belongs to, such as "Sauce", or null. */
+  section: string | null;
 }
 
 /**
@@ -77,6 +79,14 @@ export interface RecipeInput {
   prepMinutes: number | null;
   cooking: string | null;
   notes: string | null;
-  ingredients: { foodItemId: number; quantity: number }[];
+  /**
+   * In order. A section is a name its ingredients share; those of one
+   * section follow each other.
+   */
+  ingredients: {
+    foodItemId: number;
+    quantity: number;
+    section?: string | null;
+  }[];
   steps: string[];
 }

@@ -247,10 +247,10 @@ export async function seedDemo(db: Database, today = new Date()) {
     cooking: 'Poêle, feu moyen',
     notes: null,
     ingredients: [
-      { foodItemId: foods.chicken, quantity: 300 },
-      { foodItemId: foods.rice, quantity: 150 },
-      { foodItemId: foods.broccoli, quantity: 250 },
-      { foodItemId: foods.oil, quantity: 10 },
+      { foodItemId: foods.chicken, quantity: 300, section: 'Poulet' },
+      { foodItemId: foods.oil, quantity: 10, section: 'Poulet' },
+      { foodItemId: foods.rice, quantity: 150, section: 'Garniture' },
+      { foodItemId: foods.broccoli, quantity: 250, section: 'Garniture' },
     ],
     steps: [
       'Cuire le riz.',

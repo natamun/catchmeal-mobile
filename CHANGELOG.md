@@ -16,6 +16,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - A recipe is written or changed with an AI: the editor copies it as JSON with the food library, and imports the AI's answer into the form, the foods missing from the library listed.
 - A food is duplicated from its ⋯ menu: the new food form opens filled with a copy, without the barcode.
 - A recipe's ingredients move by dragging their handle.
+- A recipe's ingredients can be split into named sections, such as « Poulet » and « Sauce »: in the editor, on the recipe, in the text for an AI and in the backup. The same food can go in two sections, and the search counts it (×2).
 
 ### Changed
 
@@ -45,6 +46,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - The sessions chart is lower, shows from three weeks on, groups two weeks per bar when they do not fit, and follows the finger like the calorie chart.
 - An exercise's sheet shows its best set, such as 10×110 kg, instead of an estimated 1RM that read low on sets not taken to failure. Its explanations open from an info icon right after the Repères title.
 - Recipe steps move by dragging their handle instead of with arrows.
+- The buttons that add a step, a section or the recipe to the shopping list take the whole width.
 
 ### Fixed
 
