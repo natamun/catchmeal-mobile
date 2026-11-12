@@ -25,7 +25,7 @@ import { ShoppingChecklist } from './ShoppingChecklist';
 
 /** The buttons under the list: three short ones on a single line. */
 const ACTION_CLASS =
-  'flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-theme-200 px-2 py-2.5 text-sm font-medium whitespace-nowrap text-theme-700 transition-colors hover:bg-theme-50';
+  'flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-theme-200 px-2 py-2.5 text-sm font-medium whitespace-nowrap text-theme-700 transition-colors hover:bg-theme-100';
 
 /** The same, for "Vider": red whatever the theme, since it empties the list. */
 const DANGER_ACTION_CLASS =
@@ -135,7 +135,7 @@ export function ShoppingTab({ foodItems }: ShoppingTabProps) {
           <button
             type="submit"
             disabled={label.trim() === ''}
-            className="tap-area relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-theme-200 text-theme-600 transition-colors hover:bg-theme-50 disabled:cursor-not-allowed disabled:opacity-40"
+            className="tap-area relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-theme-200 text-theme-600 transition-colors hover:bg-theme-100 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Plus className="h-5 w-5" />
           </button>

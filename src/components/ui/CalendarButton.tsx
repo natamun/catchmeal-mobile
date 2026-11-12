@@ -172,7 +172,7 @@ export function CalendarButton(props: DayProps | RangeProps) {
             onChange(new Date());
             close();
           }}
-          className="h-11 w-full cursor-pointer rounded-xl border border-theme-200 text-sm font-medium text-theme-700 transition-colors hover:bg-theme-50"
+          className="h-11 w-full cursor-pointer rounded-xl border border-theme-200 text-sm font-medium text-theme-700 transition-colors hover:bg-theme-100"
         >
           Aujourd’hui
         </button>

@@ -44,6 +44,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 
 ### Fixed
 
+- A touch on a card's button or row shows clearly in dark themes too.
 - The new food dialog fits on the screen without scrolling, its save button no longer cut.
 - The picker's Suivant bar stays at the bottom, even with a short list.
 - The servings stepper stays on the Ingrédients line.

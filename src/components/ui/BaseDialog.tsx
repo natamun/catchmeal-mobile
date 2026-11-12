@@ -12,7 +12,7 @@ const MAX_WIDTH_CLASS = {
 const HEADER_BUTTON_CLASS =
   // No outline: the dialog focuses this button as it opens, and a ring around
   // it looked like a selected button.
-  'flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-theme-400 outline-none transition-colors hover:bg-theme-50 active:bg-theme-100';
+  'flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-theme-400 outline-none transition-colors hover:bg-theme-100';
 
 /** An action of the "⋯" sheet, listed above the delete. */
 interface DialogMenuAction {

@@ -38,7 +38,7 @@ export function InfoBubble({
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className="tap-area relative flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-theme-200 text-xs font-bold text-theme-600 transition-colors hover:bg-theme-50"
+        className="tap-area relative flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-theme-200 text-xs font-bold text-theme-600 transition-colors hover:bg-theme-100"
       >
         ?
       </button>

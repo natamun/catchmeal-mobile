@@ -42,7 +42,7 @@ export function ConfirmDialog({
         <button
           type="button"
           onClick={() => dialogRef.current?.close()}
-          className="flex-1 cursor-pointer rounded-xl border border-theme-200 px-4 py-2.5 text-sm font-medium text-theme-600 transition-colors hover:bg-theme-50"
+          className="flex-1 cursor-pointer rounded-xl border border-theme-200 px-4 py-2.5 text-sm font-medium text-theme-600 transition-colors hover:bg-theme-100"
         >
           Annuler
         </button>

@@ -54,7 +54,7 @@ export function BirthDatePicker({ id, label, value, onChange }: Props) {
           isOpen={isOpen}
           onClose={close}
           onClick={() => setIsOpen(true)}
-          className="w-full rounded-xl border border-theme-200 bg-surface px-4 py-2.75 text-left text-base text-theme-800 transition-colors hover:bg-theme-50 data-[open=true]:bg-theme-50"
+          className="w-full rounded-xl border border-theme-200 bg-surface px-4 py-2.75 text-left text-base text-theme-800 transition-colors hover:bg-theme-100 data-[open=true]:bg-theme-100"
         >
           {selected ? (
             selected.toLocaleDateString('fr-FR')

@@ -66,7 +66,7 @@ export function SelectDropdown({
           setOpen(true);
         }}
         data-state={open ? 'open' : 'closed'}
-        className={`flex cursor-pointer items-center justify-between border border-theme-200 bg-surface text-left text-theme-800 transition-colors outline-none hover:bg-theme-50 focus:border-theme-400 data-[state=open]:bg-theme-50 ${SIZE[size].trigger} ${className}`}
+        className={`flex cursor-pointer items-center justify-between border border-theme-200 bg-surface text-left text-theme-800 transition-colors outline-none hover:bg-theme-100 focus:border-theme-400 data-[state=open]:bg-theme-100 ${SIZE[size].trigger} ${className}`}
       >
         <span className={selected ? '' : 'text-theme-800/50'}>
           {selected?.label ?? placeholder}
@@ -87,7 +87,7 @@ export function SelectDropdown({
                 onChange(o.value);
                 setOpen(false);
               }}
-              className={`flex min-h-12 cursor-pointer items-center justify-between gap-3 border-t border-theme-100 px-1 text-left text-base transition-colors first:border-t-0 hover:bg-theme-50 ${
+              className={`flex min-h-12 cursor-pointer items-center justify-between gap-3 border-t border-theme-100 px-1 text-left text-base transition-colors first:border-t-0 hover:bg-theme-100 ${
                 o.value === value
                   ? 'font-semibold text-theme-800'
                   : 'text-theme-700'

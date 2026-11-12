@@ -31,7 +31,7 @@ const TEXTAREA_CLASS =
   'w-full resize-none rounded-xl border border-theme-200 bg-surface px-4 py-2.5 text-base text-theme-800 outline-none field-sizing-content focus:border-theme-400';
 
 const ICON_BUTTON_CLASS =
-  'tap-area relative flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-theme-400 transition-colors hover:bg-theme-50 hover:text-theme-600 disabled:cursor-not-allowed disabled:opacity-30';
+  'tap-area relative flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-theme-400 transition-colors hover:bg-theme-100 hover:text-theme-600 disabled:cursor-not-allowed disabled:opacity-30';
 
 const CATEGORY_OPTIONS = [
   { value: '', label: 'Aucune' },
