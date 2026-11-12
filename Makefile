@@ -60,6 +60,19 @@ apk: build
 	cd android && ./gradlew assembleDebug
 	@echo "APK ready: $(APK)"
 
+# Replaces the development app's data with the demo: the last 90 days up to
+# today, in the phone's time zone. Never the real app: only a debug app lets
+# run-as write into its files.
+DEV_APP = io.github.natamun.catchmeal.debug
+DEMO_DB = /tmp/catchmeal-demo.db
+
+seed: hasPhone
+	TZ=$$(adb -s $(PHONE) shell getprop persist.sys.timezone | tr -d '\r') \
+		node --import ./src/test/ts-resolve.mjs src/test/seedDemoFile.ts $(DEMO_DB)
+	adb -s $(PHONE) shell am force-stop $(DEV_APP)
+	adb -s $(PHONE) exec-in run-as $(DEV_APP) sh -c 'cat > databases/catchmealSQLite.db; rm -f databases/catchmealSQLite.db-journal databases/catchmealSQLite.db-wal databases/catchmealSQLite.db-shm' < $(DEMO_DB)
+	@echo "Demo data in CatCHMeal dev: open the app"
+
 #-----	Release (signed with the release key)	-----#
 
 # Builds the real app, signed, as release/catchmeal-<version>.apk: the file of
@@ -93,4 +106,4 @@ hasPhone:
 	@test -n "$(PHONE)" || { echo "No phone found: check adb devices"; exit 1; }
 
 .PHONY: all format formatCheck lint lintCheck build test testVerbose check knip \
-	phone apk release installRelease dev live hasPhone hasKey
+	phone apk seed release installRelease dev live hasPhone hasKey

@@ -8,7 +8,12 @@ import { createDatabase, type Database } from '../db/database';
  * transactions tested here are the ones the phone runs.
  */
 export function openMemoryDatabase(): Database {
-  const sqlite = new DatabaseSync(':memory:');
+  return openNodeDatabase(':memory:');
+}
+
+/** The same database in a file, such as the demo seed for the phone. */
+export function openNodeDatabase(path: string): Database {
+  const sqlite = new DatabaseSync(path);
   sqlite.exec('PRAGMA foreign_keys = ON');
 
   return createDatabase({

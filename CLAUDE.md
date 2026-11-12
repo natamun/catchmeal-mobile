@@ -34,7 +34,7 @@ src/pages/              one file per tab or flow page (Home, Food, Fitness, Stat
 src/hooks/              useDataVersion, useList, useDailyMeals, useDashboard, useTraining, useSwipeTabs
 src/routing/            PATHS constants, useGoBack, journal and recipe routes
 src/native/             Android-only: back button, native HTTP, backup file, share, reminders, barcode scanner
-src/test/nodeDatabase.ts  real in-memory SQLite for tests
+src/test/               nodeDatabase.ts (real SQLite for tests), demoSeed.ts (make seed)
 android/                Capacitor Android project (debug suffix .debug, signing from .password + .jks)
 ```
 

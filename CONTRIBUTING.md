@@ -47,6 +47,7 @@ npm ci
 | `make knip` | Lists unused files, exports and dependencies |
 | `make phone` | Builds the development app and installs it on the phone |
 | `make apk` | Builds the development app as an APK |
+| `make seed` | Replaces the development app's data with 90 days of demo data, up to today |
 | `make dev` + `make live` | Live development, in two terminals |
 | `make release` | Builds the real app, signed, as `release/catchmeal-<version>.apk` |
 | `make installRelease` | Installs that APK on the phone, as an update |
