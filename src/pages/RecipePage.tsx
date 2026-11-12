@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Copy, LoaderCircle, ShoppingCart, Trash2 } from 'lucide-react';
+import { Copy, LoaderCircle, ShoppingCart } from 'lucide-react';
 import { useLocation, useMatch, useNavigate, useParams } from 'react-router';
 
 import { listFoodItems } from '../components/food/api';
@@ -28,12 +28,10 @@ import {
 } from '../components/recipe/RecipeView';
 import { recipeMeta, servingsLabel } from '../components/recipe/servings';
 import type { Recipe } from '../components/recipe/types';
-import {
-  useRecipeEditor,
-  type RecipeEditor,
-} from '../components/recipe/useRecipeEditor';
+import { useRecipeEditor } from '../components/recipe/useRecipeEditor';
 import { addFoodsToShopping } from '../components/shopping/api';
 import { recipeToShopping } from '../components/shopping/lines';
+import { ActionMenu } from '../components/ui/ActionMenu';
 import { SECONDARY_BUTTON_CLASS } from '../components/ui/buttonStyle';
 import { Card } from '../components/ui/Card';
 import { EditIconButton } from '../components/ui/EditIconButton';
@@ -58,25 +56,6 @@ interface PageProps {
   foodItems: FoodItem[];
   onClose: () => void;
   onSaved: (recipe: Recipe) => void;
-  onDeleted: () => void;
-}
-
-/** The trash button of an edited recipe, and the dialog it opens. */
-function DeleteAction({ editor }: { editor: RecipeEditor }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  if (!editor.recipe) return null;
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => dialogRef.current?.showModal()}
-        className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-red-500 transition-colors hover:bg-red-500/10"
-      >
-        <Trash2 className="h-5 w-5" />
-      </button>
-      <DeleteRecipeDialog editor={editor} dialogRef={dialogRef} />
-    </>
-  );
 }
 
 interface SheetProps {
@@ -85,6 +64,7 @@ interface SheetProps {
   onClose: () => void;
   onEdit: () => void;
   onCopy: () => void;
+  onDeleted: () => void;
 }
 
 /**
@@ -98,7 +78,9 @@ function RecipeSheet({
   onClose,
   onEdit,
   onCopy,
+  onDeleted,
 }: SheetProps) {
+  const deleteRef = useRef<HTMLDialogElement>(null);
   const [servings, setServings] = useState(recipe.servings);
   const [isAdding, setIsAdding] = useState(false);
   const showToast = useToast();
@@ -123,15 +105,16 @@ function RecipeSheet({
         onClose={onClose}
         action={
           <div className="flex shrink-0 items-center gap-1">
-            <button
-              type="button"
-              onClick={onCopy}
-              title="Dupliquer"
-              className={`${HEADER_BUTTON_CLASS} hover:text-theme-600`}
-            >
-              <Copy className="h-5 w-5" />
-            </button>
             <EditIconButton size="lg" onClick={onEdit} />
+            <ActionMenu
+              title={recipe.name}
+              actions={[
+                { label: 'Dupliquer la recette', icon: Copy, onSelect: onCopy },
+              ]}
+              onDelete={() => deleteRef.current?.showModal()}
+              deleteLabel="Supprimer la recette"
+              buttonClassName={`${HEADER_BUTTON_CLASS} hover:text-theme-600`}
+            />
           </div>
         }
       />
@@ -171,6 +154,11 @@ function RecipeSheet({
         </Card>
       )}
       <RecipeAiCard recipe={recipe} foodItems={foodItems} />
+      <DeleteRecipeDialog
+        recipe={recipe}
+        dialogRef={deleteRef}
+        onDeleted={onDeleted}
+      />
     </>
   );
 }
@@ -185,14 +173,12 @@ function EditRecipe({
   foodItems,
   onClose,
   onSaved,
-  onDeleted,
 }: PageProps) {
   const editor = useRecipeEditor({
     recipe,
     copyOf,
     foodItems,
     onSaved,
-    onDeleted,
   });
   return (
     <>
@@ -202,7 +188,6 @@ function EditRecipe({
           recipe?.name ?? (copyOf ? `Copie de ${copyOf.name}` : 'Recettes')
         }
         onClose={onClose}
-        action={<DeleteAction editor={editor} />}
       />
       <Card>
         <InfoFields editor={editor} />
@@ -264,8 +249,6 @@ export default function RecipePage() {
       setLastSaved(saved);
       void navigate(recipePath(saved.id), { replace: true });
     },
-    // The edit page sits on the sheet, both over the food page.
-    onDeleted: () => flow.close(() => void navigate(isEditRoute ? -2 : -1)),
   };
 
   let content;
@@ -310,6 +293,7 @@ export default function RecipePage() {
             state: { copyOf: id } satisfies RecipeState,
           })
         }
+        onDeleted={close}
       />
     );
   }

@@ -1,7 +1,7 @@
-import { useCallback, useState, type ReactNode, type RefObject } from 'react';
-import { Ellipsis, Trash2, X, type LucideIcon } from 'lucide-react';
+import { useCallback, type ReactNode, type RefObject } from 'react';
+import { X } from 'lucide-react';
 
-import { BottomSheet } from './BottomSheet';
+import { ActionMenu, type MenuAction } from './ActionMenu';
 
 const MAX_WIDTH_CLASS = {
   sm: 'max-w-sm',
@@ -14,16 +14,6 @@ const HEADER_BUTTON_CLASS =
   // it looked like a selected button.
   'flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-theme-400 outline-none transition-colors hover:bg-theme-100';
 
-/** An action of the "⋯" sheet, listed above the delete. */
-interface DialogMenuAction {
-  label: string;
-  icon: LucideIcon;
-  onSelect: () => void;
-}
-
-const MENU_ITEM_CLASS =
-  'flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-1 text-left text-base font-medium transition-colors';
-
 interface BaseDialogProps {
   dialogRef: RefObject<HTMLDialogElement | null>;
   title: string;
@@ -33,7 +23,7 @@ interface BaseDialogProps {
   /** What the delete action says, such as "Supprimer l'aliment". */
   deleteLabel?: string;
   /** Other actions of the "⋯" sheet, such as duplicating. */
-  menuActions?: DialogMenuAction[];
+  menuActions?: MenuAction[];
   onClose?: () => void;
   onDialogNode?: (node: HTMLDialogElement | null) => void;
   children: ReactNode;
@@ -61,7 +51,6 @@ export function BaseDialog({
   onDialogNode,
   children,
 }: BaseDialogProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const setRefs = useCallback(
     (node: HTMLDialogElement | null) => {
       dialogRef.current = node;
@@ -95,14 +84,13 @@ export function BaseDialog({
           </h3>
           <div className="-my-2 -mr-2 flex shrink-0 items-center gap-1">
             {hasMenu && (
-              <button
-                type="button"
-                onClick={() => setIsMenuOpen(true)}
-                aria-label="Plus d'actions"
-                className={`${HEADER_BUTTON_CLASS} hover:text-theme-600`}
-              >
-                <Ellipsis className="h-6 w-6" />
-              </button>
+              <ActionMenu
+                title={title}
+                actions={menuActions}
+                onDelete={onDelete}
+                deleteLabel={deleteLabel}
+                buttonClassName={`${HEADER_BUTTON_CLASS} hover:text-theme-600`}
+              />
             )}
             <button
               type="button"
@@ -118,41 +106,6 @@ export function BaseDialog({
           {children}
         </div>
       </div>
-      {hasMenu && (
-        <BottomSheet
-          open={isMenuOpen}
-          onClose={() => setIsMenuOpen(false)}
-          title={title}
-        >
-          {menuActions.map(({ label, icon: Icon, onSelect }) => (
-            <button
-              key={label}
-              type="button"
-              onClick={() => {
-                setIsMenuOpen(false);
-                onSelect();
-              }}
-              className={`${MENU_ITEM_CLASS} text-theme-800 hover:bg-theme-100`}
-            >
-              <Icon className="h-5 w-5 shrink-0 text-theme-500" />
-              {label}
-            </button>
-          ))}
-          {onDelete && (
-            <button
-              type="button"
-              onClick={() => {
-                setIsMenuOpen(false);
-                onDelete();
-              }}
-              className={`${MENU_ITEM_CLASS} text-red-500 hover:bg-red-500/10`}
-            >
-              <Trash2 className="h-5 w-5 shrink-0" />
-              {deleteLabel}
-            </button>
-          )}
-        </BottomSheet>
-      )}
     </dialog>
   );
 }

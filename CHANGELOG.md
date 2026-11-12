@@ -48,6 +48,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - Recipe steps move by dragging their handle instead of with arrows.
 - The buttons that add a step, a section or the recipe to the shopping list take the whole width.
 - A search result pulses as it is added.
+- A recipe's duplicate and delete sit in a ⋯ menu beside its pencil; its edit page no longer deletes.
 
 ### Fixed
 

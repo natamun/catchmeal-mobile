@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { failureMessage } from '../../utils/failureMessage';
 import type { FoodItem } from '../food/types';
 import { useToast } from '../ui/toastContext';
-import { createRecipe, deleteRecipe, updateRecipe } from './api';
+import { createRecipe, updateRecipe } from './api';
 import {
   copyToForm,
   emptyRecipeForm,
@@ -22,12 +22,11 @@ interface EditorOptions {
   /** The whole library, loaded: the form is filled from it once. */
   foodItems: FoodItem[];
   onSaved: (recipe: Recipe) => void;
-  onDeleted?: () => void;
 }
 
 /**
  * The state of a recipe being written: its fields, the errors shown after a
- * first try, saving and deleting. Mount it once the foods are loaded, and
+ * first try, and saving. Mount it once the foods are loaded, and
  * again (key) for another recipe.
  */
 export function useRecipeEditor({
@@ -35,7 +34,6 @@ export function useRecipeEditor({
   copyOf,
   foodItems,
   onSaved,
-  onDeleted,
 }: EditorOptions) {
   const [form, setForm] = useState<RecipeForm>(() => {
     if (recipe) return recipeToForm(recipe, foodItems);
@@ -75,21 +73,6 @@ export function useRecipeEditor({
     }
   };
 
-  const remove = async () => {
-    if (!recipe) return;
-    setError(null);
-    setIsSubmitting(true);
-    try {
-      await deleteRecipe(recipe.id);
-      showToast('Recette supprimée');
-      onDeleted?.();
-    } catch {
-      setError('Suppression impossible, réessayez.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return {
     recipe,
     foodItems,
@@ -99,7 +82,6 @@ export function useRecipeEditor({
     error,
     isSubmitting,
     save,
-    remove,
   };
 }
 

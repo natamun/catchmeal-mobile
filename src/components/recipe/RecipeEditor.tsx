@@ -21,6 +21,8 @@ import { MacroSummary } from '../ui/MacroSummary';
 import { SearchPicker } from '../ui/SearchPicker';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { SortableList } from '../ui/SortableList';
+import { useToast } from '../ui/toastContext';
+import { deleteRecipe } from './api';
 import {
   foodLines,
   formPerServing,
@@ -36,6 +38,7 @@ import { ServingsStepper } from './RecipeView';
 import {
   RECIPE_CATEGORIES,
   RECIPE_CATEGORY_LABELS,
+  type Recipe,
   type RecipeCategory,
 } from './types';
 import type { RecipeEditor } from './useRecipeEditor';
@@ -464,23 +467,45 @@ export function SaveBar({ editor, onSave }: SaveBarProps) {
   );
 }
 
-interface DeleteDialogProps extends PartProps {
+interface DeleteDialogProps {
+  recipe: Recipe;
   dialogRef: RefObject<HTMLDialogElement | null>;
+  onDeleted: () => void;
 }
 
-/** Asks before deleting the recipe edited. */
-export function DeleteRecipeDialog({ editor, dialogRef }: DeleteDialogProps) {
+/** Asks before deleting a recipe, then deletes it. */
+export function DeleteRecipeDialog({
+  recipe,
+  dialogRef,
+  onDeleted,
+}: DeleteDialogProps) {
+  const [isPending, setIsPending] = useState(false);
+  const showToast = useToast();
+
+  const confirm = async () => {
+    setIsPending(true);
+    try {
+      await deleteRecipe(recipe.id);
+      showToast('Recette supprimée');
+      dialogRef.current?.close();
+      onDeleted();
+    } catch {
+      showToast('Suppression impossible, réessayez.');
+      dialogRef.current?.close();
+    } finally {
+      setIsPending(false);
+    }
+  };
+
   return (
     <ConfirmDialog
       dialogRef={dialogRef}
       title="Supprimer cette recette ?"
-      description={`${editor.recipe?.name ?? 'Cette recette'} sera retirée de votre liste. Les repas déjà loggés la gardent.`}
+      description={`${recipe.name} sera retirée de votre liste. Les repas déjà loggés la gardent.`}
       confirmLabel="Supprimer"
       pendingLabel="Suppression..."
-      isPending={editor.isSubmitting}
-      onConfirm={() =>
-        void editor.remove().finally(() => dialogRef.current?.close())
-      }
+      isPending={isPending}
+      onConfirm={() => void confirm()}
     />
   );
 }
