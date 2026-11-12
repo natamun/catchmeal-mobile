@@ -9,3 +9,13 @@ export const SECONDARY_BUTTON_CLASS =
 /** A destructive secondary button: outlined in red, whatever the theme. */
 export const DANGER_BUTTON_CLASS =
   'flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-500/40 px-4 py-2.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60';
+
+/** A row that answers a tap, with the app's pressed background. */
+export const TAP_ROW_CLASS =
+  'flex cursor-pointer rounded-xl text-left transition-colors hover:bg-theme-100';
+
+/**
+ * A tappable row inside a padded card or sheet: it reaches 8 px past the
+ * content on each side, so its pressed background frames the text.
+ */
+export const INSET_ROW_CLASS = `${TAP_ROW_CLASS} -mx-2 w-[calc(100%+1rem)] px-2`;

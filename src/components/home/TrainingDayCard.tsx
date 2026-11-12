@@ -11,6 +11,7 @@ import { ExerciseGymSheet } from '../fitness/ExerciseGymSheet';
 import { describeValues } from '../fitness/format';
 import type { Exercise, Workout } from '../fitness/types';
 import { AddCircleButton } from '../ui/AddCircleButton';
+import { INSET_ROW_CLASS } from '../ui/buttonStyle';
 import { Card } from '../ui/Card';
 import { EditIconButton } from '../ui/EditIconButton';
 
@@ -96,7 +97,7 @@ export function TrainingDayCard({ date }: Props) {
                 <button
                   type="button"
                   onClick={() => openSheet(item.exerciseId)}
-                  className="-mx-2 flex w-[calc(100%+1rem)] cursor-pointer flex-col rounded-xl px-2 py-1.5 text-left transition-colors hover:bg-theme-100"
+                  className={`${INSET_ROW_CLASS} flex-col py-1.5`}
                 >
                   <span className="max-w-full truncate text-sm font-semibold text-theme-800">
                     {item.exerciseName}

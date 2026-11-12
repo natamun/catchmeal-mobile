@@ -1,4 +1,5 @@
 import { formatShortDate } from '../../utils/format';
+import { INSET_ROW_CLASS } from '../ui/buttonStyle';
 import type { WeightEntry } from './api';
 import { formatMeasure } from './measures';
 
@@ -20,7 +21,7 @@ export function WeighInList({ entries, onEdit }: ListProps) {
           <button
             type="button"
             onClick={() => onEdit(entry)}
-            className="-mx-2 flex h-12 w-[calc(100%+1rem)] cursor-pointer items-center gap-3 rounded-xl px-2 text-sm tabular-nums transition-colors hover:bg-theme-100"
+            className={`${INSET_ROW_CLASS} h-12 items-center gap-3 text-sm tabular-nums`}
           >
             <span className="min-w-0 flex-1 truncate text-left text-theme-600">
               {formatShortDate(new Date(entry.loggedAt))}

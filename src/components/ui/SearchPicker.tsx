@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowLeft, Check, Search } from 'lucide-react';
 
+import { INSET_ROW_CLASS } from './buttonStyle';
 import { FieldError } from './FieldError';
 import { LABEL_CLASS } from './fieldStyle';
 import { IconButton } from './IconButton';
@@ -149,7 +150,7 @@ export function SearchPicker<T>({
                           onPick(item);
                           setPulse({ key, picks: (pulse?.picks ?? 0) + 1 });
                         }}
-                        className={`-mx-2 flex h-12 w-[calc(100%+1rem)] cursor-pointer items-center gap-3 rounded-xl px-2 text-left transition-colors hover:bg-theme-100 disabled:cursor-default disabled:hover:bg-transparent ${pulsed ? 'animate-pill-select' : ''}`}
+                        className={`${INSET_ROW_CLASS} h-12 items-center gap-3 disabled:cursor-default disabled:hover:bg-transparent ${pulsed ? 'animate-pill-select' : ''}`}
                       >
                         <span className="min-w-0 flex-1 truncate text-base text-theme-800">
                           {nameOf(item)}

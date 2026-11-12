@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 
 import { BottomSheet } from './BottomSheet';
+import { INSET_ROW_CLASS, TAP_ROW_CLASS } from './buttonStyle';
 import { ConfirmRemoveButton } from './ConfirmRemoveButton';
 import { SortableList } from './SortableList';
 
@@ -45,14 +46,14 @@ export function EditableList({ rows, onMove, className = '' }: Props) {
   const [shownId, setShownId] = useState<string | null>(null);
   const row = rows.find((item) => item.id === shownId);
 
-  const rowButton = (item: EditableRow, spacing: string) => (
+  const rowButton = (item: EditableRow, rowClass: string) => (
     <button
       type="button"
       onClick={() => {
         setShownId(item.id);
         setIsOpen(true);
       }}
-      className={`flex h-12 cursor-pointer items-center gap-3 rounded-xl text-left transition-colors hover:bg-theme-100 ${spacing}`}
+      className={`h-12 items-center gap-3 ${rowClass}`}
     >
       <span className="min-w-0 flex-1 truncate text-base font-medium text-theme-800">
         {item.name}
@@ -82,7 +83,11 @@ export function EditableList({ rows, onMove, className = '' }: Props) {
           renderItem={(item, _, handle) => (
             <>
               <span className="-ml-3 flex">{handle}</span>
-              {item.custom ?? rowButton(item, '-mr-2 min-w-0 flex-1 pr-2 pl-1')}
+              {item.custom ??
+                rowButton(
+                  item,
+                  `${TAP_ROW_CLASS} -mr-2 min-w-0 flex-1 pr-2 pl-1`,
+                )}
             </>
           )}
         />
@@ -90,7 +95,7 @@ export function EditableList({ rows, onMove, className = '' }: Props) {
         <ul className={`flex flex-col divide-y divide-theme-100 ${className}`}>
           {rows.map((item) => (
             <li key={item.id} className="flex animate-fade-in-up flex-col">
-              {item.custom ?? rowButton(item, '-mx-2 w-[calc(100%+1rem)] px-2')}
+              {item.custom ?? rowButton(item, INSET_ROW_CLASS)}
             </li>
           ))}
         </ul>
