@@ -119,7 +119,6 @@ export function ExerciseSheet({
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <Tile label="Séances" value={String(history.length)} />
-                    {metricTile('max', 'Record', record?.weightKg, record?.day)}
                     <Tile
                       label="Meilleure série"
                       value={
@@ -131,6 +130,7 @@ export function ExerciseSheet({
                         record ? `le ${shortDay(record.bestSetDay)}` : undefined
                       }
                     />
+                    {metricTile('max', 'Record', record?.weightKg, record?.day)}
                     {metricTile(
                       'volume',
                       'Volume',

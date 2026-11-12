@@ -51,6 +51,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - A search result pulses as it is added.
 - A recipe's duplicate and delete sit in a ⋯ menu beside its pencil; its edit page no longer deletes.
 - A library meal opens with a tap on its row, without a pencil. The food and meal lists no longer fold their macros under a row: a food's are in its sheet, a meal's on its page.
+- In an exercise's sheet, the best set comes before the record, which now sits beside the volume.
 
 ### Fixed
 
