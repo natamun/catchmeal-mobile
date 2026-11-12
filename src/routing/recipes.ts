@@ -13,3 +13,7 @@ export const recipeEditPath = (id: number) =>
 /** URL of the page that edits a library meal, or writes a new one. */
 export const mealPath = (id: number | 'new') =>
   generatePath(PATHS.meal, { mealId: String(id) });
+
+/** URL of the page that edits a favorite session, or writes a new one. */
+export const templatePath = (id: number | 'new') =>
+  generatePath(PATHS.template, { templateId: String(id) });

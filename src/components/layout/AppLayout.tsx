@@ -51,7 +51,7 @@ export function AppLayout() {
   const activeIndex = TAB_PATHS.indexOf(pathname);
   // Adding to or editing the journal slides in over it, the journal staying
   // behind, and a recipe, a library meal or adding to the shopping list over
-  // the food page. A recipe and its edit page share one layer.
+  // the food page, a favorite session over the fitness page. A recipe and its edit page share one layer.
   const isRecipe =
     matchPath(PATHS.recipe, pathname) !== null ||
     matchPath(PATHS.recipeEdit, pathname) !== null;
@@ -62,7 +62,8 @@ export function AppLayout() {
     pathname === PATHS.trainingEdit ||
     matchPath(PATHS.journalAdd, pathname) !== null ||
     matchPath(PATHS.journalEdit, pathname) !== null ||
-    matchPath(PATHS.meal, pathname) !== null;
+    matchPath(PATHS.meal, pathname) !== null ||
+    matchPath(PATHS.template, pathname) !== null;
   const [areAllPrepared, setAreAllPrepared] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setAreAllPrepared(true), PREPARE_DELAY_MS);

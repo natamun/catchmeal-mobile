@@ -7,6 +7,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 ### Added
 
 - Each exercise has a personal note, written straight in its sheet and in the sheet of the session being logged, saved as you type and carried by the backup.
+- A favorite session opens on a page of its own, like a library meal: its exercises move by their handle, and each one's sheet recalls the last time and its note.
 
 ### Changed
 

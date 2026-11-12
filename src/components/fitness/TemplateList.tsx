@@ -15,8 +15,10 @@ interface Props {
   headerAction?: ReactNode;
   /** The last time each exercise was done, recalled when unfolded. */
   latest: Map<number, WorkoutItem>;
-  /** A button at the end of each row: edit, or the picker's selection. */
+  /** A button at the end of each row, such as the picker's selection. */
   renderAction?: (template: WorkoutTemplate) => ReactNode;
+  /** Given, a tap on the row opens the favorite instead of unfolding it. */
+  onOpen?: (template: WorkoutTemplate) => void;
 }
 
 /** What to recall for an exercise of a favorite: the last time it was done. */
@@ -26,8 +28,8 @@ function reminderOf(item: TemplateItem, latest: Map<number, WorkoutItem>) {
 }
 
 /**
- * The favorite sessions. Each one unfolds into its exercises, each with its
- * last values: the reminder at the gym.
+ * The favorite sessions. Each one opens, or unfolds into its exercises, each
+ * with its last values: the reminder at the gym.
  */
 export function TemplateList({
   templates,
@@ -37,6 +39,7 @@ export function TemplateList({
   headerAction,
   latest,
   renderAction,
+  onOpen,
 }: Props) {
   const [expandedIds, toggleExpanded] = useToggleSet<number>();
 
@@ -62,6 +65,28 @@ export function TemplateList({
 
       <ul className="divide-y divide-theme-200">
         {templates.map((template) => {
+          const count = (
+            <span className="truncate text-xs text-theme-500">
+              {template.items.length} exercice
+              {template.items.length > 1 ? 's' : ''}
+            </span>
+          );
+          if (onOpen) {
+            return (
+              <li key={template.id} className="even:bg-theme-50/60">
+                <button
+                  type="button"
+                  onClick={() => onOpen(template)}
+                  className="flex w-full cursor-pointer flex-col px-5 py-4 text-left transition-colors active:bg-theme-100"
+                >
+                  <span className="truncate text-sm font-semibold text-theme-800">
+                    {template.name}
+                  </span>
+                  {count}
+                </button>
+              </li>
+            );
+          }
           const isExpanded = expandedIds.has(template.id);
           return (
             <li key={template.id} className="px-5 py-4 even:bg-theme-50/60">
@@ -78,10 +103,7 @@ export function TemplateList({
                     <span className="truncate text-sm font-semibold text-theme-800">
                       {template.name}
                     </span>
-                    <span className="truncate text-xs text-theme-500">
-                      {template.items.length} exercice
-                      {template.items.length > 1 ? 's' : ''}
-                    </span>
+                    {count}
                   </span>
                 </button>
                 {renderAction?.(template)}

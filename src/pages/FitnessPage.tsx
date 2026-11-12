@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 import {
   listExercises,
@@ -9,13 +10,12 @@ import { ExerciseDialog } from '../components/fitness/ExerciseDialog';
 import { ExerciseList } from '../components/fitness/ExerciseList';
 import { ExerciseSheet } from '../components/fitness/ExerciseSheet';
 import { latestItems } from '../components/fitness/records';
-import { TemplateDialog } from '../components/fitness/TemplateDialog';
 import { TemplateList } from '../components/fitness/TemplateList';
-import type { Exercise, WorkoutTemplate } from '../components/fitness/types';
+import type { Exercise } from '../components/fitness/types';
 import { AddCircleButton } from '../components/ui/AddCircleButton';
-import { EditIconButton } from '../components/ui/EditIconButton';
 import { PillTabs } from '../components/ui/PillTabs';
 import { useList } from '../hooks/useList';
+import { templatePath } from '../routing/recipes';
 
 type Tab = 'favorites' | 'exercises';
 
@@ -26,9 +26,9 @@ const TAB_OPTIONS: { value: Tab; label: string }[] = [
 
 /**
  * Fitness page, the training library, like the food one: the exercises and
- * the favorite sessions, each recalling the last values of its
- * exercises, with their create and edit dialogs. The sessions done are
- * logged from the journal.
+ * the favorite sessions, each recalling the last values of its exercises. An
+ * exercise is created or edited in a dialog, a favorite on a page of its own.
+ * The sessions done are logged from the journal.
  */
 export default function FitnessPage() {
   const [activeTab, setActiveTab] = useState<Tab>('exercises');
@@ -37,11 +37,7 @@ export default function FitnessPage() {
   const workouts = useList(listWorkouts);
   const latest = useMemo(() => latestItems(workouts.items), [workouts.items]);
 
-  const templateDialogRef = useRef<HTMLDialogElement>(null);
-  const [templateDialog, setTemplateDialog] = useState<{
-    template: WorkoutTemplate | null;
-    openCount: number;
-  }>({ template: null, openCount: 0 });
+  const navigate = useNavigate();
   const sheetRef = useRef<HTMLDialogElement>(null);
   // The id, so the sheet follows the library when its note changes.
   const [sheet, setSheet] = useState<{ id: number | null; openCount: number }>({
@@ -55,14 +51,6 @@ export default function FitnessPage() {
     exercise: Exercise | null;
     openCount: number;
   }>({ exercise: null, openCount: 0 });
-
-  const openTemplate = (template: WorkoutTemplate | null) => {
-    setTemplateDialog(({ openCount }) => ({
-      template,
-      openCount: openCount + 1,
-    }));
-    templateDialogRef.current?.showModal();
-  };
 
   const openExercise = (exercise: Exercise | null) => {
     setExerciseDialog(({ openCount }) => ({
@@ -100,12 +88,12 @@ export default function FitnessPage() {
             }
             onRetry={templates.retry}
             headerAction={
-              <AddCircleButton onClick={() => openTemplate(null)} />
+              <AddCircleButton
+                onClick={() => void navigate(templatePath('new'))}
+              />
             }
             latest={latest}
-            renderAction={(template) => (
-              <EditIconButton onClick={() => openTemplate(template)} />
-            )}
+            onOpen={(template) => void navigate(templatePath(template.id))}
           />
         ) : (
           <ExerciseList
@@ -124,12 +112,6 @@ export default function FitnessPage() {
         )}
       </div>
 
-      <TemplateDialog
-        dialogRef={templateDialogRef}
-        openCount={templateDialog.openCount}
-        template={templateDialog.template}
-        exercises={exercises.items}
-      />
       <ExerciseSheet
         dialogRef={sheetRef}
         exercise={sheetExercise}

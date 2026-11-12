@@ -14,6 +14,7 @@ export const PATHS = {
   recipeEdit: '/food/recipe/:recipeId/edit',
   shoppingAdd: '/food/shopping/add',
   fitness: '/fitness',
+  template: '/fitness/session/:templateId',
   stats: '/stats',
   profile: '/profile',
 } as const;

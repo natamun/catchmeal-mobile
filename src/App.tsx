@@ -11,6 +11,7 @@ const JournalEditPage = lazy(() => import('./pages/JournalEditPage'));
 const TrainingAddPage = lazy(() => import('./pages/TrainingAddPage'));
 const TrainingEditPage = lazy(() => import('./pages/TrainingEditPage'));
 const MealPage = lazy(() => import('./pages/MealPage'));
+const TemplatePage = lazy(() => import('./pages/TemplatePage'));
 const RecipePage = lazy(() => import('./pages/RecipePage'));
 const ShoppingAddPage = lazy(() => import('./pages/ShoppingAddPage'));
 
@@ -34,6 +35,7 @@ function AppRoutes() {
         <Route path={PATHS.trainingAdd} element={<TrainingAddPage />} />
         <Route path={PATHS.trainingEdit} element={<TrainingEditPage />} />
         <Route path={PATHS.meal} element={<MealPage />} />
+        <Route path={PATHS.template} element={<TemplatePage />} />
         <Route path={PATHS.recipe} element={<RecipePage />} />
         <Route path={PATHS.recipeEdit} element={<RecipePage />} />
         <Route path={PATHS.shoppingAdd} element={<ShoppingAddPage />} />
