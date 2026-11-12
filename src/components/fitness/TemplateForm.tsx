@@ -1,12 +1,14 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Trash2 } from 'lucide-react';
 
 import { failureMessage } from '../../utils/failureMessage';
 import { FlowFooter } from '../layout/FlowFooter';
 import { FlowHeader } from '../layout/FlowHeader';
-import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { ActionMenu } from '../ui/ActionMenu';
+import {
+  HEADER_ICON_BUTTON_CLASS,
+  PRIMARY_BUTTON_CLASS,
+} from '../ui/buttonStyle';
 import { EditableList, type EditableRow } from '../ui/EditableList';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
@@ -88,7 +90,6 @@ export function TemplateForm({
   onDone,
 }: Props) {
   const showToast = useToast();
-  const confirmDialogRef = useRef<HTMLDialogElement>(null);
   const [name, setName] = useState(template?.name ?? '');
   const [items, setItems] = useState<TemplateItemDraft[]>(() =>
     template ? templateDrafts(template) : [],
@@ -128,11 +129,9 @@ export function TemplateForm({
     setIsSubmitting(true);
     try {
       await deleteTemplate(template.id);
-      confirmDialogRef.current?.close();
       showToast('Séance favorite supprimée');
       onDone();
     } catch {
-      confirmDialogRef.current?.close();
       setError('Impossible de supprimer la séance. Réessayez.');
     } finally {
       setIsSubmitting(false);
@@ -150,14 +149,12 @@ export function TemplateForm({
         onClose={onClose}
         action={
           template && (
-            <button
-              type="button"
-              aria-label="Supprimer la séance"
-              onClick={() => confirmDialogRef.current?.showModal()}
-              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-red-500 transition-colors hover:bg-red-500/10"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+            <ActionMenu
+              title={template.name}
+              onDelete={() => void handleDelete()}
+              deleteLabel="Supprimer la séance"
+              buttonClassName={HEADER_ICON_BUTTON_CLASS}
+            />
           )
         }
       />
@@ -221,16 +218,6 @@ export function TemplateForm({
           </button>
         </FlowFooter>
       </form>
-
-      <ConfirmDialog
-        dialogRef={confirmDialogRef}
-        title="Supprimer cette séance favorite ?"
-        description={`${template?.name ?? 'Cette séance'} disparaît des favorites. Les séances faites avec restent.`}
-        confirmLabel="Supprimer"
-        pendingLabel="Suppression..."
-        isPending={isSubmitting}
-        onConfirm={() => void handleDelete()}
-      />
     </>
   );
 }

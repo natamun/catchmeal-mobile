@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { Trash2, Zap } from 'lucide-react';
+import { useState } from 'react';
+import { Zap } from 'lucide-react';
 
 import { useFormValidation } from '../../hooks/useFormValidation';
 import { useTimeout } from '../../hooks/useTimeout';
@@ -10,12 +10,13 @@ import { matchesFood } from '../food/search';
 import type { FoodItem } from '../food/types';
 import { FlowFooter } from '../layout/FlowFooter';
 import { FlowHeader } from '../layout/FlowHeader';
+import { ActionMenu } from '../ui/ActionMenu';
 import { BottomSheet } from '../ui/BottomSheet';
 import {
+  HEADER_ICON_BUTTON_CLASS,
   PRIMARY_BUTTON_CLASS,
   SECONDARY_BUTTON_CLASS,
 } from '../ui/buttonStyle';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { FieldError } from '../ui/FieldError';
 import { LABEL_CLASS } from '../ui/fieldStyle';
 import { Input } from '../ui/Input';
@@ -71,7 +72,6 @@ export function MealForm({ meal, foodItems, onClose, onDone }: MealFormProps) {
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const showToast = useToast();
-  const confirmDialogRef = useRef<HTMLDialogElement>(null);
 
   useTimeout(() => setSubmitAttempted(false), submitAttempted ? 5000 : null);
 
@@ -149,11 +149,9 @@ export function MealForm({ meal, foodItems, onClose, onDone }: MealFormProps) {
     setIsSubmitting(true);
     try {
       await deleteMeal(meal.id);
-      confirmDialogRef.current?.close();
       showToast('Repas supprimé');
       onDone();
     } catch {
-      confirmDialogRef.current?.close();
       setError('Suppression impossible, réessayez.');
     } finally {
       setIsSubmitting(false);
@@ -168,14 +166,12 @@ export function MealForm({ meal, foodItems, onClose, onDone }: MealFormProps) {
         onClose={onClose}
         action={
           meal && (
-            <button
-              type="button"
-              aria-label="Supprimer le repas"
-              onClick={() => confirmDialogRef.current?.showModal()}
-              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-red-500 transition-colors hover:bg-red-500/10"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+            <ActionMenu
+              title={meal.name ?? 'Repas'}
+              onDelete={() => void handleDelete()}
+              deleteLabel="Supprimer le repas"
+              buttonClassName={HEADER_ICON_BUTTON_CLASS}
+            />
           )
         }
       />
@@ -306,16 +302,6 @@ export function MealForm({ meal, foodItems, onClose, onDone }: MealFormProps) {
           Ajouter au repas
         </button>
       </BottomSheet>
-
-      <ConfirmDialog
-        dialogRef={confirmDialogRef}
-        title="Supprimer ce repas ?"
-        description={`${meal?.name ?? 'Ce repas'} sera retiré de votre liste.`}
-        confirmLabel="Supprimer"
-        pendingLabel="Suppression..."
-        isPending={isSubmitting}
-        onConfirm={() => void handleDelete()}
-      />
     </>
   );
 }

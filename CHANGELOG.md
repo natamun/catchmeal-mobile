@@ -17,6 +17,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 - The food and exercise sheets share one spacing between a title and its content and between sections, and every text area has the look of the other fields.
 - List rows no longer end with an arrow: the exercise list and the items of a meal or a session being edited open on a tap, like the other lists.
 - Deleting a food, an exercise, a weigh-in or a recipe takes a second tap on "Supprimer", which turns into "Confirmer ?", instead of a confirmation window. A double tap too fast does not delete.
+- A library meal and a favorite session are deleted from the "⋯" menu of their page, with the same second tap, like a recipe.
 
 ## [0.10.0] - 2026-11-12
 
