@@ -4,6 +4,10 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-12
+
+A note on each exercise, favorite sessions on a page of their own, and lists, buttons and deletes that look and behave the same everywhere.
+
 ### Added
 
 - Each exercise has a personal note, written straight in its sheet and in the sheet of the session being logged, saved as you type and carried by the backup.
