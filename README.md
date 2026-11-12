@@ -52,7 +52,7 @@ It started from CatCHMeal, a web app built as a team for the ft_transcendence pr
 
 - **Logbook**, kept like the food journal: strength and cardio in sets, each treadmill set at its own speed and incline, the other machines at their resistance, one session a day.
 - **Training library**: your exercises and favorite sessions, each starting from its last sets.
-- **Exercise sheet**: records, estimated one-rep max, progress curve and last sessions.
+- **Exercise sheet**: records, estimated one-rep max, progress curve, last sessions and a personal note, also shown when you log the exercise.
 
 ### Statistics
 

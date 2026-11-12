@@ -210,6 +210,7 @@ erDiagram
         text name
         text kind "STRENGTH, TREADMILL or CARDIO"
         int archived
+        text notes "personal note, optional"
     }
     workout {
         int id PK

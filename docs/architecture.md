@@ -28,7 +28,7 @@ There is no store library. Three mechanisms:
 ## Screens and navigation
 
 - `App.tsx` declares the routes. The 5 tabs (Home, Food, Fitness, Stats, Profile) have routes whose element is `null`: `components/layout/AppLayout.tsx` draws them itself as a swipeable carousel (`useSwipeTabs`). Tabs are lazy-loaded, stay mounted once shown, and off-screen tabs are `inert`; all are prepared 300 ms after start.
-- Flow pages (journal add and edit, training add and edit, library meal, recipe view and edit, shopping add) render through `<Outlet>` inside `FlowLayer`, an overlay above the tabs, with `FlowHeader`. Editing a section of the journal (`/home/edit/:mealType`), the session of a day (`/home/training/edit`) or a library meal (`/food/meal/:mealId`) is a page, not a dialog. `FlowFooter` sticks the totals, an error and the save button to the bottom of such a page.
+- Flow pages (journal add and edit, training add and edit, library meal, favorite session, recipe view and edit, shopping add) render through `<Outlet>` inside `FlowLayer`, an overlay above the tabs, with `FlowHeader`. Editing a section of the journal (`/home/edit/:mealType`), the session of a day (`/home/training/edit`), a library meal (`/food/meal/:mealId`) or a favorite session (`/fitness/session/:templateId`, `TemplatePage` and `TemplateForm`, with its exercises reordered by drag) is a page, not a dialog. `FlowFooter` sticks the totals, an error and the save button to the bottom of such a page.
 - `routing/paths.ts` holds every path (`PATHS`); `routing/navigation.ts` has `useGoBack`. The Android back button is handled in `native/androidBackButton.ts`.
 
 ## Shared UI pieces
@@ -56,10 +56,10 @@ In `components/ui/`:
 
 ## Database
 
-- Migrations: an inline array in `db/migrations.ts`, versioned with `PRAGMA user_version`, one transaction per step (V1 to V14 today). Append a new step; never edit a shipped one, phones already ran it. `db/migrations.test.ts` checks the upgrade path.
+- Migrations: an inline array in `db/migrations.ts`, versioned with `PRAGMA user_version`, one transaction per step (V1 to V15 today). Append a new step; never edit a shipped one, phones already ran it. `db/migrations.test.ts` checks the upgrade path.
 - Tables are `STRICT` with `CHECK` constraints, so a bad value fails in SQLite too.
 - Plugin traps (`@capacitor-community/sqlite` on Android): a COMMIT that fails leaves the transaction open in SQLite while the plugin forgets it, and every later transaction is refused until restart. So a rule must make its own statement fail before COMMIT (no deferred foreign keys). The plugin also rewrites DELETE into soft deletes when a table has `last_modified` / `sql_deleted`, splits scripts on ";\n" and strips `--` comments.
-- Backup: `data/backup.ts` exports and restores every table in its own JSON format; a new table or column must be added there (format 10 today, with `recipe_ingredient.section`).
+- Backup: `data/backup.ts` exports and restores every table in its own JSON format; a new table or column must be added there (format 11 today, with `exercise.notes`).
 
 ## Outside calls
 
