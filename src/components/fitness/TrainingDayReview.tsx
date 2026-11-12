@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { arrayMove } from '@dnd-kit/sortable';
 import { Trophy } from 'lucide-react';
 
 import { failureMessage } from '../../utils/failureMessage';
@@ -54,7 +55,8 @@ interface ReviewProps {
 }
 
 /**
- * The exercises of the day's session to check, then add to it, or the whole
+ * The exercises of the day's session to check and put in order by their
+ * handle, then add to it, or the whole
  * session to save when editing it. Saving tells the new records. Remount it
  * (key) to start again from `initialItems`.
  */
@@ -130,6 +132,9 @@ export function TrainingDayReview({
                 ),
             ),
           )}
+          onMove={(from, to) =>
+            setItems((current) => arrayMove(current, from, to))
+          }
         />
       ) : (
         <p className="py-4 text-center text-sm text-theme-400">
