@@ -63,7 +63,11 @@ export function PeriodReport({ summary, isLoading }: Props) {
       <Part>
         <Row label="Calories par jour" />
         {kcal === null ? (
-          <Note>Aucun repas enregistré sur cette période.</Note>
+          <Note>
+            {countableDays === 0
+              ? "Aujourd'hui n'est pas encore compté, la journée est en cours."
+              : 'Aucun repas enregistré sur cette période.'}
+          </Note>
         ) : (
           <>
             <p className="flex items-baseline gap-2 tabular-nums">

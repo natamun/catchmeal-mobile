@@ -4,6 +4,10 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 
 ## [Unreleased]
 
+### Fixed
+
+- The calorie chart of the stats leaves today, not over yet, out of a week's average and ends that week on the day before, like the summary above it. Today's own bar is paler and marked "en cours", and a period of today alone no longer says that no meal was logged.
+
 ## [0.11.0] - 2026-11-12
 
 A note on each exercise, favorite sessions on a page of their own, and lists, buttons and deletes that look and behave the same everywhere.

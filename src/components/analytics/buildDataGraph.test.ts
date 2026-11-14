@@ -70,6 +70,39 @@ describe('buildDataGraph', () => {
     });
   });
 
+  it('leaves today out of a week, its day not over', () => {
+    const [week] = buildDataGraph(
+      [eaten('2026-11-09', 2000), eaten('2026-11-10', 800)],
+      '2026-11-09',
+      '2026-11-15',
+      'week',
+      '2026-11-10',
+    );
+
+    expect(week).toMatchObject({
+      from: '09/11',
+      date: '09/11',
+      loggedDays: 1,
+      kcal: 2000,
+      inProgress: false,
+    });
+  });
+
+  it('keeps today alone in its bar, marked in progress', () => {
+    const points = buildDataGraph(
+      [eaten('2026-11-09', 2000), eaten('2026-11-10', 800)],
+      '2026-11-09',
+      '2026-11-10',
+      'day',
+      '2026-11-10',
+    );
+
+    expect(points.map(({ kcal, inProgress }) => [kcal, inProgress])).toEqual([
+      [2000, false],
+      [800, true],
+    ]);
+  });
+
   it('keeps a forgotten day in its place, empty', () => {
     const points = buildDataGraph(
       [eaten('2026-11-09', 2000), eaten('2026-11-11', 1800)],

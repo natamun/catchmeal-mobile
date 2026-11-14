@@ -89,21 +89,28 @@ export function grainForWidth(
 /**
  * One point per group of calendar days (see `groupDays`), each value averaged
  * over the days of the group that hold it: a forgotten day does not stretch a
- * week, nor count as zero.
+ * week, nor count as zero. A group counts only its days that are over, and
+ * ends with the last of them; with none over but today, it shows today,
+ * marked `inProgress`.
  */
 export function buildDataGraph(
   dashboard: DashboardDay[],
   from: string,
   to: string,
   grain: Grain,
+  today = toDateKey(new Date()),
 ): DataGraph[] {
   const byDay = new Map(dashboard.map((day) => [day.day, day]));
 
   return groupDays(from, to, grain).map((group) => {
-    const chunk = group.flatMap((day) => byDay.get(day) ?? []);
+    const over = group.filter((day) => day < today);
+    const inProgress = over.length === 0 && group.includes(today);
+    const counted = over.length === 0 ? group : over;
+    const chunk = counted.flatMap((day) => byDay.get(day) ?? []);
     return {
       from: shortDate(group[0]),
-      date: shortDate(group[group.length - 1]),
+      date: shortDate(counted[counted.length - 1]),
+      inProgress,
       loggedDays: chunk.filter((day) => day.totalKcal !== null).length,
       kcal: averageOf(chunk, 'totalKcal'),
       protein: averageOf(chunk, 'totalProtein'),

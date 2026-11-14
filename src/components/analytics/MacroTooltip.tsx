@@ -12,14 +12,15 @@ interface Props extends TooltipContentProps {
  * Tooltip of the calorie chart: grams of each macro and the calories, for the
  * day or averaged over the grouped days.
  */
-export function MacroTooltip({ active, payload, label, averaged }: Props) {
+export function MacroTooltip({ active, payload, averaged }: Props) {
   const point = payload[0]?.payload as KcalPoint | undefined;
 
   if (!active || !point) {
     return null;
   }
 
-  const title = averaged ? `Du ${point.from} au ${point.date}` : label;
+  const days = averaged ? `Du ${point.from} au ${point.date}` : point.from;
+  const title = point.inProgress ? `${days} (en cours)` : days;
 
   if (point.loggedDays === 0) {
     return (

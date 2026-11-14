@@ -41,19 +41,21 @@ interface BarSeries {
 
 /**
  * One piece of a stacked bar; the other bars fade while the tooltip shows one
- * of them. `labelKey` is the field the x axis reads.
+ * of them, and a point with `inProgress` (a day not over) is paler. `labelKey`
+ * is the field the x axis reads.
  */
 function Segment({ labelKey, ...props }: BarShapeProps & { labelKey: string }) {
   const hovering = useIsTooltipActive();
   const activeLabel = useActiveTooltipLabel();
   const point = props.payload as Record<string, unknown>;
   const dimmed = hovering && activeLabel !== point[labelKey];
+  const opacity = point.inProgress === true ? 0.5 : 1;
 
   return (
     <Rectangle
       {...props}
       className="transition-opacity"
-      opacity={dimmed ? 0.4 : 1}
+      opacity={dimmed ? opacity * 0.4 : opacity}
     />
   );
 }

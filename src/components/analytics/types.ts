@@ -27,6 +27,8 @@ export type DataGraph = {
   date: string;
   /** Days of the group with a logged meal. */
   loggedDays: number;
+  /** The bar is today alone, a day not over yet. */
+  inProgress: boolean;
   kcal: number;
   protein: number;
   carbs: number;
