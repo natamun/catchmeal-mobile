@@ -78,9 +78,11 @@ export function BottomSheet({
     const speed = state.dy / Math.max(event.timeStamp - state.startTime, 1);
     if (state.dy > SWIPE_CLOSE_DISTANCE || speed > SWIPE_CLOSE_SPEED) {
       dialog.style.transform = 'translateY(100%)';
+      // Closed before the drag's transform goes, so the sheet rests below
+      // instead of starting back up for the time onClose takes to arrive.
       window.setTimeout(() => {
+        dialog.close();
         dialog.style.transform = '';
-        onClose();
       }, SLIDE_MS);
     } else {
       dialog.style.transform = '';
