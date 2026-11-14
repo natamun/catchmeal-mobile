@@ -4,6 +4,10 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-14
+
+Foods and exercises of the journal edited from their sheet, each meal's totals, and a calorie chart that leaves the day in progress out.
+
 ### Changed
 
 - The journal has no pencil any more: tapping a food opens its sheet, to change its quantity and save it, or remove it. The other foods of the meal keep their values.
