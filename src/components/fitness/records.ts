@@ -109,21 +109,20 @@ export interface NewRecord {
 
 /**
  * The strength exercises of a session that beat the heaviest load of every
- * session before (the one edited left out). An exercise done for the first
- * time sets no record: there is nothing to beat yet.
+ * session in `history`, the one being saved as it was included: saving it
+ * again unchanged sets no record. An exercise done for the first time sets
+ * no record: there is nothing to beat yet.
  */
 export function newRecords(
   history: readonly Workout[],
   items: readonly WorkoutItemInput[],
-  exceptWorkoutId?: number,
 ): NewRecord[] {
-  const before = history.filter(({ id }) => id !== exceptWorkoutId);
   const records: NewRecord[] = [];
   for (const { exerciseId, sets } of items) {
     if (!sets?.length || records.some((r) => r.exerciseId === exerciseId)) {
       continue;
     }
-    const previous = strengthRecord(before, exerciseId);
+    const previous = strengthRecord(history, exerciseId);
     const best = Math.max(...sets.map(({ weightKg }) => weightKg));
     if (previous && best > previous.weightKg) {
       records.push({ exerciseId, weightKg: best });

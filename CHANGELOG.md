@@ -6,6 +6,7 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 
 ### Fixed
 
+- Saving a session again with the same loads no longer announces a new record each time.
 - A sheet swiped down closes in one move, without coming back up for an instant first.
 - The calorie chart of the stats leaves today, not over yet, out of a week's average and ends that week on the day before, like the summary above it. Today's own bar is paler and marked "en cours", and a period of today alone no longer says that no meal was logged.
 

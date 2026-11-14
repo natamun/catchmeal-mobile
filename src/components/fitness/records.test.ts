@@ -103,19 +103,11 @@ describe('newRecords', () => {
     ).toEqual([]);
   });
 
-  it('leaves out the session being edited', () => {
-    expect(
-      newRecords(
-        HISTORY,
-        [{ exerciseId: 1, sets: [{ reps: 10, weightKg: 110 }] }],
-        1,
-      ),
-    ).toEqual([]);
+  it('sets no record when saving again the load the day already held', () => {
     expect(
       newRecords(
         [session(1, '2026-10-29', press([10, 120]))],
         [{ exerciseId: 1, sets: [{ reps: 10, weightKg: 120 }] }],
-        1,
       ),
     ).toEqual([]);
   });

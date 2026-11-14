@@ -77,8 +77,7 @@ export function TrainingDayReview({
   /** A record when a load beats every other day, said with a trophy. */
   const announce = (saved: ReturnType<typeof draftsToItems>) => {
     if (!('items' in saved)) return;
-    const thisDay = history.find(({ performedOn }) => performedOn === day);
-    const records = newRecords(history, saved.items, thisDay?.id);
+    const records = newRecords(history, saved.items);
     if (records.length === 0) {
       showToast(isEdit ? 'Séance mise à jour' : 'Ajouté à la séance');
     } else if (records.length === 1) {
