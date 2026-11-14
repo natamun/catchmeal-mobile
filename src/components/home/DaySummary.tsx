@@ -180,7 +180,9 @@ export function DaySummary(props: Props) {
           );
         })}
       </dl>
-      <div className="border-t border-theme-100 pt-4">
+      {/* As tall as a journal section's title row (52 px): 12 px each side,
+          the card's bottom padding pulled up by 8. */}
+      <div className="-mb-2 border-t border-theme-100 pt-3">
         <WeightLine
           history={props.weightHistory}
           hasError={props.weightError}
