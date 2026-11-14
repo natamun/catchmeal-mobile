@@ -1,8 +1,7 @@
 import { useState, type ReactNode } from 'react';
 
-import { BottomSheet } from './BottomSheet';
 import { INSET_ROW_CLASS, TAP_ROW_CLASS } from './buttonStyle';
-import { ConfirmRemoveButton } from './ConfirmRemoveButton';
+import { ItemSheet } from './ItemSheet';
 import { SortableList } from './SortableList';
 
 /** An item of a list being edited, such as a food of a meal or an exercise. */
@@ -100,36 +99,19 @@ export function EditableList({ rows, onMove, className = '' }: Props) {
           ))}
         </ul>
       )}
-      <BottomSheet
+      <ItemSheet
         open={isOpen && row !== undefined}
         onClose={() => setIsOpen(false)}
         title={row?.name ?? ''}
-        action={
-          row && (
-            <ConfirmRemoveButton
-              // Each opening starts calm, even right after an armed one.
-              key={`${row.id}-${isOpen}`}
-              confirmLabel="Retirer ?"
-              onConfirm={() => {
-                setIsOpen(false);
-                row.onRemove();
-              }}
-            />
-          )
-        }
+        onRemove={() => {
+          setIsOpen(false);
+          row?.onRemove();
+        }}
+        detail={row?.detail}
+        aside={row?.aside}
       >
-        {row && (
-          <div className="flex flex-col gap-3">
-            {(row.detail || row.aside) && (
-              <div className="flex min-h-9 items-center justify-between gap-3">
-                {row.detail ?? <span />}
-                {row.aside}
-              </div>
-            )}
-            {row.editor}
-          </div>
-        )}
-      </BottomSheet>
+        {row?.editor}
+      </ItemSheet>
     </>
   );
 }
