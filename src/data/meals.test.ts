@@ -7,7 +7,13 @@ import { migrate } from '../db/migrations';
 import { openMemoryDatabase } from '../test/nodeDatabase';
 import { DataError } from './errors';
 import { archiveFoodItem, createFoodItem, updateFoodItem } from './foodItems';
-import { createMeal, deleteMeal, listMeals, updateMeal } from './meals';
+import {
+  createMeal,
+  deleteMeal,
+  listMeals,
+  replaceLoggedLines,
+  updateMeal,
+} from './meals';
 import { archiveRecipe, createRecipe, updateRecipe } from './recipes';
 
 let db: Database;
@@ -407,5 +413,105 @@ describe('deleteMeal', () => {
 
   it('refuses an unknown meal', async () => {
     await expect(deleteMeal(db, 999)).rejects.toThrow(DataError);
+  });
+});
+
+describe('replaceLoggedLines', () => {
+  const apples = (quantity: number): MealItemInput => ({
+    foodItemId: apple.id,
+    quantity,
+  });
+
+  it('merges the lines of a row into the first, in its place', async () => {
+    const first = await createMeal(db, lunch([apples(100), QUICK_ADD]));
+    const second = await createMeal(db, lunch([apples(50)]));
+    const ids = [first.items[0].id, second.items[0].id];
+
+    await replaceLoggedLines(db, ids, apples(200));
+
+    const [meal] = await listMeals(db, { date: '2026-11-05' });
+    expect(meal.id).toBe(first.id);
+    expect(meal.items.map((item) => [item.id, item.quantity])).toEqual([
+      [first.items[0].id, 200],
+      [first.items[1].id, 1],
+    ]);
+    expect(meal.items[0].kcal).toBeCloseTo(104);
+  });
+
+  it('keeps the values of the other lines when their food changed', async () => {
+    const meal = await createMeal(
+      db,
+      lunch([apples(100), { foodItemId: yogurt.id, quantity: 1 }]),
+    );
+    await updateFoodItem(db, yogurt.id, { ...yogurt, kcal: 999 });
+
+    await replaceLoggedLines(db, [meal.items[0].id], apples(150));
+
+    const [saved] = await listMeals(db);
+    expect(saved.items[1].kcal).toBe(120);
+  });
+
+  it('removes the lines and the meals left empty', async () => {
+    const first = await createMeal(db, lunch([apples(100), QUICK_ADD]));
+    const second = await createMeal(db, lunch([apples(50)]));
+
+    await replaceLoggedLines(db, [first.items[0].id, second.items[0].id], null);
+
+    const meals = await listMeals(db);
+    expect(meals.map(({ id }) => id)).toEqual([first.id]);
+    expect(meals[0].items.map(({ id }) => id)).toEqual([first.items[1].id]);
+  });
+
+  it('refuses lines that are gone', async () => {
+    const meal = await createMeal(db, lunch([apples(100)]));
+
+    await expect(
+      replaceLoggedLines(db, [meal.items[0].id, 999], null),
+    ).rejects.toThrow(DataError);
+    expect((await listMeals(db))[0].items).toHaveLength(1);
+  });
+
+  it('refuses no line, or the same line twice', async () => {
+    const meal = await createMeal(db, lunch([apples(100)]));
+    const [{ id }] = meal.items;
+
+    await expect(replaceLoggedLines(db, [], null)).rejects.toThrow(DataError);
+    await expect(replaceLoggedLines(db, [id, id], null)).rejects.toThrow(
+      DataError,
+    );
+  });
+
+  it('refuses a line of a library meal', async () => {
+    const meal = await createMeal(db, { name: 'Goûter', items: [apples(100)] });
+
+    await expect(
+      replaceLoggedLines(db, [meal.items[0].id], null),
+    ).rejects.toThrow(DataError);
+    expect(await listMeals(db)).toHaveLength(1);
+  });
+
+  it('refuses lines of two sections', async () => {
+    const monday = await createMeal(db, lunch([apples(100)]));
+    const tuesday = await createMeal(db, lunch([apples(100)], '2026-11-06'));
+    const dinner = await createMeal(db, {
+      ...lunch([apples(100)]),
+      typeMeal: 'DINNER',
+    });
+
+    for (const other of [tuesday, dinner]) {
+      await expect(
+        replaceLoggedLines(db, [monday.items[0].id, other.items[0].id], null),
+      ).rejects.toThrow(DataError);
+    }
+    expect(await listMeals(db)).toHaveLength(3);
+  });
+
+  it('refuses an invalid line and keeps the old ones', async () => {
+    const meal = await createMeal(db, lunch([apples(100)]));
+
+    await expect(
+      replaceLoggedLines(db, [meal.items[0].id], apples(0)),
+    ).rejects.toThrow(DataError);
+    expect((await listMeals(db))[0].items[0].quantity).toBe(100);
   });
 });

@@ -1,21 +1,28 @@
 import { useState } from 'react';
 
 import type { FoodItem } from '../food/types';
+import { buildDrafts } from '../meal/draft';
 import {
   MEAL_TYPE_LABELS,
   MEAL_TYPES,
+  mealTotals,
   type Meal,
+  type MealFoodItem,
   type MealType,
 } from '../meal/types';
 import type { Recipe } from '../recipe/types';
+import { INSET_ROW_CLASS } from '../ui/buttonStyle';
 import { Card } from '../ui/Card';
 import { LoadError } from '../ui/LoadError';
 import { DaySection } from './DaySection';
+import { JournalLineSheet, type JournalLine } from './JournalLineSheet';
 
 interface JournalRow {
   key: string;
   label: string;
   kcal: number;
+  /** The lines it gathers, in the order they were logged. */
+  items: MealFoodItem[];
 }
 
 /**
@@ -37,10 +44,12 @@ function rowsOf(
         const existing = rowByRecipeId.get(item.recipeId);
         if (existing) {
           existing.kcal += item.kcal;
+          existing.items.push(item);
           continue;
         }
         const row: JournalRow = {
           key: `recipe-${item.recipeId}`,
+          items: [item],
           label:
             recipes.find((recipe) => recipe.id === item.recipeId)?.name ??
             'Recette inconnue',
@@ -56,6 +65,7 @@ function rowsOf(
           key: `${meal.id}-${item.id}`,
           label: 'Ajout rapide',
           kcal: item.kcal,
+          items: [item],
         });
         continue;
       }
@@ -63,11 +73,13 @@ function rowsOf(
       const existing = rowByFoodId.get(item.foodItemId);
       if (existing) {
         existing.kcal += item.kcal;
+        existing.items.push(item);
         continue;
       }
 
       const row: JournalRow = {
         key: `food-${item.foodItemId}`,
+        items: [item],
         label:
           foodItems.find((food) => food.id === item.foodItemId)?.name ??
           'Aliment inconnu',
@@ -89,12 +101,12 @@ interface DailyMealListProps {
   loadError: string | null;
   onRetry: () => void;
   onAdd: (mealType: MealType) => void;
-  onEdit: (mealType: MealType) => void;
 }
 
 /**
- * The four sections of the journal (breakfast, lunch, dinner, snack) with their
- * foods and calories, an add button and, when not empty, an edit button.
+ * The four sections of the journal (breakfast, lunch, dinner, snack) with
+ * their totals, their foods and an add button. A tap on a food opens its
+ * sheet, to change its quantity or remove it.
  */
 export function DailyMealList({
   meals,
@@ -104,17 +116,21 @@ export function DailyMealList({
   loadError,
   onRetry,
   onAdd,
-  onEdit,
 }: DailyMealListProps) {
-  // While another day loads, the edit buttons follow the meals last shown, so
-  // they don't flicker.
-  const [loadedMeals, setLoadedMeals] = useState(meals);
+  const [sheet, setSheet] = useState<{
+    line: JournalLine | null;
+    isOpen: boolean;
+    openCount: number;
+  }>({ line: null, isOpen: false, openCount: 0 });
 
-  if (!isLoading && loadedMeals !== meals) {
-    setLoadedMeals(meals);
-  }
-
-  const editableMeals = isLoading ? loadedMeals : meals;
+  /** The row as one item to edit, or null when its food is not found. */
+  const lineOf = (row: JournalRow, meal: Meal): JournalLine | null => {
+    const [draft] = buildDrafts(
+      { meals: [{ ...meal, items: row.items }] },
+      { foodItems, recipes },
+    );
+    return draft ? { itemIds: row.items.map(({ id }) => id), draft } : null;
+  };
 
   return (
     <Card flush>
@@ -122,16 +138,18 @@ export function DailyMealList({
 
       <div className={`divide-y divide-theme-200 ${loadError ? 'hidden' : ''}`}>
         {MEAL_TYPES.map((mealType) => {
-          const rows = rowsOf(
-            meals
-              .filter((meal) => meal.typeMeal === mealType)
-              .sort((a, b) => a.id - b.id),
-            foodItems,
-            recipes,
-          );
-          const total = rows.reduce((sum, row) => sum + row.kcal, 0);
-          const canEdit = editableMeals.some(
-            (meal) => meal.typeMeal === mealType && meal.items.length > 0,
+          const sectionMeals = meals
+            .filter((meal) => meal.typeMeal === mealType)
+            .sort((a, b) => a.id - b.id);
+          const rows = rowsOf(sectionMeals, foodItems, recipes);
+          const totals = sectionMeals.map(mealTotals).reduce(
+            (sum, meal) => ({
+              kcal: sum.kcal + meal.kcal,
+              protein: sum.protein + meal.protein,
+              carbs: sum.carbs + meal.carbs,
+              fat: sum.fat + meal.fat,
+            }),
+            { kcal: 0, protein: 0, carbs: 0, fat: 0 },
           );
 
           return (
@@ -139,30 +157,46 @@ export function DailyMealList({
               <DaySection
                 title={MEAL_TYPE_LABELS[mealType]}
                 onAdd={() => onAdd(mealType)}
-                onEdit={
-                  canEdit
-                    ? () => {
-                        if (!isLoading) onEdit(mealType);
-                      }
-                    : undefined
-                }
-                kcal={total}
+                totals={totals}
                 isLoading={isLoading}
-                rows={rows.map((row) => (
-                  <li key={row.key} className="flex items-center gap-3 py-1.5">
-                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-theme-800">
-                      {row.label}
-                    </span>
-                    <span className="shrink-0 text-sm text-theme-600">
-                      {Math.round(row.kcal)} kcal
-                    </span>
-                  </li>
-                ))}
+                rows={rows.map((row) => {
+                  const line = isLoading ? null : lineOf(row, sectionMeals[0]);
+                  return (
+                    <li key={row.key}>
+                      <button
+                        type="button"
+                        disabled={!line}
+                        onClick={() =>
+                          setSheet(({ openCount }) => ({
+                            line,
+                            isOpen: true,
+                            openCount: openCount + 1,
+                          }))
+                        }
+                        className={`${INSET_ROW_CLASS} h-9 items-center gap-3 disabled:cursor-default`}
+                      >
+                        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-theme-800">
+                          {row.label}
+                        </span>
+                        <span className="shrink-0 text-sm text-theme-600 tabular-nums">
+                          {Math.round(row.kcal)} kcal
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
               />
             </div>
           );
         })}
       </div>
+
+      <JournalLineSheet
+        key={sheet.openCount}
+        open={sheet.isOpen}
+        onClose={() => setSheet((current) => ({ ...current, isOpen: false }))}
+        line={sheet.line}
+      />
     </Card>
   );
 }

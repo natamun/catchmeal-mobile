@@ -1,20 +1,17 @@
 import { useState } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Trophy } from 'lucide-react';
 
 import { failureMessage } from '../../utils/failureMessage';
-import { formatKg } from '../../utils/format';
 import { FlowFooter } from '../layout/FlowFooter';
 import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import { EditableList, type EditableRow } from '../ui/EditableList';
 import { SHEET_BODY_CLASS } from '../ui/SheetSection';
-import { useToast } from '../ui/toastContext';
-import { addToDay, saveDay } from './api';
+import { addToDay } from './api';
 import { ExerciseNotes } from './ExerciseNotes';
 import { draftSummary } from './format';
 import { ItemSets } from './ItemEditor';
-import { newRecords } from './records';
 import type { Exercise, Workout } from './types';
+import { useAnnounceSave } from './useAnnounceSave';
 import { draftsToItems, type ItemDraft } from './workoutDraft';
 
 /**
@@ -47,7 +44,6 @@ function itemRow(
 
 interface ReviewProps {
   day: string;
-  isEdit: boolean;
   initialItems: ItemDraft[];
   history: Workout[];
   /** The library, for the note of each exercise. */
@@ -56,38 +52,21 @@ interface ReviewProps {
 }
 
 /**
- * The exercises of the day's session to check and put in order by their
- * handle, then add to it, or the whole
- * session to save when editing it. Saving tells the new records. Remount it
+ * The exercises picked for the day's session, to check and put in order by
+ * their handle, then add to it. Saving tells the new records. Remount it
  * (key) to start again from `initialItems`.
  */
 export function TrainingDayReview({
   day,
-  isEdit,
   initialItems,
   history,
   exercises,
   onSaved,
 }: ReviewProps) {
-  const showToast = useToast();
+  const announce = useAnnounceSave();
   const [items, setItems] = useState(initialItems);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  /** A record when a load beats every other day, said with a trophy. */
-  const announce = (saved: ReturnType<typeof draftsToItems>) => {
-    if (!('items' in saved)) return;
-    const records = newRecords(history, saved.items);
-    if (records.length === 0) {
-      showToast(isEdit ? 'Séance mise à jour' : 'Ajouté à la séance');
-    } else if (records.length === 1) {
-      const [{ exerciseId, weightKg }] = records;
-      const name = items.find((item) => item.exerciseId === exerciseId)?.name;
-      showToast(`Nouveau record : ${name}, ${formatKg(weightKg)} kg`, Trophy);
-    } else {
-      showToast(`${records.length} nouveaux records !`, Trophy);
-    }
-  };
 
   const handleSubmit = async () => {
     const result = draftsToItems(items);
@@ -98,13 +77,14 @@ export function TrainingDayReview({
     setError(null);
     setIsSubmitting(true);
     try {
-      if (isEdit) {
-        await saveDay(day, result.items);
-      } else {
-        await addToDay(day, result.items);
-      }
+      await addToDay(day, result.items);
       onSaved();
-      announce(result);
+      announce(
+        history,
+        result.items,
+        (id) => items.find((item) => item.exerciseId === id)?.name,
+        'Ajouté à la séance',
+      );
     } catch (err) {
       setError(failureMessage(err, "Impossible d'enregistrer la séance."));
     } finally {
@@ -138,9 +118,7 @@ export function TrainingDayReview({
         />
       ) : (
         <p className="py-4 text-center text-sm text-theme-400">
-          {isEdit
-            ? 'Plus aucun exercice : enregistrer videra la séance.'
-            : 'Ces exercices sont déjà dans la séance du jour.'}
+          Ces exercices sont déjà dans la séance du jour.
         </p>
       )}
 
@@ -149,14 +127,10 @@ export function TrainingDayReview({
         <button
           type="button"
           onClick={() => void handleSubmit()}
-          disabled={isSubmitting || (!isEdit && items.length === 0)}
+          disabled={isSubmitting || items.length === 0}
           className={PRIMARY_BUTTON_CLASS}
         >
-          {isSubmitting
-            ? 'Enregistrement...'
-            : isEdit
-              ? 'Enregistrer la séance'
-              : 'Ajouter à la séance'}
+          {isSubmitting ? 'Enregistrement...' : 'Ajouter à la séance'}
         </button>
       </FlowFooter>
     </div>

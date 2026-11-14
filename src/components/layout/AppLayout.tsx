@@ -59,9 +59,7 @@ export function AppLayout() {
     isRecipe ||
     pathname === PATHS.shoppingAdd ||
     pathname === PATHS.trainingAdd ||
-    pathname === PATHS.trainingEdit ||
     matchPath(PATHS.journalAdd, pathname) !== null ||
-    matchPath(PATHS.journalEdit, pathname) !== null ||
     matchPath(PATHS.meal, pathname) !== null ||
     matchPath(PATHS.template, pathname) !== null;
   const [areAllPrepared, setAreAllPrepared] = useState(false);

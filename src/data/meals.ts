@@ -347,6 +347,82 @@ export async function updateMeal(
   });
 }
 
+/**
+ * Changes one row of a journal section, which may hold several lines (the
+ * same food logged twice): they become `line`, kept in the place of the
+ * first one, or go with null. A meal left without lines is deleted. The other
+ * lines of the section keep their values. The lines must be journal lines of
+ * one section.
+ */
+export async function replaceLoggedLines(
+  db: Database,
+  itemIds: number[],
+  line: MealItemInput | null,
+) {
+  // The same line twice finds fewer lines than ids: refused as gone.
+  if (!Array.isArray(itemIds) || itemIds.length === 0) {
+    throw new DataError('Aucune ligne du journal à changer.');
+  }
+  const ids = itemIds.map((id) => checkNumber(id, 'ligne', AN_ID));
+  const [input] = line === null ? [null] : validateItems([line]);
+
+  return db.transaction(async (tx) => {
+    const marks = ids.map(() => '?').join(', ');
+    const rows = await tx.query<{
+      id: number;
+      meal_id: number;
+      type_meal: MealType | null;
+      logged_at: string | null;
+    }>(
+      `SELECT meal_item.id, meal_id, type_meal, logged_at FROM meal_item
+       JOIN meal ON meal.id = meal_item.meal_id
+       WHERE meal_item.id IN (${marks}) ORDER BY meal_item.id`,
+      ids,
+    );
+    if (rows.length !== ids.length) throw new DataError(GONE);
+    if (rows.some(({ logged_at }) => logged_at === null)) {
+      throw new DataError('Seules les lignes du journal changent ici.');
+    }
+    const sections = new Set(
+      rows.map(({ type_meal, logged_at }) => `${logged_at} ${type_meal}`),
+    );
+    if (sections.size > 1) {
+      throw new DataError('Ces lignes sont dans plusieurs sections.');
+    }
+
+    // Computed before the old lines go, so an archived food they hold still
+    // counts as used by a meal.
+    const [values] = input ? await buildItems(tx, [input]) : [null];
+    const [first, ...others] = rows;
+    const gone = values ? others : rows;
+    if (values) {
+      await tx.run(
+        `UPDATE meal_item SET food_item_id = ?, recipe_id = ?, quantity = ?, kcal = ?, protein = ?, carbs = ?, fat = ?
+         WHERE id = ?`,
+        [
+          values.foodItemId,
+          values.recipeId,
+          values.quantity,
+          values.kcal,
+          values.protein,
+          values.carbs,
+          values.fat,
+          first.id,
+        ],
+      );
+    }
+    for (const { id } of gone) {
+      await tx.run('DELETE FROM meal_item WHERE id = ?', [id]);
+    }
+    for (const mealId of new Set(gone.map(({ meal_id }) => meal_id))) {
+      await tx.run(
+        'DELETE FROM meal WHERE id = ? AND NOT EXISTS (SELECT 1 FROM meal_item WHERE meal_id = ?)',
+        [mealId, mealId],
+      );
+    }
+  });
+}
+
 /** Deletes a meal for real, with its lines (meals are not archived). */
 export async function deleteMeal(db: Executor, id: number) {
   const { changes } = await db.run('DELETE FROM meal WHERE id = ?', [id]);

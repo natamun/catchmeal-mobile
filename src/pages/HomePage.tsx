@@ -20,7 +20,6 @@ import { useDailyMeals } from '../hooks/useDailyMeals';
 import { useDataVersion } from '../hooks/useDataVersion';
 import {
   journalAddPath,
-  journalEditPath,
   journalPath,
   parseDateParam,
 } from '../routing/journal';
@@ -135,9 +134,6 @@ export default function HomePage() {
               onRetry={retry}
               onAdd={(mealType) =>
                 void navigate(journalAddPath(mealType, selectedDate))
-              }
-              onEdit={(mealType) =>
-                void navigate(journalEditPath(mealType, selectedDate))
               }
             />
             <TrainingDayCard date={selectedDate} />

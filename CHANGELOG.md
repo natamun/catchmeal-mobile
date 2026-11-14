@@ -4,6 +4,12 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 
 ## [Unreleased]
 
+### Changed
+
+- The journal has no pencil any more: tapping a food opens its sheet, to change its quantity and save it, or remove it. The other foods of the meal keep their values.
+- Tapping an exercise of the day's session opens a sheet from the bottom with its note, the last time and the best set, then its sets of the day to change and save, or the exercise to remove.
+- Each meal of the journal shows its macros and calories on a total line under its foods, and its rows are a little taller to tap.
+
 ### Fixed
 
 - Saving a session again with the same loads no longer announces a new record each time.

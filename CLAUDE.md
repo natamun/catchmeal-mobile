@@ -30,7 +30,7 @@ src/components/<feat>/  screens' pieces; api.ts = UI entry to src/data (wraps ch
 src/components/layout/  AppLayout (swipeable tabs, always mounted), Nav, FlowLayer, FlowHeader, FlowFooter
 src/components/ui/      shared UI pieces (BaseDialog, Input, FieldError, Toast, PillTabs...)
 src/components/theme/   the 12 colour themes; tokens live in src/index.css
-src/pages/              one file per tab or flow page (Home, Food, Fitness, Stats, Profile, *Add, *Edit, Meal, Recipe)
+src/pages/              one file per tab or flow page (Home, Food, Fitness, Stats, Profile, *Add, Meal, Template, Recipe)
 src/hooks/              useDataVersion, useList, useDailyMeals, useDashboard, useTraining, useSwipeTabs
 src/routing/            PATHS constants, useGoBack, journal and recipe routes
 src/native/             Android-only: back button, native HTTP, backup file, share, reminders, barcode scanner

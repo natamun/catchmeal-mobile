@@ -3,16 +3,25 @@ import { MacroBadge } from './MacroBadge';
 
 type Totals = { kcal: number; protein: number; carbs: number; fat: number };
 
-/** The three macros as coloured dots and grams, on one line. */
-export function MacroBadges({ totals }: { totals: Totals }) {
+/**
+ * The three macros as coloured dots and grams, on one line; `sm` for a line
+ * that only informs, like a list's.
+ */
+export function MacroBadges({
+  totals,
+  size = 'md',
+}: {
+  totals: Totals;
+  size?: 'sm' | 'md';
+}) {
   return (
-    <div className="flex items-center gap-3">
+    <div className={`flex items-center ${size === 'sm' ? 'gap-2.5' : 'gap-3'}`}>
       {MACROS.map(({ key, label, color }) => (
         <MacroBadge
           key={key}
           label={label}
           color={color}
-          size="md"
+          size={size}
           value={Math.round(totals[key] * 10) / 10}
         />
       ))}

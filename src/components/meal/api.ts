@@ -2,7 +2,7 @@ import { changing } from '../../data/changes';
 import { throwIfAborted } from '../../data/errors';
 import * as meals from '../../data/meals';
 import { getDatabase } from '../../db/appDatabase';
-import type { MealInput } from './types';
+import type { MealInput, MealItemInput } from './types';
 
 /**
  * Every meal, or with `logged` only the journal meals (true) or only the
@@ -32,6 +32,17 @@ export async function createMeal(input: MealInput) {
 /** Saves a meal; sending `items` replaces all the meal's items. */
 export async function updateMeal(id: number, input: Partial<MealInput>) {
   return changing(meals.updateMeal(await getDatabase(), id, input));
+}
+
+/**
+ * Changes one row of a journal section: its lines become `line`, or are
+ * removed with null.
+ */
+export async function replaceLoggedLines(
+  itemIds: number[],
+  line: MealItemInput | null,
+) {
+  return changing(meals.replaceLoggedLines(await getDatabase(), itemIds, line));
 }
 
 /** Meals are really deleted, they are not archived like foods. */

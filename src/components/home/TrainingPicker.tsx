@@ -165,7 +165,6 @@ export function TrainingPicker({ day, onClose, onAdded }: Props) {
         <div key={review.key} className="flex flex-1 animate-step-in flex-col">
           <TrainingDayReview
             day={day}
-            isEdit={false}
             initialItems={review.items}
             history={library?.workouts ?? []}
             exercises={library?.exercises ?? []}

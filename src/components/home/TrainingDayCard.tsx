@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { useDataVersion } from '../../hooks/useDataVersion';
-import { trainingAddPath, trainingEditPath } from '../../routing/journal';
+import { trainingAddPath } from '../../routing/journal';
 import { startOfDay, toDateKey } from '../../utils/dateKey';
 import { formatSince } from '../../utils/format';
 import { listExercises, listWorkouts } from '../fitness/api';
@@ -20,9 +20,9 @@ interface Props {
 
 /**
  * The session of the day in the journal, like a meal section: its exercises
- * with their values, a "+" to add some and, when not empty, an edit button.
- * A tap on an exercise opens what to see during the session: its note, the
- * last time, its best set. Without any, it tells when the last session was.
+ * with their values and a "+" to add some. A tap on an exercise opens its
+ * sheet: its note, the last time, its best set, and its sets of the day to
+ * change. Without any, it tells when the last session was.
  */
 export function TrainingDayCard({ date }: Props) {
   const navigate = useNavigate();
@@ -30,12 +30,12 @@ export function TrainingDayCard({ date }: Props) {
   const day = toDateKey(date);
   const [workouts, setWorkouts] = useState<Workout[] | null>(null);
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const sheetRef = useRef<HTMLDialogElement>(null);
   // The id, so the sheet follows the library when its note changes.
-  const [sheet, setSheet] = useState<{ id: number | null; openCount: number }>({
-    id: null,
-    openCount: 0,
-  });
+  const [sheet, setSheet] = useState<{
+    id: number | null;
+    isOpen: boolean;
+    openCount: number;
+  }>({ id: null, isOpen: false, openCount: 0 });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -53,8 +53,11 @@ export function TrainingDayCard({ date }: Props) {
   }, [version]);
 
   const openSheet = (exerciseId: number) => {
-    setSheet(({ openCount }) => ({ id: exerciseId, openCount: openCount + 1 }));
-    sheetRef.current?.showModal();
+    setSheet(({ openCount }) => ({
+      id: exerciseId,
+      isOpen: true,
+      openCount: openCount + 1,
+    }));
   };
 
   const session = workouts?.find(({ performedOn }) => performedOn === day);
@@ -67,9 +70,6 @@ export function TrainingDayCard({ date }: Props) {
         <DaySection
           title="Séance"
           onAdd={() => void navigate(trainingAddPath(date))}
-          onEdit={
-            session ? () => void navigate(trainingEditPath(date)) : undefined
-          }
           isLoading={workouts === null}
           rows={(session?.items ?? []).map((item) => (
             <li key={item.id}>
@@ -101,11 +101,12 @@ export function TrainingDayCard({ date }: Props) {
         )}
       </Card>
       <ExerciseGymSheet
-        dialogRef={sheetRef}
+        key={sheet.openCount}
+        open={sheet.isOpen}
+        onClose={() => setSheet((current) => ({ ...current, isOpen: false }))}
         exercise={exercises.find(({ id }) => id === sheet.id) ?? null}
         day={day}
         workouts={workouts ?? []}
-        openCount={sheet.openCount}
       />
     </>
   );
