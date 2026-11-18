@@ -4,6 +4,10 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-18
+
+The servings of a recipe not eaten at once kept in a "Préparé" tab, recipes adapted for one meal, and recipes cooked ahead.
+
 ### Added
 
 - A recipe eaten in part leaves its other servings in a new "Préparé" tab of the journal picker, to log on the next days or remove once they will not be eaten.
