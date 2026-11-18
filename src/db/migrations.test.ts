@@ -106,6 +106,8 @@ describe('migrate', () => {
 
     expect(await versionOf(db)).toBe(MIGRATIONS.length);
     expect(tables.map(({ name }) => name)).toEqual([
+      'batch',
+      'batch_ingredient',
       'cardio_set',
       'exercise',
       'food_item',
@@ -491,6 +493,93 @@ describe('recipe', () => {
         food_item_id: foodId,
       }),
     ).rejects.toThrow(REFUSED);
+  });
+});
+
+describe('batch', () => {
+  async function addBatch() {
+    const { lastId: foodId } = await insert('food_item', FOOD);
+    const { lastId: recipeId } = await insert('recipe', {
+      name: 'Pizza',
+      servings: 4,
+    });
+    const { lastId: batchId } = await insert('batch', {
+      recipe_id: recipeId,
+      cooked_on: '2026-11-18',
+      servings: 4,
+    });
+    await insert('batch_ingredient', {
+      batch_id: batchId,
+      food_item_id: foodId,
+      position: 0,
+      quantity: 800,
+    });
+    return { foodId, recipeId, batchId };
+  }
+
+  it('deletes the ingredients of a batch with it', async () => {
+    const { batchId } = await addBatch();
+
+    await db.run('DELETE FROM batch WHERE id = ?', [batchId]);
+
+    expect(await count('batch_ingredient')).toBe(0);
+  });
+
+  it.each<[string, Row]>([
+    ['an unknown recipe', { recipe_id: 999 }],
+    ['a day in another format', { cooked_on: '18.11.2026' }],
+    ['no serving', { servings: 0 }],
+    ['half a serving', { servings: 2.5 }],
+    ['an unknown adapted flag', { adapted: 2 }],
+    ['an unknown discarded flag', { discarded: 2 }],
+  ])('refuses %s', async (_, override) => {
+    const { recipeId } = await addBatch();
+
+    await expect(
+      insert('batch', {
+        recipe_id: recipeId,
+        cooked_on: '2026-11-18',
+        servings: 4,
+        ...override,
+      }),
+    ).rejects.toThrow(REFUSED);
+  });
+
+  it('refuses a journal line of a batch without its recipe', async () => {
+    const { recipeId, batchId } = await addBatch();
+    const { lastId: mealId } = await insert('meal', LOGGED_MEAL);
+    const line = {
+      meal_id: mealId,
+      quantity: 1,
+      kcal: 400,
+      protein: 10,
+      carbs: 50,
+      fat: 12,
+      batch_id: batchId,
+    };
+
+    await insert('meal_item', { ...line, recipe_id: recipeId });
+    await expect(insert('meal_item', line)).rejects.toThrow(REFUSED);
+  });
+});
+
+describe('migration 16', () => {
+  it('keeps the recipe lines, without a batch', async () => {
+    const old = openMemoryDatabase();
+    await migrate(old, MIGRATIONS.slice(0, 15));
+    await old.run("INSERT INTO recipe (name, servings) VALUES ('Pizza', 4)");
+    await old.run(
+      "INSERT INTO meal (type_meal, logged_at) VALUES ('LUNCH', '2026-11-05')",
+    );
+    await old.run(
+      'INSERT INTO meal_item (meal_id, recipe_id, quantity, kcal, protein, carbs, fat) VALUES (1, 1, 1, 400, 10, 50, 12)',
+    );
+
+    await migrate(old);
+
+    expect(
+      await old.query('SELECT kcal, recipe_id, batch_id FROM meal_item'),
+    ).toEqual([{ kcal: 400, recipe_id: 1, batch_id: null }]);
   });
 });
 

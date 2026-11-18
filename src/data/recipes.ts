@@ -31,6 +31,16 @@ interface RecipeRow {
   archived: number;
 }
 
+/** A quantity of a food with the food's values, to compute totals. */
+export interface ScaledFood {
+  quantity: number;
+  base_quantity: number;
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
 /** An ingredient with the values of its food, to compute the totals. */
 interface IngredientRow {
   id: number;
@@ -50,7 +60,8 @@ interface StepRow {
   instruction: string;
 }
 
-type Ingredient = Required<RecipeInput['ingredients'][number]>;
+/** An ingredient checked and cleaned. */
+export type Ingredient = Required<RecipeInput['ingredients'][number]>;
 
 /** The fields of a recipe checked and cleaned, its ingredients apart. */
 function validateRecipe(input: RecipeInput) {
@@ -85,9 +96,9 @@ function validateRecipe(input: RecipeInput) {
 
 /**
  * Checks the ingredients: foods of the library, not archived, unless this
- * recipe already holds them (editing it must keep working).
+ * recipe already holds them (editing it, or cooking it, must keep working).
  */
-async function checkIngredients(
+export async function checkIngredients(
   tx: Executor,
   ingredients: unknown,
   recipeId: number | null,
@@ -146,8 +157,8 @@ async function insertParts(
   }
 }
 
-/** The values of a food scaled to its quantity in the recipe, added up. */
-function totalsOf(ingredients: IngredientRow[]): Nutrition {
+/** The values of each food scaled to its quantity, added up. */
+export function totalsOf(ingredients: ScaledFood[]): Nutrition {
   return ingredients.reduce(
     (acc, item) => {
       const scale = item.quantity / item.base_quantity;

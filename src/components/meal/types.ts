@@ -1,3 +1,5 @@
+import type { CookInput } from '../recipe/types';
+
 export type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
 
 /** The meal types in the order of the day. */
@@ -24,6 +26,8 @@ export interface MealFoodItem {
   id: number;
   foodItemId: number | null;
   recipeId: number | null;
+  /** The batch of the recipe it was taken from, or null. */
+  batchId: number | null;
   /** In the food's base unit, or in servings of the recipe. */
   quantity: number;
   kcal: number;
@@ -45,12 +49,16 @@ export interface Meal {
 }
 
 /**
- * An item to save: a food id with a quantity, a recipe id with servings, or
- * for a quick add the quantity and the macros.
+ * An item to save: a food id with a quantity, a recipe id with servings
+ * (adapted for this time or not), servings of a leftover (a batch id), or for
+ * a quick add the quantity and the macros.
  */
 export interface MealItemInput {
   foodItemId?: number;
   recipeId?: number;
+  /** The recipe cooked differently this time, journal only. */
+  adapted?: CookInput;
+  batchId?: number;
   quantity: number;
   kcal?: number;
   protein?: number;

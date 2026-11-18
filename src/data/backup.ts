@@ -7,7 +7,7 @@ const APP = 'CatCHMeal';
  * Version of the file layout. A newer app keeps reading older files; an older
  * app refuses a newer file instead of guessing.
  */
-export const BACKUP_FORMAT = 11;
+export const BACKUP_FORMAT = 12;
 
 /** The format that added the fitness tables. */
 const FITNESS_FORMAT = 2;
@@ -22,6 +22,8 @@ const CARDIO_SETS_FORMAT = 9;
 // Format 10 added the sections of a recipe's ingredients: an older file has
 // none, which restores as null. Format 11 added the notes of an exercise, null
 // in an older file.
+/** The format that added the batches of a recipe and the leftovers. */
+const BATCHES_FORMAT = 12;
 
 /** The stored columns of each table, in the order rows are restored. */
 const TABLES = {
@@ -75,6 +77,15 @@ const TABLES = {
     'section',
   ],
   recipe_step: ['id', 'recipe_id', 'position', 'instruction'],
+  batch: ['id', 'recipe_id', 'cooked_on', 'servings', 'adapted', 'discarded'],
+  batch_ingredient: [
+    'id',
+    'batch_id',
+    'food_item_id',
+    'position',
+    'quantity',
+    'section',
+  ],
   shopping_item: ['id', 'food_item_id', 'label', 'quantity', 'checked'],
   meal: ['id', 'name', 'type_meal', 'logged_at', 'source_meal_id'],
   meal_item: [
@@ -82,6 +93,7 @@ const TABLES = {
     'meal_id',
     'food_item_id',
     'recipe_id',
+    'batch_id',
     'quantity',
     'kcal',
     'protein',
@@ -148,6 +160,8 @@ const LIST_TABLES = [
   'recipe',
   'recipe_ingredient',
   'recipe_step',
+  'batch',
+  'batch_ingredient',
   'shopping_item',
   'meal',
   'meal_item',
@@ -188,6 +202,9 @@ const RECIPE_TABLES: readonly ListTable[] = [
   'recipe_step',
 ];
 
+/** The tables a file before the twelfth format did not have yet. */
+const BATCH_TABLES: readonly ListTable[] = ['batch', 'batch_ingredient'];
+
 const without = (excluded: readonly ListTable[]) =>
   LIST_TABLES.filter((table) => !excluded.includes(table));
 
@@ -199,6 +216,7 @@ function tablesIn(backup: Pick<Backup, 'format'>): readonly ListTable[] {
     ...(backup.format < RECIPES_FORMAT ? RECIPE_TABLES : []),
     ...(backup.format < SHOPPING_FORMAT ? ['shopping_item' as const] : []),
     ...(backup.format < CARDIO_SETS_FORMAT ? ['cardio_set' as const] : []),
+    ...(backup.format < BATCHES_FORMAT ? BATCH_TABLES : []),
   ];
   return without(missing);
 }
@@ -206,9 +224,9 @@ function tablesIn(backup: Pick<Backup, 'format'>): readonly ListTable[] {
 /**
  * The tables a restore replaces. A file from before the fitness tab leaves
  * them all as they are; a later one replaces the exercises, so the favorites
- * made of them go too, even when the file has none. The recipes and the
- * shopping list are made of the foods, so they are always replaced, emptied
- * by a file from before them.
+ * made of them go too, even when the file has none. The recipes, their
+ * batches and the shopping list are made of the foods, so they are always
+ * replaced, emptied by a file from before them.
  */
 function tablesRestored(backup: Pick<Backup, 'format'>): readonly ListTable[] {
   return backup.format < FITNESS_FORMAT ? without(FITNESS_TABLES) : LIST_TABLES;
@@ -229,6 +247,9 @@ export interface Backup {
   recipe?: Row[];
   recipe_ingredient?: Row[];
   recipe_step?: Row[];
+  /** The batches, missing from the files before the twelfth format. */
+  batch?: Row[];
+  batch_ingredient?: Row[];
   /** The shopping list, missing from the files before the eighth format. */
   shopping_item?: Row[];
   /** The fitness tables, missing from the files of the first format. */
@@ -270,6 +291,8 @@ export async function exportBackup(
     recipe: [],
     recipe_ingredient: [],
     recipe_step: [],
+    batch: [],
+    batch_ingredient: [],
     shopping_item: [],
     meal: [],
     meal_item: [],

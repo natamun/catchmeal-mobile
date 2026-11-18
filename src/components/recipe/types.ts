@@ -90,3 +90,31 @@ export interface RecipeInput {
   }[];
   steps: string[];
 }
+
+/** The servings and ingredients of a recipe cooked once, adapted or not. */
+export interface CookInput {
+  servings: number;
+  ingredients: RecipeInput['ingredients'];
+}
+
+/**
+ * A recipe cooked once: a copy of its servings and ingredients, adapted or
+ * not, whose servings the journal logs over several days. What is not logged
+ * yet is a leftover, until it is eaten or discarded.
+ */
+export interface Batch {
+  id: number;
+  recipeId: number;
+  /** The recipe's name. */
+  name: string;
+  /** The day it was cooked (YYYY-MM-DD). */
+  cookedOn: string;
+  servings: number;
+  /** The servings not logged yet. */
+  remaining: number;
+  /** Its ingredients or servings differ from the recipe's. */
+  adapted: boolean;
+  discarded: boolean;
+  /** Calories and macros of the whole batch. */
+  totals: Nutrition;
+}

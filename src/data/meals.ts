@@ -6,7 +6,14 @@ import {
   type MealItemInput,
   type MealType,
 } from '../components/meal/types';
+import type { Batch } from '../components/recipe/types';
 import type { Database, Executor, SqlValue } from '../db/database';
+import {
+  checkBatchServings,
+  createBatch,
+  loggedServings,
+  readBatchesById,
+} from './batches';
 import { DataError } from './errors';
 import { loggableRecipes } from './recipes';
 import {
@@ -19,6 +26,7 @@ import {
 const GONE = "Ce repas n'existe plus.";
 const MISSING_FOOD = "Un des aliments n'existe plus.";
 const MISSING_RECIPE = "Une des recettes n'existe plus.";
+const MISSING_BATCH = "Des portions préparées n'existent plus.";
 
 interface MealRow {
   id: number;
@@ -32,6 +40,7 @@ interface ItemRow {
   meal_id: number;
   food_item_id: number | null;
   recipe_id: number | null;
+  batch_id: number | null;
   quantity: number;
   kcal: number;
   protein: number;
@@ -63,8 +72,9 @@ const amount = { min: 0 };
 const AN_ID = { min: 0, exclusive: true, integer: true };
 
 /**
- * Checks the lines: a food, servings of a recipe, or a quick add, which must
- * give its own calories and macros.
+ * Checks the lines: a food, servings of a recipe (adapted or not), servings
+ * of a leftover, or a quick add, which must give its own calories and macros.
+ * An adapted recipe is checked when its batch is stored.
  */
 function validateItems(items: unknown): MealItemInput[] {
   if (!Array.isArray(items) || items.length === 0) {
@@ -80,6 +90,23 @@ function validateItems(items: unknown): MealItemInput[] {
         'Une ligne est un aliment ou une recette, pas les deux.',
       );
     }
+    if (
+      item.batchId !== undefined &&
+      (item.foodItemId !== undefined || item.recipeId !== undefined)
+    ) {
+      throw new DataError(
+        'Une ligne est un plat préparé ou un aliment, pas les deux.',
+      );
+    }
+    if (item.adapted !== undefined && item.recipeId === undefined) {
+      throw new DataError('Seule une recette peut être adaptée.');
+    }
+    if (item.batchId !== undefined) {
+      return {
+        batchId: checkNumber(item.batchId, 'plat préparé', AN_ID),
+        quantity,
+      };
+    }
     if (item.foodItemId !== undefined) {
       return {
         foodItemId: checkNumber(item.foodItemId, 'aliment', AN_ID),
@@ -90,6 +117,7 @@ function validateItems(items: unknown): MealItemInput[] {
       return {
         recipeId: checkNumber(item.recipeId, 'recette', AN_ID),
         quantity,
+        ...(item.adapted !== undefined && { adapted: item.adapted }),
       };
     }
     return {
@@ -112,17 +140,39 @@ function checkLoggedMealHasType(
   }
 }
 
+/** Where the lines go, which decides what they may hold. */
+interface Target {
+  /** Journal lines, which may take leftovers and adapt a recipe. */
+  journal: boolean;
+  /**
+   * The day a recipe line is cooked, for new journal lines: the servings it
+   * leaves become a leftover. Null when lines are only edited.
+   */
+  cookOn: string | null;
+}
+
 /**
  * Computes each line: a food line takes the food's values scaled to the
- * quantity eaten, and a recipe line its servings of the recipe's totals, now,
- * so editing the food or the recipe later leaves this meal unchanged. An
- * archived food or recipe is only accepted when a meal already holds it
- * (editing that meal must keep working).
+ * quantity eaten, a recipe line its servings of the recipe's totals and a
+ * leftover line its servings of the batch's, now, so editing the food or the
+ * recipe later leaves this meal unchanged. A new journal line of a recipe
+ * that leaves servings, or adapted, stores its batch first. An archived food
+ * or recipe is only accepted when a meal already holds it (editing that meal
+ * must keep working).
  */
 async function buildItems(
   tx: Executor,
   items: MealItemInput[],
+  { journal, cookOn }: Target,
 ): Promise<ItemValues[]> {
+  if (
+    !journal &&
+    items.some((item) => item.batchId !== undefined || item.adapted)
+  ) {
+    throw new DataError(
+      'Un plat préparé ou une recette adaptée va dans le journal.',
+    );
+  }
   const ids = [
     ...new Set(
       items
@@ -155,54 +205,120 @@ async function buildItems(
     throw new DataError(MISSING_RECIPE);
   }
 
-  return items.map((item) => {
+  const batchIds = [
+    ...new Set(
+      items
+        .map(({ batchId }) => batchId)
+        .filter((id): id is number => id !== undefined),
+    ),
+  ];
+  const batchById = await readBatchesById(tx, batchIds);
+  if (batchById.size !== batchIds.length) {
+    throw new DataError(MISSING_BATCH);
+  }
+
+  const values: ItemValues[] = [];
+  for (const item of items) {
     if (item.recipeId !== undefined) {
-      const { servings, totals } = recipeById.get(item.recipeId)!;
-      const scale = item.quantity / servings;
-      return {
+      const recipe = recipeById.get(item.recipeId)!;
+      const cooked =
+        cookOn !== null &&
+        (item.adapted !== undefined || item.quantity < recipe.servings);
+      if (!cooked && item.adapted !== undefined) {
+        throw new DataError('Une recette adaptée se mange le jour même.');
+      }
+      if (cooked) {
+        const batchId = await createBatch(
+          tx,
+          item.recipeId,
+          item.adapted ?? null,
+          cookOn,
+        );
+        const batch = (await readBatchesById(tx, [batchId])).get(batchId)!;
+        batchById.set(batchId, batch);
+        values.push(batchLine(batch, item.quantity));
+        continue;
+      }
+      const scale = item.quantity / recipe.servings;
+      values.push({
         foodItemId: null,
         recipeId: item.recipeId,
+        batchId: null,
         quantity: item.quantity,
-        kcal: totals.kcal * scale,
-        protein: totals.protein * scale,
-        carbs: totals.carbs * scale,
-        fat: totals.fat * scale,
-      };
+        kcal: recipe.totals.kcal * scale,
+        protein: recipe.totals.protein * scale,
+        carbs: recipe.totals.carbs * scale,
+        fat: recipe.totals.fat * scale,
+      });
+      continue;
+    }
+    if (item.batchId !== undefined) {
+      values.push(batchLine(batchById.get(item.batchId)!, item.quantity));
+      continue;
     }
     if (item.foodItemId === undefined) {
-      return {
+      values.push({
         foodItemId: null,
         recipeId: null,
+        batchId: null,
         quantity: item.quantity,
         kcal: item.kcal!,
         protein: item.protein!,
         carbs: item.carbs!,
         fat: item.fat!,
-      };
+      });
+      continue;
     }
     const food = foodById.get(item.foodItemId)!;
     const scale = item.quantity / food.base_quantity;
-    return {
+    values.push({
       foodItemId: item.foodItemId,
       recipeId: null,
+      batchId: null,
       quantity: item.quantity,
       kcal: food.kcal * scale,
       protein: food.protein * scale,
       carbs: food.carbs * scale,
       fat: food.fat * scale,
-    };
-  });
+    });
+  }
+  return values;
 }
+
+/** Servings of a batch: its totals scaled to them. */
+function batchLine(batch: Batch, quantity: number): ItemValues {
+  const scale = quantity / batch.servings;
+  return {
+    foodItemId: null,
+    recipeId: batch.recipeId,
+    batchId: batch.id,
+    quantity,
+    kcal: batch.totals.kcal * scale,
+    protein: batch.totals.protein * scale,
+    carbs: batch.totals.carbs * scale,
+    fat: batch.totals.fat * scale,
+  };
+}
+
+/** The batches the lines take from. */
+const batchesOf = (lines: { batchId?: number | null }[]) => [
+  ...new Set(
+    lines
+      .map(({ batchId }) => batchId)
+      .filter((id): id is number => id !== undefined && id !== null),
+  ),
+];
 
 async function insertItems(tx: Executor, mealId: number, items: ItemValues[]) {
   for (const item of items) {
     await tx.run(
-      `INSERT INTO meal_item (meal_id, food_item_id, recipe_id, quantity, kcal, protein, carbs, fat)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO meal_item (meal_id, food_item_id, recipe_id, batch_id, quantity, kcal, protein, carbs, fat)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         mealId,
         item.foodItemId,
         item.recipeId,
+        item.batchId,
         item.quantity,
         item.kcal,
         item.protein,
@@ -220,7 +336,7 @@ async function readMeals(db: Executor, where: string, params: SqlValue[]) {
     params,
   );
   const items = await db.query<ItemRow>(
-    `SELECT id, meal_id, food_item_id, recipe_id, quantity, kcal, protein, carbs, fat FROM meal_item
+    `SELECT id, meal_id, food_item_id, recipe_id, batch_id, quantity, kcal, protein, carbs, fat FROM meal_item
      WHERE meal_id IN (SELECT id FROM meal WHERE ${where}) ORDER BY id`,
     params,
   );
@@ -236,6 +352,7 @@ async function readMeals(db: Executor, where: string, params: SqlValue[]) {
         id: item.id,
         foodItemId: item.food_item_id,
         recipeId: item.recipe_id,
+        batchId: item.batch_id,
         quantity: item.quantity,
         kcal: item.kcal,
         protein: item.protein,
@@ -284,12 +401,17 @@ export async function createMeal(db: Database, input: MealInput) {
   const items = validateItems(input.items);
 
   return db.transaction(async (tx) => {
-    const values = await buildItems(tx, items);
+    const before = await loggedServings(tx, batchesOf(items));
+    const values = await buildItems(tx, items, {
+      journal: loggedAt !== null,
+      cookOn: loggedAt,
+    });
     const { lastId } = await tx.run(
       'INSERT INTO meal (name, type_meal, logged_at) VALUES (?, ?, ?)',
       [name, typeMeal, loggedAt],
     );
     await insertItems(tx, lastId, values);
+    await checkBatchServings(tx, batchesOf(values), before);
     return readMeal(tx, lastId);
   });
 }
@@ -333,7 +455,13 @@ export async function updateMeal(
     checkLoggedMealHasType(next.loggedAt, next.typeMeal);
     // Computed before the old lines go, so a food they hold still counts as
     // used by a meal.
-    const values = items && (await buildItems(tx, items));
+    const before = await loggedServings(tx, batchesOf(items ?? []));
+    const values =
+      items &&
+      (await buildItems(tx, items, {
+        journal: next.loggedAt !== null,
+        cookOn: null,
+      }));
 
     await tx.run(
       'UPDATE meal SET name = ?, type_meal = ?, logged_at = ? WHERE id = ?',
@@ -342,6 +470,7 @@ export async function updateMeal(
     if (values) {
       await tx.run('DELETE FROM meal_item WHERE meal_id = ?', [id]);
       await insertItems(tx, id, values);
+      await checkBatchServings(tx, batchesOf(values), before);
     }
     return readMeal(tx, id);
   });
@@ -392,16 +521,20 @@ export async function replaceLoggedLines(
 
     // Computed before the old lines go, so an archived food they hold still
     // counts as used by a meal.
-    const [values] = input ? await buildItems(tx, [input]) : [null];
+    const before = await loggedServings(tx, batchesOf(input ? [input] : []));
+    const [values] = input
+      ? await buildItems(tx, [input], { journal: true, cookOn: null })
+      : [null];
     const [first, ...others] = rows;
     const gone = values ? others : rows;
     if (values) {
       await tx.run(
-        `UPDATE meal_item SET food_item_id = ?, recipe_id = ?, quantity = ?, kcal = ?, protein = ?, carbs = ?, fat = ?
+        `UPDATE meal_item SET food_item_id = ?, recipe_id = ?, batch_id = ?, quantity = ?, kcal = ?, protein = ?, carbs = ?, fat = ?
          WHERE id = ?`,
         [
           values.foodItemId,
           values.recipeId,
+          values.batchId,
           values.quantity,
           values.kcal,
           values.protein,
@@ -414,6 +547,7 @@ export async function replaceLoggedLines(
     for (const { id } of gone) {
       await tx.run('DELETE FROM meal_item WHERE id = ?', [id]);
     }
+    if (values) await checkBatchServings(tx, batchesOf([values]), before);
     for (const mealId of new Set(gone.map(({ meal_id }) => meal_id))) {
       await tx.run(
         'DELETE FROM meal WHERE id = ? AND NOT EXISTS (SELECT 1 FROM meal_item WHERE meal_id = ?)',

@@ -365,6 +365,41 @@ const EXERCISE_NOTES_V15 = `
 ALTER TABLE exercise ADD COLUMN notes TEXT CHECK (notes IS NULL OR length(trim(notes)) BETWEEN 1 AND 1000);
 `;
 
+/**
+ * A batch is a recipe cooked once: a copy of its ingredients and servings,
+ * adapted or not, so the leftovers keep that day's values while the recipe
+ * stays as it is. The journal logs servings of it; what is left is its
+ * servings minus those logged. A discarded batch leaves the leftovers.
+ */
+const BATCHES_V16 = `
+CREATE TABLE batch (
+  id INTEGER PRIMARY KEY,
+  recipe_id INTEGER NOT NULL REFERENCES recipe (id),
+  cooked_on TEXT NOT NULL CHECK (cooked_on GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+  servings INTEGER NOT NULL CHECK (servings > 0),
+  adapted INTEGER NOT NULL DEFAULT 0 CHECK (adapted IN (0, 1)),
+  discarded INTEGER NOT NULL DEFAULT 0 CHECK (discarded IN (0, 1))
+) STRICT;
+
+CREATE INDEX batch_recipe ON batch (recipe_id);
+
+CREATE TABLE batch_ingredient (
+  id INTEGER PRIMARY KEY,
+  batch_id INTEGER NOT NULL REFERENCES batch (id) ON DELETE CASCADE,
+  food_item_id INTEGER NOT NULL REFERENCES food_item (id),
+  position INTEGER NOT NULL CHECK (position >= 0),
+  quantity REAL NOT NULL CHECK (quantity > 0),
+  section TEXT CHECK (section IS NULL OR length(trim(section)) BETWEEN 1 AND 60)
+) STRICT;
+
+CREATE INDEX batch_ingredient_batch ON batch_ingredient (batch_id);
+CREATE INDEX batch_ingredient_food_item ON batch_ingredient (food_item_id);
+
+ALTER TABLE meal_item ADD COLUMN batch_id INTEGER REFERENCES batch (id) CHECK (batch_id IS NULL OR recipe_id IS NOT NULL);
+
+CREATE INDEX meal_item_batch ON meal_item (batch_id);
+`;
+
 /** Every schema step, oldest first. A new step is added at the end. */
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: SCHEMA_V1 },
@@ -382,6 +417,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 13, sql: CARDIO_SETS_V13 },
   { version: 14, sql: RECIPE_SECTIONS_V14 },
   { version: 15, sql: EXERCISE_NOTES_V15 },
+  { version: 16, sql: BATCHES_V16 },
 ];
 
 /**

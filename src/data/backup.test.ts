@@ -11,6 +11,7 @@ import {
   restoreBackup,
   type Backup,
 } from './backup';
+import { listLeftovers } from './batches';
 import { DataError } from './errors';
 import { setExerciseNotes } from './exercises';
 import { archiveFoodItem, createFoodItem } from './foodItems';
@@ -266,6 +267,24 @@ describe('backup', () => {
     ]);
   });
 
+  it('restores the recipe lines of a file from before the leftovers without any', async () => {
+    const old = structuredClone(backup);
+    old.format = 11;
+    delete old.batch;
+    delete old.batch_ingredient;
+    for (const item of old.meal_item) delete item.batch_id;
+    const target = await filledDatabase();
+
+    await restoreBackup(target, parseBackup(asText(old)));
+
+    expect(await listLeftovers(target)).toEqual([]);
+    expect(
+      await target.query(
+        'SELECT batch_id FROM meal_item WHERE recipe_id IS NOT NULL',
+      ),
+    ).toEqual([{ batch_id: null }]);
+  });
+
   it('turns the lean mass alert on when restoring a file from before it', async () => {
     const old = structuredClone(backup);
     old.format = 3;
@@ -302,8 +321,13 @@ describe('backup', () => {
     delete old.recipe;
     delete old.recipe_ingredient;
     delete old.recipe_step;
+    delete old.batch;
+    delete old.batch_ingredient;
     old.meal_item = old.meal_item.filter((item) => item.recipe_id === null);
-    for (const item of old.meal_item) delete item.recipe_id;
+    for (const item of old.meal_item) {
+      delete item.recipe_id;
+      delete item.batch_id;
+    }
     const target = await filledDatabase();
 
     await restoreBackup(target, parseBackup(asText(old)));
