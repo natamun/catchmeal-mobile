@@ -159,6 +159,7 @@ erDiagram
         int meal_id FK
         int food_item_id FK "null for a recipe or a quick add"
         int recipe_id FK "servings of a recipe"
+        int batch_id FK "the batch the servings come from, or null"
         real quantity "in the food's unit, or servings"
         real kcal
     }
@@ -185,6 +186,22 @@ erDiagram
         int recipe_id FK
         int position
         text instruction
+    }
+    batch {
+        int id PK
+        int recipe_id FK
+        text cooked_on "local day"
+        int servings "cooked, adapted or not"
+        int adapted
+        int discarded "out of the leftovers"
+    }
+    batch_ingredient {
+        int id PK
+        int batch_id FK
+        int food_item_id FK
+        int position
+        real quantity "in the food's unit"
+        text section
     }
     shopping_item {
         int id PK
@@ -255,6 +272,10 @@ erDiagram
     recipe ||--|{ recipe_ingredient : "contains"
     food_item ||--o{ recipe_ingredient : "used in"
     recipe ||--o{ recipe_step : "made of"
+    recipe ||--o{ batch : "cooked as"
+    batch ||--|{ batch_ingredient : "copies"
+    food_item ||--o{ batch_ingredient : "used in"
+    batch ||--o{ meal_item : "logged in"
     food_item ||--o| shopping_item : "to buy"
     workout ||--|{ workout_exercise : "contains"
     exercise ||--o{ workout_exercise : "done in"
@@ -266,6 +287,8 @@ erDiagram
 
 - A meal line stores the calories and macros computed when the meal is saved, so editing or archiving a food or a recipe later leaves past meals unchanged.
 - A recipe's calories and macros are not stored: they come from the current values of its foods. A deleted recipe is archived, like a food, so the meals that logged it keep its name.
+- A batch is a recipe cooked once: a copy of its ingredients and servings, adapted or not, so later edits of the recipe leave it unchanged. What is left of it is its servings minus the servings logged in `meal_item.batch_id`, never stored. Discarding a batch nothing was logged from deletes it; otherwise it is only marked `discarded`, for the journal lines that point to it.
+- The backup file is format 12: it adds `batch`, `batch_ingredient` and `meal_item.batch_id`. An older file restores with no batches.
 - The shopping list holds each food once: adding it again adds up the quantity, whatever recipe it is for.
 - Training sessions are a logbook: their calories are neither estimated nor added to the goals, because the measured expenditure already holds the training.
 - Some columns are left from earlier versions, empty and no longer read: `met` in `exercise`, the effort once used to estimate those calories; `name` and `duration_minutes` in `workout`, since the sessions became one a day; and `duration_minutes`, `speed_kmh` and `incline_percent` in `workout_exercise` and `workout_template_exercise`, since cardio is logged in sets. A favorite holds no values: a session started from it begins with the sets of the last time.

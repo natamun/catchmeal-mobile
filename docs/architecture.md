@@ -28,7 +28,7 @@ There is no store library. Three mechanisms:
 ## Screens and navigation
 
 - `App.tsx` declares the routes. The 5 tabs (Home, Food, Fitness, Stats, Profile) have routes whose element is `null`: `components/layout/AppLayout.tsx` draws them itself as a swipeable carousel (`useSwipeTabs`). Tabs are lazy-loaded, stay mounted once shown, and off-screen tabs are `inert`; all are prepared 300 ms after start.
-- Flow pages (journal add, training add, library meal, favorite session, recipe view and edit, shopping add) render through `<Outlet>` inside `FlowLayer`, an overlay above the tabs, with `FlowHeader`. Editing a row of the journal or an exercise of the day's session is not a page: it opens a bottom sheet (`JournalLineSheet`, `ExerciseGymSheet`). A library meal (`/food/meal/:mealId`) or a favorite session (`/fitness/session/:templateId`, `TemplatePage` and `TemplateForm`, with its exercises reordered by drag) is a page, not a dialog. `FlowFooter` sticks the totals, an error and the save button to the bottom of such a page.
+- Flow pages (journal add, training add, library meal, favorite session, recipe view, edit and cook, shopping add) render through `<Outlet>` inside `FlowLayer`, an overlay above the tabs, with `FlowHeader`. Editing a row of the journal or an exercise of the day's session is not a page: it opens a bottom sheet (`JournalLineSheet`, `ExerciseGymSheet`). A library meal (`/food/meal/:mealId`) or a favorite session (`/fitness/session/:templateId`, `TemplatePage` and `TemplateForm`, with its exercises reordered by drag) is a page, not a dialog. `FlowFooter` sticks the totals, an error and the save button to the bottom of such a page.
 - `routing/paths.ts` holds every path (`PATHS`); `routing/navigation.ts` has `useGoBack`. The Android back button is handled in `native/androidBackButton.ts`.
 
 ## Shared UI pieces
@@ -70,10 +70,18 @@ In `components/ui/`:
 
 ## Database
 
-- Migrations: an inline array in `db/migrations.ts`, versioned with `PRAGMA user_version`, one transaction per step (V1 to V15 today). Append a new step; never edit a shipped one, phones already ran it. `db/migrations.test.ts` checks the upgrade path.
+- Migrations: an inline array in `db/migrations.ts`, versioned with `PRAGMA user_version`, one transaction per step (V1 to V16 today). Append a new step; never edit a shipped one, phones already ran it. `db/migrations.test.ts` checks the upgrade path.
 - Tables are `STRICT` with `CHECK` constraints, so a bad value fails in SQLite too.
 - Plugin traps (`@capacitor-community/sqlite` on Android): a COMMIT that fails leaves the transaction open in SQLite while the plugin forgets it, and every later transaction is refused until restart. So a rule must make its own statement fail before COMMIT (no deferred foreign keys). The plugin also rewrites DELETE into soft deletes when a table has `last_modified` / `sql_deleted`, splits scripts on ";\n" and strips `--` comments.
-- Backup: `data/backup.ts` exports and restores every table in its own JSON format; a new table or column must be added there (format 11 today, with `exercise.notes`).
+- Backup: `data/backup.ts` exports and restores every table in its own JSON format; a new table or column must be added there (format 12 today, with the batches).
+
+## Batches and leftovers
+
+- `data/batches.ts` stores a batch: a recipe cooked once, with a copy of its ingredients and servings (`batch`, `batch_ingredient`). `createBatch` runs inside the transaction of the journal save or of `cookRecipe`; it flags the batch `adapted` when the servings or ingredients differ from the recipe. `listLeftovers` returns the batches not discarded with servings left (servings minus the sum of `meal_item.batch_id` quantities, computed, not stored). `checkBatchServings` refuses a line that takes more than what is left. `discardBatch` deletes a batch nothing was logged from, and marks the others `discarded`.
+- `data/meals.ts` creates a batch when a journal line has a recipe with `adapted`, or when a recipe is logged for fewer servings than cooked, so the rest becomes a leftover.
+- `LeftoverList` (in `components/home`) is the "Préparé" tab of `LibraryPicker`, shown only in the journal (`withLeftovers`). A leftover picked there becomes a draft through `newLeftoverDraft`.
+- `CookEditor` (in `components/recipe`) edits the servings and ingredients for one time. It serves two places: the adapt sheet of a recipe line in the journal, and the page `/food/recipe/:recipeId/cook` (`PATHS.recipeCook`, rendered by `RecipePage`) that cooks a recipe ahead.
+- Drafts of a recipe (`meal/draft.ts`) carry three optional fields: `batch` (the leftover they take from, whose totals and servings count), `adapted` (the `CookInput` of this time and its totals) and `max` (the most servings the line can take: what is left, or what was cooked). Steppers and typed values stay within `max`. `mergeItems` adds two lines only when they share the same batch and neither is adapted.
 
 ## Outside calls
 
