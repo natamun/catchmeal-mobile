@@ -72,6 +72,11 @@ export async function readBatchesById(db: Executor, ids: number[]) {
   return new Map(batches.map((batch) => [batch.id, batch]));
 }
 
+/** Every batch, discarded or eaten ones included: journal lines point to them. */
+export async function listBatches(db: Executor) {
+  return readBatches(db, '1 = 1', []);
+}
+
 /**
  * The leftovers: batches not discarded with servings not logged yet, the
  * newest cooked first.

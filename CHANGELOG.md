@@ -4,6 +4,12 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 
 ## [Unreleased]
 
+### Added
+
+- A recipe eaten in part leaves its other servings in a new "Préparé" tab of the journal picker, to log on the next days or remove once they will not be eaten.
+- A recipe added to the journal can be adapted for this time only, its ingredients and servings changed without touching the recipe.
+- A "Cuisiner" button on a recipe cooks it ahead: all its servings, adapted or not, go to "Préparé".
+
 ### Fixed
 
 - The quick add's category can be changed again: picking breakfast instead of dinner no longer puts the section back and empties the calories typed.

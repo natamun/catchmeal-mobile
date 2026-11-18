@@ -34,6 +34,7 @@ function AppRoutes() {
         <Route path={PATHS.template} element={<TemplatePage />} />
         <Route path={PATHS.recipe} element={<RecipePage />} />
         <Route path={PATHS.recipeEdit} element={<RecipePage />} />
+        <Route path={PATHS.recipeCook} element={<RecipePage />} />
         <Route path={PATHS.shoppingAdd} element={<ShoppingAddPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />

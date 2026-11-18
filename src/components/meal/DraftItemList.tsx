@@ -11,6 +11,8 @@ interface DraftItemListProps {
   onMove?: (from: number, to: number) => void;
   /** Shows each item's calories; the shopping list leaves them out. */
   showKcal?: boolean;
+  /** Given, a recipe can be cooked differently this time (the journal). */
+  onAdapt?: (item: MealItemDraft) => void;
   className?: string;
 }
 
@@ -25,11 +27,14 @@ export function DraftItemList({
   onRemove,
   onMove,
   showKcal = true,
+  onAdapt,
   className = '',
 }: DraftItemListProps) {
   return (
     <EditableList
-      rows={items.map((item) => draftRow(item, onChange, onRemove, showKcal))}
+      rows={items.map((item) =>
+        draftRow(item, onChange, onRemove, showKcal, onAdapt),
+      )}
       onMove={onMove}
       className={className}
     />

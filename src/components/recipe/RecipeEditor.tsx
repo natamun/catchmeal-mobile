@@ -56,6 +56,12 @@ interface PartProps {
   editor: RecipeEditor;
 }
 
+/** What the ingredients need of an editor: cooking a recipe uses them too. */
+export type IngredientsState = Pick<
+  RecipeEditor,
+  'form' | 'update' | 'errors' | 'foodItems'
+>;
+
 /** Name, category, servings and preparation time. */
 export function InfoFields({ editor }: PartProps) {
   const { form, update, errors } = editor;
@@ -199,7 +205,7 @@ function SectionTitle({
  * handle; a new food goes to the end, in the last section, and a food
  * already there can be added again for another section.
  */
-export function IngredientsEditor({ editor }: PartProps) {
+export function IngredientsEditor({ editor }: { editor: IngredientsState }) {
   const { form, update, errors, foodItems } = editor;
   const lines = form.ingredients;
   const foodDialogRef = useRef<HTMLDialogElement>(null);

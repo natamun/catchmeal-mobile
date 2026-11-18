@@ -10,6 +10,10 @@ export const recipePath = (id: number | 'new') =>
 export const recipeEditPath = (id: number) =>
   generatePath(PATHS.recipeEdit, { recipeId: String(id) });
 
+/** URL of the page that cooks a recipe ahead, into leftovers. */
+export const recipeCookPath = (id: number) =>
+  generatePath(PATHS.recipeCook, { recipeId: String(id) });
+
 /** URL of the page that edits a library meal, or writes a new one. */
 export const mealPath = (id: number | 'new') =>
   generatePath(PATHS.meal, { mealId: String(id) });

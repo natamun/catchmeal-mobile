@@ -1,8 +1,11 @@
+import { SlidersHorizontal } from 'lucide-react';
+
 import { MACROS } from '../../constants/macros';
 import { roundDecimals } from '../../utils/decimals';
 import { DEFAULT_PORTION_NAME, pluralOf, portionLabel } from '../food/portion';
 import { UNIT_LABELS } from '../food/types';
 import { servingsLabel } from '../recipe/servings';
+import { SECONDARY_BUTTON_CLASS } from '../ui/buttonStyle';
 import type { EditableRow } from '../ui/EditableList';
 import { MacroBadge } from '../ui/MacroBadge';
 import { QuantityStepper } from '../ui/QuantityStepper';
@@ -15,12 +18,24 @@ import {
 } from './draft';
 import { UnitToggle } from './UnitToggle';
 
-/** The row of one item: its quantity, its calories and its controls. */
+/** The name of a recipe line, which says when it is a leftover or adapted. */
+function recipeName(item: Extract<MealItemDraft, { kind: 'recipe' }>) {
+  if (item.batch) return `${item.recipe.name} · préparé`;
+  if (item.adapted) return `${item.recipe.name} (adaptée)`;
+  return item.recipe.name;
+}
+
+/**
+ * The row of one item: its quantity, its calories and its controls. With
+ * `onAdapt`, a recipe not taken from a leftover can be cooked differently
+ * this time.
+ */
 export function draftRow(
   item: MealItemDraft,
   onChange: (item: MealItemDraft) => void,
   onRemove: (id: string) => void,
   showKcal: boolean,
+  onAdapt?: (item: MealItemDraft) => void,
 ): EditableRow {
   const totals = draftTotals([item]);
   const kcal = `${Math.round(totals.kcal)} kcal`;
@@ -52,21 +67,37 @@ export function draftRow(
 
   if (item.kind === 'recipe') {
     const value = servingsLabel(item.quantity);
+    const stepper = (
+      <QuantityStepper
+        text={value}
+        onAdjust={(delta) => onChange(adjustDraft(item, delta))}
+        typing={{
+          value: item.quantity,
+          unit: 'portions',
+          onType: (typed) => onChange(setDraftQuantity(item, typed)),
+        }}
+      />
+    );
     return {
       ...base,
-      name: item.recipe.name,
+      name: recipeName(item),
       value,
-      editor: (
-        <QuantityStepper
-          text={value}
-          onAdjust={(delta) => onChange(adjustDraft(item, delta))}
-          typing={{
-            value: item.quantity,
-            unit: 'portions',
-            onType: (typed) => onChange(setDraftQuantity(item, typed)),
-          }}
-        />
-      ),
+      editor:
+        onAdapt && !item.batch ? (
+          <div className="flex flex-col gap-3">
+            {stepper}
+            <button
+              type="button"
+              onClick={() => onAdapt(item)}
+              className={SECONDARY_BUTTON_CLASS}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {item.adapted ? "Changer l'adaptation" : 'Adapter cette fois'}
+            </button>
+          </div>
+        ) : (
+          stepper
+        ),
     };
   }
 

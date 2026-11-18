@@ -41,6 +41,7 @@ export default function HomePage() {
     meals,
     foodItems,
     recipes,
+    batches,
     isReady,
     isLoading,
     loadError,
@@ -129,6 +130,7 @@ export default function HomePage() {
               meals={meals}
               foodItems={foodItems}
               recipes={recipes}
+              batches={batches}
               isLoading={isLoading}
               loadError={loadError}
               onRetry={retry}

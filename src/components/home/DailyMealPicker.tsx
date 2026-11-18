@@ -11,8 +11,8 @@ interface DailyMealPickerProps {
 }
 
 /**
- * Page content that adds foods, library meals and recipes to one section of
- * the journal, in two steps: select them in three tabs, then check the
+ * Page content that adds foods, library meals, recipes and leftovers to one
+ * section of the journal, in two steps: select them, then check the
  * quantities before saving.
  */
 export function DailyMealPicker({
@@ -26,6 +26,7 @@ export function DailyMealPicker({
       title={MEAL_TYPE_LABELS[mealType]}
       subtitle={formatWeekday(date)}
       onClose={onClose}
+      withLeftovers
       renderReview={(items) => (
         <DailyMealReview
           mealType={mealType}

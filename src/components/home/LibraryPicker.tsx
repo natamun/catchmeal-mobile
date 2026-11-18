@@ -1,23 +1,31 @@
 import { useEffect, useState, type ReactNode } from 'react';
 
 import type { FoodUsage } from '../../data/foodItems';
+import { useList } from '../../hooks/useList';
 import { useToggleSet } from '../../hooks/useToggleSet';
 import { listFoodItems, listFoodUsage } from '../food/api';
 import { FoodItemList } from '../food/FoodItemList';
 import type { FoodItem } from '../food/types';
 import { FlowHeader } from '../layout/FlowHeader';
 import { listMeals } from '../meal/api';
-import { buildDrafts, type MealItemDraft } from '../meal/draft';
+import {
+  buildDrafts,
+  newLeftoverDraft,
+  type MealItemDraft,
+} from '../meal/draft';
 import { MealList } from '../meal/MealList';
 import type { Meal } from '../meal/types';
-import { listRecipes } from '../recipe/api';
+import { listLeftovers, listRecipes } from '../recipe/api';
 import { RecipeList } from '../recipe/RecipeList';
-import type { Recipe } from '../recipe/types';
+import type { Batch, Recipe } from '../recipe/types';
 import { PillTabs } from '../ui/PillTabs';
 import { SelectToggle } from '../ui/SelectToggle';
+import { LeftoverList } from './LeftoverList';
 import { SelectionBar } from './SelectionBar';
 
-type PickerTab = 'food' | 'meal' | 'recipe';
+const noLeftovers = () => Promise.resolve<Batch[]>([]);
+
+type PickerTab = 'food' | 'meal' | 'recipe' | 'leftover';
 
 const TAB_OPTIONS: { value: PickerTab; label: string }[] = [
   { value: 'food', label: 'Aliments' },
@@ -29,6 +37,8 @@ interface LibraryPickerProps {
   title: string;
   subtitle: string;
   onClose: () => void;
+  /** Offers the leftovers above the library (the journal). */
+  withLeftovers?: boolean;
   /** Changes the drafts picked before the second step, if needed. */
   prepare?: (items: MealItemDraft[]) => MealItemDraft[];
   /** The second step, from the drafts picked: the quantities, then saving. */
@@ -37,13 +47,14 @@ interface LibraryPickerProps {
 
 /**
  * Page content that picks foods, library meals and recipes in two steps:
- * select them in three tabs, then the second step, such as checking the
- * quantities before saving.
+ * select them in three tabs (four with the leftovers, for the journal),
+ * then the second step, such as checking the quantities before saving.
  */
 export function LibraryPicker({
   title,
   subtitle,
   onClose,
+  withLeftovers = false,
   prepare = (items) => items,
   renderReview,
 }: LibraryPickerProps) {
@@ -57,6 +68,8 @@ export function LibraryPicker({
   const [selectedFoodIds, toggleFood] = useToggleSet<number>();
   const [selectedMealIds, toggleMeal] = useToggleSet<number>();
   const [selectedRecipeIds, toggleRecipe] = useToggleSet<number>();
+  const [selectedBatchIds, toggleBatch] = useToggleSet<number>();
+  const leftovers = useList(withLeftovers ? listLeftovers : noLeftovers);
   const [review, setReview] = useState<{
     key: number;
     items: MealItemDraft[];
@@ -90,11 +103,22 @@ export function LibraryPicker({
     return () => controller.abort();
   }, []);
 
+  // A leftover eaten meanwhile is no longer picked.
+  const pickedLeftovers = leftovers.items.filter((batch) =>
+    selectedBatchIds.has(batch.id),
+  );
   const selectedCount =
-    selectedFoodIds.size + selectedMealIds.size + selectedRecipeIds.size;
+    selectedFoodIds.size +
+    selectedMealIds.size +
+    selectedRecipeIds.size +
+    pickedLeftovers.length;
 
   const openReview = () => {
-    const items = buildDrafts(
+    const fromLeftovers = pickedLeftovers.flatMap((batch) => {
+      const recipe = recipes.find(({ id }) => id === batch.recipeId);
+      return recipe ? [newLeftoverDraft(batch, recipe)] : [];
+    });
+    const fromLibrary = buildDrafts(
       {
         foods: foodItems.filter((food) => selectedFoodIds.has(food.id)),
         recipes: recipes.filter((recipe) => selectedRecipeIds.has(recipe.id)),
@@ -102,6 +126,7 @@ export function LibraryPicker({
       },
       { foodItems, recipes },
     );
+    const items = [...fromLeftovers, ...fromLibrary];
     setReview((prev) => ({ key: (prev?.key ?? 0) + 1, items: prepare(items) }));
   };
 
@@ -130,14 +155,25 @@ export function LibraryPicker({
       {header}
       <PillTabs
         name="mealPickerTab"
-        options={TAB_OPTIONS}
+        options={
+          withLeftovers
+            ? [...TAB_OPTIONS, { value: 'leftover', label: 'Préparé' }]
+            : TAB_OPTIONS
+        }
         value={tab}
         onChange={setTab}
         className="self-start"
       />
 
       <div key={tab} className="animate-fade-in-up">
-        {tab === 'food' ? (
+        {tab === 'leftover' ? (
+          <LeftoverList
+            leftovers={leftovers.items}
+            isLoading={leftovers.isLoading}
+            isSelected={(batch) => selectedBatchIds.has(batch.id)}
+            onToggle={(batch) => toggleBatch(batch.id)}
+          />
+        ) : tab === 'food' ? (
           <FoodItemList
             items={foodItems}
             isLoading={isLoading}

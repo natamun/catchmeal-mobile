@@ -10,6 +10,7 @@ export const PATHS = {
   meal: '/food/meal/:mealId',
   recipe: '/food/recipe/:recipeId',
   recipeEdit: '/food/recipe/:recipeId/edit',
+  recipeCook: '/food/recipe/:recipeId/cook',
   shoppingAdd: '/food/shopping/add',
   fitness: '/fitness',
   template: '/fitness/session/:templateId',

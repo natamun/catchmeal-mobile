@@ -1,12 +1,17 @@
 import { useState } from 'react';
-import { Copy, ShoppingCart } from 'lucide-react';
+import { ChefHat, Copy, ShoppingCart } from 'lucide-react';
 import { useLocation, useMatch, useNavigate, useParams } from 'react-router';
 
 import { listFoodItems } from '../components/food/api';
 import type { FoodItem } from '../components/food/types';
 import { useFlow } from '../components/layout/flowContext';
 import { FlowHeader } from '../components/layout/FlowHeader';
-import { deleteRecipe, listRecipes } from '../components/recipe/api';
+import {
+  cookRecipe,
+  deleteRecipe,
+  listRecipes,
+} from '../components/recipe/api';
+import { CookEditor } from '../components/recipe/CookEditor';
 import { RecipeAiCard } from '../components/recipe/RecipeAiCard';
 import {
   CookingField,
@@ -25,8 +30,12 @@ import {
   StepRows,
   TextBlock,
 } from '../components/recipe/RecipeView';
-import { recipeMeta, servingsLabel } from '../components/recipe/servings';
-import type { Recipe } from '../components/recipe/types';
+import {
+  recipeMeta,
+  scaledQuantity,
+  servingsLabel,
+} from '../components/recipe/servings';
+import type { CookInput, Recipe } from '../components/recipe/types';
 import { useRecipeEditor } from '../components/recipe/useRecipeEditor';
 import { addFoodsToShopping } from '../components/shopping/api';
 import { recipeToShopping } from '../components/shopping/lines';
@@ -39,11 +48,18 @@ import { useKeepAwake } from '../hooks/useKeepAwake';
 import { useList } from '../hooks/useList';
 import { useGoBack } from '../routing/navigation';
 import { PATHS } from '../routing/paths';
-import { recipeEditPath, recipePath } from '../routing/recipes';
+import { recipeCookPath, recipeEditPath, recipePath } from '../routing/recipes';
+import { toDateKey } from '../utils/dateKey';
+import { MAX_DECIMALS, roundDecimals } from '../utils/decimals';
+import { failureMessage } from '../utils/failureMessage';
 
-/** What the page is opened with: a new recipe can start as a copy. */
+/**
+ * What the page is opened with: a new recipe can start as a copy, and
+ * cooking starts from the servings chosen on the recipe.
+ */
 interface RecipeState {
   copyOf?: number;
+  servings?: number;
 }
 
 interface PageProps {
@@ -61,6 +77,8 @@ interface SheetProps {
   onEdit: () => void;
   onCopy: () => void;
   onDeleted: () => void;
+  /** Cooks it ahead, for the servings chosen. */
+  onCook: (servings: number) => void;
 }
 
 /**
@@ -75,6 +93,7 @@ function RecipeSheet({
   onEdit,
   onCopy,
   onDeleted,
+  onCook,
 }: SheetProps) {
   const [servings, setServings] = useState(recipe.servings);
   const [isAdding, setIsAdding] = useState(false);
@@ -132,15 +151,25 @@ function RecipeSheet({
           foodItems={foodItems}
           servings={servings}
         />
-        <button
-          type="button"
-          onClick={() => void addToShopping()}
-          disabled={isAdding}
-          className={`${SECONDARY_BUTTON_CLASS} flex-none`}
-        >
-          <ShoppingCart className="h-4 w-4" />
-          Ajouter aux courses
-        </button>
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={() => void addToShopping()}
+            disabled={isAdding}
+            className={SECONDARY_BUTTON_CLASS}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Ajouter aux courses
+          </button>
+          <button
+            type="button"
+            onClick={() => onCook(servings)}
+            className={SECONDARY_BUTTON_CLASS}
+          >
+            <ChefHat className="h-4 w-4" />
+            Cuisiner
+          </button>
+        </div>
       </Card>
       {recipe.cooking && (
         <Card title="Cuisson">
@@ -158,6 +187,74 @@ function RecipeSheet({
         </Card>
       )}
       <RecipeAiCard recipe={recipe} foodItems={foodItems} />
+    </>
+  );
+}
+
+interface CookProps {
+  recipe: Recipe;
+  foodItems: FoodItem[];
+  /** The servings chosen on the recipe: its ingredients are scaled to them. */
+  servings: number;
+  onClose: () => void;
+}
+
+/** The recipe's ingredients for `servings` servings instead of its own. */
+function scaledCook(recipe: Recipe, servings: number): CookInput {
+  return {
+    servings,
+    ingredients: recipe.ingredients.map((item) => ({
+      foodItemId: item.foodItemId,
+      quantity: roundDecimals(
+        scaledQuantity(item.quantity, recipe.servings, servings),
+        MAX_DECIMALS,
+      ),
+      section: item.section,
+    })),
+  };
+}
+
+/**
+ * The recipe cooked ahead today: its servings and ingredients, adapted or
+ * not, all become a leftover to log later. The recipe stays as it is.
+ */
+function CookRecipe({ recipe, foodItems, servings, onClose }: CookProps) {
+  const showToast = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const cook = async (input: CookInput) => {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      await cookRecipe(recipe.id, input, toDateKey(new Date()));
+      showToast(
+        `${servingsLabel(input.servings)} ${input.servings > 1 ? 'prêtes' : 'prête'}`,
+      );
+      onClose();
+    } catch (err: unknown) {
+      setError(failureMessage(err, 'Une erreur est survenue, réessayez.'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      <FlowHeader title="Cuisiner" subtitle={recipe.name} onClose={onClose} />
+      <CookEditor
+        recipe={recipe}
+        foodItems={foodItems}
+        initial={
+          servings === recipe.servings
+            ? undefined
+            : scaledCook(recipe, servings)
+        }
+        submitLabel="Enregistrer les portions"
+        isSubmitting={isSubmitting}
+        error={error}
+        onSubmit={(input) => void cook(input)}
+      />
     </>
   );
 }
@@ -211,13 +308,15 @@ function EditRecipe({
 
 /**
  * /food/recipe/:recipeId: a recipe to read, or "new" to write one (a copy of
- * another when the page is opened with `copyOf`), and
- * /food/recipe/:recipeId/edit to edit it. Slides in over the food page.
+ * another when the page is opened with `copyOf`),
+ * /food/recipe/:recipeId/edit to edit it and /food/recipe/:recipeId/cook to
+ * cook it ahead. Slides in over the food page.
  */
 export default function RecipePage() {
   const { recipeId = '' } = useParams();
   const { state } = useLocation() as { state: RecipeState | null };
   const isEditRoute = useMatch(PATHS.recipeEdit) !== null;
+  const isCookRoute = useMatch(PATHS.recipeCook) !== null;
   const navigate = useNavigate();
   const flow = useFlow();
   const recipes = useList(listRecipes);
@@ -267,6 +366,15 @@ export default function RecipePage() {
         <EmptyPart>Cette recette n'existe plus.</EmptyPart>
       </>
     );
+  } else if (isCookRoute) {
+    content = (
+      <CookRecipe
+        recipe={recipe!}
+        foodItems={foods.items}
+        servings={state?.servings ?? recipe!.servings}
+        onClose={backToSheet}
+      />
+    );
   } else if (isNew || isEditRoute) {
     content = (
       <EditRecipe
@@ -289,6 +397,11 @@ export default function RecipePage() {
           })
         }
         onDeleted={close}
+        onCook={(servings) =>
+          void navigate(recipeCookPath(id), {
+            state: { servings } satisfies RecipeState,
+          })
+        }
       />
     );
   }

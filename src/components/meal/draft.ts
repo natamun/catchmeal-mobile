@@ -1,12 +1,13 @@
 import { MAX_DECIMALS, roundDecimals } from '../../utils/decimals';
 import { wholePortions } from '../food/portion';
 import type { FoodItem } from '../food/types';
-import type { Recipe } from '../recipe/types';
+import type { Batch, CookInput, Nutrition, Recipe } from '../recipe/types';
 import type { Meal, MealItemInput } from './types';
 
 /**
  * An item of a meal being edited: a food of the library with a quantity,
- * servings of a recipe, or a quick add (calories and macros typed by hand).
+ * servings of a recipe (taken from a leftover, or adapted this time), or a
+ * quick add (calories and macros typed by hand).
  * The quantity of a food is in its base unit; `inPortions` shows it as a
  * number of portions instead, for a food that has one. `id` is only a local
  * key for React lists.
@@ -25,6 +26,12 @@ export type MealItemDraft =
       recipe: Recipe;
       /** In servings. */
       quantity: number;
+      /** The batch the servings come from: a leftover, or its journal line. */
+      batch?: Batch;
+      /** The recipe cooked differently this time, with its totals. */
+      adapted?: { cook: CookInput; totals: Nutrition };
+      /** The most servings it can take: what is left, or what was cooked. */
+      max?: number;
     }
   | {
       id: string;
@@ -55,8 +62,47 @@ export function newRecipeDraft(recipe: Recipe): MealItemDraft {
   return { id: crypto.randomUUID(), kind: 'recipe', recipe, quantity: 1 };
 }
 
+/** A leftover just added to a meal: one serving, or what is left if less. */
+export function newLeftoverDraft(batch: Batch, recipe: Recipe): MealItemDraft {
+  return {
+    id: crypto.randomUUID(),
+    kind: 'recipe',
+    recipe,
+    batch,
+    quantity: Math.min(1, batch.remaining),
+    max: batch.remaining,
+  };
+}
+
+/**
+ * The recipe line cooked as `cook` this time, with `totals` for the whole of
+ * it: it takes at most the servings cooked.
+ */
+export function adaptDraft(
+  item: MealItemDraft,
+  cook: CookInput,
+  totals: Nutrition,
+): MealItemDraft {
+  if (item.kind !== 'recipe') return item;
+  return {
+    ...item,
+    adapted: { cook, totals },
+    max: cook.servings,
+    quantity: Math.min(item.quantity, cook.servings),
+  };
+}
+
 /** The smallest change of a recipe line: half a serving. */
 const HALF_SERVING = 0.5;
+
+/** Servings of a recipe line kept between half a serving and its maximum. */
+function servingsWithin(
+  item: Extract<MealItemDraft, { kind: 'recipe' }>,
+  quantity: number,
+) {
+  const least = Math.max(HALF_SERVING, quantity);
+  return item.max === undefined ? least : Math.min(item.max, least);
+}
 
 /**
  * Changes the quantity of a food by `delta` of the unit it is shown in, a
@@ -66,7 +112,7 @@ const HALF_SERVING = 0.5;
 export function adjustDraft(item: MealItemDraft, delta: number): MealItemDraft {
   if (item.kind === 'recipe') {
     const step = Math.sign(delta) * (Math.abs(delta) >= 10 ? 1 : HALF_SERVING);
-    return { ...item, quantity: Math.max(HALF_SERVING, item.quantity + step) };
+    return { ...item, quantity: servingsWithin(item, item.quantity + step) };
   }
   if (item.kind !== 'food') return item;
   const portion = item.inPortions ? item.foodItem.portionQuantity : null;
@@ -92,7 +138,7 @@ export function setDraftQuantity(
   }
   const rounded = roundDecimals(typed, MAX_DECIMALS);
   if (item.kind === 'recipe') {
-    return { ...item, quantity: Math.max(HALF_SERVING, rounded) };
+    return { ...item, quantity: servingsWithin(item, rounded) };
   }
   const portion = item.inPortions ? item.foodItem.portionQuantity : null;
   if (portion === null) return { ...item, quantity: Math.max(1, rounded) };
@@ -115,25 +161,38 @@ export function showInPortions(
 }
 
 /**
- * Turns a saved meal back into editable drafts. An item whose food or recipe
- * can't be found any more is skipped.
+ * Turns a saved meal back into editable drafts. An item whose food, recipe
+ * or batch can't be found any more is skipped. A line of a batch can grow by
+ * what is left of it, none once it was discarded.
  */
 export function mealToItems(
   meal: Meal,
   foodItems: FoodItem[],
   recipes: Recipe[] = [],
+  batches: Batch[] = [],
 ): MealItemDraft[] {
   const drafts: MealItemDraft[] = [];
 
   for (const item of meal.items) {
     if (item.recipeId !== null) {
       const recipe = recipes.find((r) => r.id === item.recipeId);
-      if (recipe) {
+      const batch = batches.find((b) => b.id === item.batchId);
+      if (recipe && item.batchId === null) {
         drafts.push({
           id: crypto.randomUUID(),
           kind: 'recipe',
           recipe,
           quantity: item.quantity,
+        });
+      }
+      if (recipe && batch) {
+        drafts.push({
+          id: crypto.randomUUID(),
+          kind: 'recipe',
+          recipe,
+          batch,
+          quantity: item.quantity,
+          max: item.quantity + (batch.discarded ? 0 : batch.remaining),
         });
       }
       continue;
@@ -169,9 +228,19 @@ export function mealToItems(
   return drafts;
 }
 
+/** The same recipe from the same batch, or both from none, not adapted. */
+const sameServings = (
+  a: Extract<MealItemDraft, { kind: 'recipe' }>,
+  b: Extract<MealItemDraft, { kind: 'recipe' }>,
+) =>
+  a.recipe.id === b.recipe.id &&
+  a.batch?.id === b.batch?.id &&
+  !a.adapted &&
+  !b.adapted;
+
 /**
- * Adds `extra` to `base`: a food or a recipe present in both becomes one line
- * with the quantities added up.
+ * Adds `extra` to `base`: a food or a recipe (from the same batch) present in
+ * both becomes one line with the quantities added up.
  */
 function mergeDrafts(
   base: MealItemDraft[],
@@ -182,12 +251,19 @@ function mergeDrafts(
   for (const draft of extra) {
     if (draft.kind === 'recipe') {
       const index = merged.findIndex(
-        (item) => item.kind === 'recipe' && item.recipe.id === draft.recipe.id,
+        (item) => item.kind === 'recipe' && sameServings(item, draft),
       );
-      if (index !== -1) {
+      const existing = merged[index];
+      if (index !== -1 && existing.kind === 'recipe') {
+        // Each journal line of a batch can grow by what is left: once.
+        const max =
+          existing.max === undefined
+            ? undefined
+            : existing.max + draft.quantity;
         merged[index] = {
-          ...merged[index],
-          quantity: merged[index].quantity + draft.quantity,
+          ...existing,
+          quantity: existing.quantity + draft.quantity,
+          max,
         };
         continue;
       }
@@ -227,6 +303,8 @@ interface Selection {
 interface Library {
   foodItems: FoodItem[];
   recipes: Recipe[];
+  /** The batches the journal lines took from. */
+  batches?: Batch[];
 }
 
 /**
@@ -242,7 +320,7 @@ export function buildDrafts(
   for (const meal of meals) {
     drafts = mergeDrafts(
       drafts,
-      mealToItems(meal, library.foodItems, library.recipes),
+      mealToItems(meal, library.foodItems, library.recipes, library.batches),
     );
   }
 
@@ -251,13 +329,20 @@ export function buildDrafts(
 
 /**
  * Calories and macros of the drafts: a food is scaled by quantity / base
- * quantity, a recipe by servings / its servings, a quick add counts as typed.
+ * quantity, a recipe by servings / its servings (those of its batch, or as
+ * adapted), a quick add counts as typed.
  */
 export function draftTotals(items: MealItemDraft[]) {
   return items.reduce(
     (acc, item) => {
       if (item.kind === 'recipe') {
-        const { totals, servings } = item.recipe;
+        const { totals, servings } =
+          item.batch ??
+          (item.adapted && {
+            totals: item.adapted.totals,
+            servings: item.adapted.cook.servings,
+          }) ??
+          item.recipe;
         const scale = item.quantity / servings;
         return {
           kcal: acc.kcal + totals.kcal * scale,
@@ -295,7 +380,14 @@ export function draftsToInput(items: MealItemDraft[]): MealItemInput[] {
   return items.map((item) => {
     const quantity = roundDecimals(item.quantity, MAX_DECIMALS);
     if (item.kind === 'food') return { foodItemId: item.foodItem.id, quantity };
-    if (item.kind === 'recipe') return { recipeId: item.recipe.id, quantity };
+    if (item.kind === 'recipe') {
+      if (item.batch) return { batchId: item.batch.id, quantity };
+      return {
+        recipeId: item.recipe.id,
+        quantity,
+        ...(item.adapted && { adapted: item.adapted.cook }),
+      };
+    }
     return {
       quantity,
       kcal: roundDecimals(item.kcal, MAX_DECIMALS),

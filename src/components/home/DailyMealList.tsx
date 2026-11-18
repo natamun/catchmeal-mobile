@@ -10,7 +10,7 @@ import {
   type MealFoodItem,
   type MealType,
 } from '../meal/types';
-import type { Recipe } from '../recipe/types';
+import type { Batch, Recipe } from '../recipe/types';
 import { INSET_ROW_CLASS } from '../ui/buttonStyle';
 import { Card } from '../ui/Card';
 import { LoadError } from '../ui/LoadError';
@@ -26,8 +26,9 @@ interface JournalRow {
 }
 
 /**
- * Rows of a section: the same food or recipe logged in several meals becomes
- * one row with its calories added up; each quick add keeps its own row.
+ * Rows of a section: the same food, or the same recipe from the same batch,
+ * logged in several meals becomes one row with its calories added up; each
+ * quick add keeps its own row.
  */
 function rowsOf(
   sectionMeals: Meal[],
@@ -36,26 +37,27 @@ function rowsOf(
 ): JournalRow[] {
   const rows: JournalRow[] = [];
   const rowByFoodId = new Map<number, JournalRow>();
-  const rowByRecipeId = new Map<number, JournalRow>();
+  const rowByRecipe = new Map<string, JournalRow>();
 
   for (const meal of sectionMeals) {
     for (const item of meal.items) {
       if (item.recipeId !== null) {
-        const existing = rowByRecipeId.get(item.recipeId);
+        const key = `recipe-${item.recipeId}-${item.batchId ?? 'none'}`;
+        const existing = rowByRecipe.get(key);
         if (existing) {
           existing.kcal += item.kcal;
           existing.items.push(item);
           continue;
         }
         const row: JournalRow = {
-          key: `recipe-${item.recipeId}`,
+          key,
           items: [item],
           label:
             recipes.find((recipe) => recipe.id === item.recipeId)?.name ??
             'Recette inconnue',
           kcal: item.kcal,
         };
-        rowByRecipeId.set(item.recipeId, row);
+        rowByRecipe.set(key, row);
         rows.push(row);
         continue;
       }
@@ -97,6 +99,8 @@ interface DailyMealListProps {
   meals: Meal[];
   foodItems: FoodItem[];
   recipes: Recipe[];
+  /** The batches the recipe lines took from. */
+  batches: Batch[];
   isLoading: boolean;
   loadError: string | null;
   onRetry: () => void;
@@ -112,6 +116,7 @@ export function DailyMealList({
   meals,
   foodItems,
   recipes,
+  batches,
   isLoading,
   loadError,
   onRetry,
@@ -127,7 +132,7 @@ export function DailyMealList({
   const lineOf = (row: JournalRow, meal: Meal): JournalLine | null => {
     const [draft] = buildDrafts(
       { meals: [{ ...meal, items: row.items }] },
-      { foodItems, recipes },
+      { foodItems, recipes, batches },
     );
     return draft ? { itemIds: row.items.map(({ id }) => id), draft } : null;
   };

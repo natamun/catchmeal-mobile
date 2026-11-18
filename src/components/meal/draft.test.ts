@@ -1,14 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
 import type { FoodItem } from '../food/types';
-import type { Recipe } from '../recipe/types';
+import type { Batch, Recipe } from '../recipe/types';
 import {
+  adaptDraft,
   adjustDraft,
   buildDrafts,
   draftsToInput,
   draftTotals,
   mealToItems,
   newFoodDraft,
+  newLeftoverDraft,
   newRecipeDraft,
   setDraftQuantity,
   showInPortions,
@@ -255,5 +257,137 @@ describe('setDraftQuantity', () => {
     for (const typed of [0, -3, Number.NaN]) {
       expect(setDraftQuantity(grams, typed)).toBe(grams);
     }
+  });
+});
+
+const PIZZA: Recipe = {
+  id: 7,
+  name: 'Pizza',
+  servings: 4,
+  category: 'MAIN',
+  prepMinutes: null,
+  cooking: null,
+  notes: null,
+  ingredients: [],
+  steps: [],
+  totals: { kcal: 1600, protein: 80, carbs: 200, fat: 40 },
+  archived: false,
+};
+
+describe('a leftover line', () => {
+  // 4 servings of 1800 kcal, 2.5 still left.
+  const BATCH: Batch = {
+    id: 3,
+    recipeId: PIZZA.id,
+    name: 'Pizza',
+    cookedOn: '2026-11-18',
+    servings: 4,
+    remaining: 2.5,
+    adapted: true,
+    discarded: false,
+    totals: { kcal: 1800, protein: 80, carbs: 200, fat: 60 },
+  };
+  const line = (id: number, quantity: number): Meal['items'][number] => ({
+    id,
+    foodItemId: null,
+    recipeId: PIZZA.id,
+    batchId: BATCH.id,
+    quantity,
+    kcal: 450 * quantity,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  });
+  const meal = (items: Meal['items']): Meal => ({
+    id: 1,
+    name: null,
+    typeMeal: 'DINNER',
+    loggedAt: '2026-11-19',
+    items,
+  });
+
+  it('starts at one serving, at most what is left, and saves its batch', () => {
+    const draft = newLeftoverDraft(BATCH, PIZZA);
+
+    expect(draft).toMatchObject({ quantity: 1, max: 2.5 });
+    expect(draftTotals([draft]).kcal).toBe(450);
+    expect(draftsToInput([draft])).toEqual([{ batchId: 3, quantity: 1 }]);
+    expect(newLeftoverDraft({ ...BATCH, remaining: 0.5 }, PIZZA)).toMatchObject(
+      { quantity: 0.5 },
+    );
+  });
+
+  it('never goes over what is left', () => {
+    const draft = newLeftoverDraft(BATCH, PIZZA);
+
+    expect(adjustDraft(adjustDraft(draft, 10), 10)).toMatchObject({
+      quantity: 2.5,
+    });
+    expect(setDraftQuantity(draft, 4)).toMatchObject({ quantity: 2.5 });
+  });
+
+  it('can grow by what is left once its journal lines are merged', () => {
+    const [draft] = buildDrafts(
+      { meals: [meal([line(1, 1), line(2, 0.5)])] },
+      { foodItems: [], recipes: [PIZZA], batches: [BATCH] },
+    );
+
+    expect(draft).toMatchObject({ quantity: 1.5, max: 4, batch: BATCH });
+  });
+
+  it('cannot grow once its batch was discarded', () => {
+    const [draft] = mealToItems(
+      meal([line(1, 1)]),
+      [],
+      [PIZZA],
+      [{ ...BATCH, discarded: true }],
+    );
+
+    expect(draft).toMatchObject({ quantity: 1, max: 1 });
+  });
+
+  it('is skipped while its batch is not known', () => {
+    expect(mealToItems(meal([line(1, 1)]), [], [PIZZA], [])).toEqual([]);
+  });
+
+  it('stays apart from the same recipe logged without a batch', () => {
+    const drafts = buildDrafts(
+      {
+        meals: [
+          meal([line(1, 1), { ...line(2, 1), batchId: null, kcal: 400 }]),
+        ],
+      },
+      { foodItems: [], recipes: [PIZZA], batches: [BATCH] },
+    );
+
+    expect(drafts).toHaveLength(2);
+  });
+});
+
+describe('an adapted recipe line', () => {
+  const cook = {
+    servings: 2,
+    ingredients: [{ foodItemId: RICE.id, quantity: 400 }],
+  };
+  const totals = { kcal: 1800, protein: 28, carbs: 300, fat: 48 };
+
+  it('takes its values from the adapted totals and saves the adaptation', () => {
+    const draft = adaptDraft(newRecipeDraft(PIZZA), cook, totals);
+
+    expect(draftTotals([draft]).kcal).toBe(900);
+    expect(draftsToInput([draft])).toEqual([
+      { recipeId: PIZZA.id, quantity: 1, adapted: cook },
+    ]);
+  });
+
+  it('takes at most the servings cooked', () => {
+    const draft = adaptDraft(
+      { ...newRecipeDraft(PIZZA), quantity: 3 },
+      cook,
+      totals,
+    );
+
+    expect(draft).toMatchObject({ quantity: 2, max: 2 });
+    expect(adjustDraft(draft, 10)).toMatchObject({ quantity: 2 });
   });
 });

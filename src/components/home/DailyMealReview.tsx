@@ -1,13 +1,25 @@
 import { useState } from 'react';
 
+import { useList } from '../../hooks/useList';
 import { toDateKey } from '../../utils/dateKey';
 import { failureMessage } from '../../utils/failureMessage';
+import { listFoodItems } from '../food/api';
 import { FlowFooter } from '../layout/FlowFooter';
 import { createMeal } from '../meal/api';
-import { draftsToInput, draftTotals, type MealItemDraft } from '../meal/draft';
+import {
+  adaptDraft,
+  draftsToInput,
+  draftTotals,
+  type MealItemDraft,
+} from '../meal/draft';
 import { DraftItemList } from '../meal/DraftItemList';
 import type { MealType } from '../meal/types';
-import { PRIMARY_BUTTON_CLASS } from '../ui/buttonStyle';
+import { CookEditor } from '../recipe/CookEditor';
+import {
+  PRIMARY_BUTTON_CLASS,
+  SECONDARY_BUTTON_CLASS,
+} from '../ui/buttonStyle';
+import { PageLoading } from '../ui/Card';
 import { MacroSummary } from '../ui/MacroSummary';
 
 interface Props {
@@ -19,7 +31,9 @@ interface Props {
 
 /**
  * The quantities of what was picked for a journal section, to check, then
- * add as a new meal. Remount it (key) to start again from `initialItems`.
+ * add as a new meal. A recipe can be adapted this time (its servings and
+ * ingredients) without changing it. Remount it (key) to start again from
+ * `initialItems`.
  */
 export function DailyMealReview({
   mealType,
@@ -30,6 +44,8 @@ export function DailyMealReview({
   const [items, setItems] = useState<MealItemDraft[]>(initialItems);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [adapting, setAdapting] = useState<MealItemDraft | null>(null);
+  const foods = useList(listFoodItems);
 
   const removeItem = (id: string) => {
     setItems((prev) => prev.filter((item) => item.id !== id));
@@ -63,6 +79,34 @@ export function DailyMealReview({
 
   const totals = draftTotals(items);
 
+  if (adapting?.kind === 'recipe') {
+    return foods.isLoading ? (
+      <PageLoading />
+    ) : (
+      <div className="flex flex-1 animate-step-in flex-col gap-4">
+        <CookEditor
+          recipe={adapting.recipe}
+          foodItems={foods.items}
+          initial={adapting.adapted?.cook}
+          submitLabel="Valider l'adaptation"
+          onSubmit={(cook, whole) => {
+            replaceItem(adaptDraft(adapting, cook, whole));
+            setAdapting(null);
+          }}
+          secondary={
+            <button
+              type="button"
+              onClick={() => setAdapting(null)}
+              className={SECONDARY_BUTTON_CLASS}
+            >
+              Annuler
+            </button>
+          }
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-5">
       {items.length > 0 ? (
@@ -70,6 +114,7 @@ export function DailyMealReview({
           items={items}
           onChange={replaceItem}
           onRemove={removeItem}
+          onAdapt={setAdapting}
         />
       ) : (
         <p className="py-4 text-center text-sm text-theme-400">

@@ -4,8 +4,8 @@ import { listFoodItems } from '../components/food/api';
 import type { FoodItem } from '../components/food/types';
 import { listMealsOnDate } from '../components/meal/api';
 import type { Meal } from '../components/meal/types';
-import { listRecipes } from '../components/recipe/api';
-import type { Recipe } from '../components/recipe/types';
+import { listBatches, listRecipes } from '../components/recipe/api';
+import type { Batch, Recipe } from '../components/recipe/types';
 import { toDateKey } from '../utils/dateKey';
 import { useDataVersion } from './useDataVersion';
 
@@ -23,7 +23,8 @@ function neighbourKey(dateKey: string, offset: number) {
 }
 
 /**
- * The journal of one day plus the food and recipe libraries. Each day is cached once loaded,
+ * The journal of one day plus the food and recipe libraries and the batches
+ * of the recipes cooked. Each day is cached once loaded,
  * and the days before and after are prefetched right after, so moving from day
  * to day is instant.
  */
@@ -31,6 +32,7 @@ export function useDailyMeals(date: Date) {
   const dateKey = toDateKey(date);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [batches, setBatches] = useState<Batch[]>([]);
   const [foodsError, setFoodsError] = useState<string | null>(null);
   const [foodsAttempt, setFoodsAttempt] = useState(0);
   const [days, setDays] = useState<Record<string, Meal[]>>({});
@@ -47,10 +49,12 @@ export function useDailyMeals(date: Date) {
     Promise.all([
       listFoodItems(controller.signal),
       listRecipes(controller.signal),
+      listBatches(controller.signal),
     ])
-      .then(([foods, library]) => {
+      .then(([foods, library, cooked]) => {
         setFoodItems(foods);
         setRecipes(library);
+        setBatches(cooked);
       })
       .catch(() => {
         if (controller.signal.aborted) return;
@@ -127,6 +131,7 @@ export function useDailyMeals(date: Date) {
     meals: meals ?? NO_MEALS,
     foodItems,
     recipes,
+    batches,
     isReady: meals !== undefined,
     isLoading: meals === undefined && dayError === undefined,
     loadError: dayError ?? foodsError,
