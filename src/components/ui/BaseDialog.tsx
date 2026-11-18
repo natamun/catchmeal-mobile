@@ -67,7 +67,13 @@ export function BaseDialog({
   return (
     <dialog
       ref={setRefs}
-      onClose={onClose}
+      onClose={(e) => {
+        // React bubbles a nested sheet's close up to here; only this dialog's
+        // own close counts, or picking an option would reset the form.
+        if (e.target === e.currentTarget) {
+          onClose?.();
+        }
+      }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           closeDialog();

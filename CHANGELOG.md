@@ -4,6 +4,10 @@ What changed in each version of CatCHMeal, the latest first. The format follows 
 
 ## [Unreleased]
 
+### Fixed
+
+- The quick add's category can be changed again: picking breakfast instead of dinner no longer puts the section back and empties the calories typed.
+
 ## [0.12.0] - 2026-11-14
 
 Foods and exercises of the journal edited from their sheet, each meal's totals, and a calorie chart that leaves the day in progress out.
